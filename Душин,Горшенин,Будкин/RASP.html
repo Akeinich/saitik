@@ -1507,7 +1507,7 @@
 
   /* ─── Auth guard ─── */
   if (sessionStorage.getItem('isLoggedIn') !== 'true') {
-    window.location.href = 'auth.html';
+    window.location.href = 'index.html';
   }
   const username = sessionStorage.getItem('username') || 'Гость';
   document.getElementById('usernameDisplay').textContent = username;
@@ -1517,7 +1517,7 @@
     if (confirm('Вы уверены, что хотите выйти?')) {
       sessionStorage.removeItem('isLoggedIn');
       sessionStorage.removeItem('username');
-      window.location.href = 'auth.html';
+      window.location.href = 'index.html';
     }
   }
 
