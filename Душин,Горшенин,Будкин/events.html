@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Школьные события, олимпиады, конкурсы — Электронный Дневник">
+  <title>События — Электронный Дневник</title>
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #03050f;
+      --bg-card: rgba(255,255,255,0.06);
+      --bg-bar: rgba(2, 8, 35, 0.60);
+      --text-primary: #ffffff;
+      --text-secondary: rgba(170, 215, 250, 0.72);
+      --text-muted: rgba(144, 213, 248, 0.45);
+      --accent-1: #4fc3f7;
+      --accent-2: #1565c0;
+      --border-subtle: rgba(79, 195, 247, 0.18);
+    }
+    [data-theme="light"] {
+      --bg-primary: #eef2f7;
+      --bg-card: rgba(255,255,255,0.85);
+      --bg-bar: rgba(255,255,255,0.88);
+      --text-primary: #1a1a2e;
+      --text-secondary: #4a5568;
+      --text-muted: #718096;
+      --accent-1: #2b6cb0;
+      --accent-2: #1a365d;
+      --border-subtle: rgba(43, 108, 176, 0.25);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      transition: background 0.4s, color 0.4s;
+    }
+
+    .bg-image {
+      position: fixed; inset: 0; z-index: 0;
+      background: url('bg.jpg') center / cover no-repeat fixed;
+    }
+    .bg-image::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(to bottom,
+        rgba(2,5,25,0.85) 0%, rgba(5,12,38,0.6) 40%, rgba(2,5,25,0.9) 100%);
+    }
+    [data-theme="light"] .bg-image::after {
+      background: linear-gradient(to bottom,
+        rgba(238,242,247,0.95) 0%, rgba(238,242,247,0.8) 40%, rgba(238,242,247,0.97) 100%);
+    }
+
+    .wrapper {
+      position: relative; z-index: 2;
+      max-width: 900px; margin: 0 auto;
+      padding: 30px 20px 60px;
+    }
+
+    /* Header */
+    .events-header {
+      text-align: center;
+      padding: 50px 20px 30px;
+    }
+    .events-header h1 {
+      font-size: clamp(32px, 7vw, 56px);
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff, #7c4dff, #4fc3f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+    [data-theme="light"] .events-header h1 {
+      background: linear-gradient(135deg, #1a365d, #553c9a, #2b6cb0);
+      -webkit-background-clip: text; background-clip: text;
+    }
+    .events-header p {
+      color: var(--text-secondary);
+      font-size: 18px; max-width: 500px; margin: 0 auto;
+    }
+
+    .back-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--accent-1); text-decoration: none;
+      font-weight: 600; font-size: 14px;
+      margin-bottom: 30px;
+      transition: color 0.3s, transform 0.3s;
+    }
+    .back-link:hover { color: #fff; transform: translateX(-4px); }
+    [data-theme="light"] .back-link:hover { color: var(--accent-2); }
+
+    /* Event card */
+    .event-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 20px;
+      backdrop-filter: blur(12px);
+      transition: transform 0.3s, box-shadow 0.3s, background 0.4s;
+      position: relative;
+      overflow: hidden;
+    }
+    .event-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+    }
+    .event-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 4px; height: 100%;
+      border-radius: 20px 0 0 20px;
+    }
+    .event-card.type-olympiad::before { background: #f2c94c; }
+    .event-card.type-concert::before { background: #eb5757; }
+    .event-card.type-contest::before { background: #6fcf97; }
+    .event-card.type-announce::before { background: #56ccf2; }
+    .event-card.type-sport::before { background: #f2994a; }
+
+    .event-meta {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 12px; flex-wrap: wrap;
+    }
+    .event-badge {
+      padding: 4px 12px; border-radius: 12px;
+      font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    .type-olympiad .event-badge { background: rgba(242,201,76,0.2); color: #f2c94c; }
+    .type-concert .event-badge  { background: rgba(235,87,87,0.2); color: #eb5757; }
+    .type-contest .event-badge  { background: rgba(111,207,151,0.2); color: #6fcf97; }
+    .type-announce .event-badge { background: rgba(86,204,242,0.2); color: #56ccf2; }
+    .type-sport .event-badge    { background: rgba(242,153,74,0.2); color: #f2994a; }
+
+    .event-date {
+      font-size: 12px; color: var(--text-muted);
+      font-weight: 600; letter-spacing: 1px;
+    }
+    .event-title {
+      font-size: 20px; font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .event-desc {
+      color: var(--text-secondary);
+      font-size: 15px; line-height: 1.6;
+    }
+    .event-classes {
+      margin-top: 12px;
+      display: flex; gap: 6px; flex-wrap: wrap;
+    }
+    .event-class-tag {
+      padding: 3px 10px; border-radius: 10px;
+      font-size: 11px; font-weight: 700;
+      background: rgba(79, 195, 247, 0.12);
+      color: var(--accent-1);
+      border: 1px solid rgba(79, 195, 247, 0.2);
+    }
+
+    /* Filter */
+    .event-filters {
+      display: flex; gap: 8px; flex-wrap: wrap;
+      margin-bottom: 30px;
+    }
+    .ev-filter-btn {
+      padding: 7px 16px; border-radius: 20px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-card);
+      color: var(--text-secondary);
+      font-family: inherit; font-size: 13px;
+      font-weight: 600; cursor: pointer;
+      transition: all 0.3s;
+    }
+    .ev-filter-btn:hover {
+      border-color: var(--accent-1); color: var(--accent-1);
+    }
+    .ev-filter-btn.active {
+      background: linear-gradient(135deg, var(--accent-2), #0d47a1);
+      color: #fff; border-color: transparent;
+    }
+
+    @media (max-width: 600px) {
+      .wrapper { padding: 20px 16px 40px; }
+      .event-card { padding: 20px; }
+      .event-title { font-size: 17px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="bg-image"></div>
+
+<div class="wrapper">
+
+  <a href="RASP.HTML" class="back-link" data-aos="fade-right">← Назад к расписанию</a>
+
+  <div class="events-header" data-aos="fade-down">
+    <h1>📢 События</h1>
+    <p>Олимпиады, конкурсы, концерты и важные объявления</p>
+  </div>
+
+  <div class="event-filters" data-aos="fade-up" data-aos-delay="100">
+    <button class="ev-filter-btn active" onclick="filterEvents('all')">Все</button>
+    <button class="ev-filter-btn" onclick="filterEvents('olympiad')">🏆 Олимпиады</button>
+    <button class="ev-filter-btn" onclick="filterEvents('contest')">🎨 Конкурсы</button>
+    <button class="ev-filter-btn" onclick="filterEvents('concert')">🎵 Концерты</button>
+    <button class="ev-filter-btn" onclick="filterEvents('sport')">⚽ Спорт</button>
+    <button class="ev-filter-btn" onclick="filterEvents('announce')">📋 Объявления</button>
+  </div>
+
+  <!-- Events -->
+  <div class="event-card type-olympiad" data-type="olympiad" data-aos="fade-up" data-aos-delay="150">
+    <div class="event-meta">
+      <span class="event-badge">🏆 Олимпиада</span>
+      <span class="event-date">15 января 2026</span>
+    </div>
+    <div class="event-title">Школьная олимпиада по математике</div>
+    <div class="event-desc">
+      Приглашаем учеников 7–11 классов принять участие в школьном этапе олимпиады по математике.
+      Регистрация до 10 января у классного руководителя. Победители проходят на городской этап!
+    </div>
+    <div class="event-classes">
+      <span class="event-class-tag">7 класс</span>
+      <span class="event-class-tag">8 класс</span>
+      <span class="event-class-tag">9 класс</span>
+      <span class="event-class-tag">10 класс</span>
+      <span class="event-class-tag">11 класс</span>
+    </div>
+  </div>
+
+  <div class="event-card type-concert" data-type="concert" data-aos="fade-up" data-aos-delay="200">
+    <div class="event-meta">
+      <span class="event-badge">🎵 Концерт</span>
+      <span class="event-date">22 января 2026</span>
+    </div>
+    <div class="event-title">Концерт Вангеров — Новогоднее шоу</div>
+    <div class="event-desc">
+      Грандиозное музыкальное представление в актовом зале!
+      Начало в 14:00. Вход свободный для всех учеников и их родителей.
+    </div>
+    <div class="event-classes">
+      <span class="event-class-tag">Все классы</span>
+    </div>
+  </div>
+
+  <div class="event-card type-contest" data-type="contest" data-aos="fade-up" data-aos-delay="250">
+    <div class="event-meta">
+      <span class="event-badge">🎨 Конкурс</span>
+      <span class="event-date">28 января 2026</span>
+    </div>
+    <div class="event-title">Конкурс рисунков «Зимняя сказка»</div>
+    <div class="event-desc">
+      Принимаются работы в любой технике: акварель, гуашь, карандаш, цифровой арт.
+      Работы сдавать кабинет 204 до 25 января. Награждение на линейке.
+    </div>
+    <div class="event-classes">
+      <span class="event-class-tag">5 класс</span>
+      <span class="event-class-tag">6 класс</span>
+      <span class="event-class-tag">7 класс</span>
+    </div>
+  </div>
+
+  <div class="event-card type-sport" data-type="sport" data-aos="fade-up" data-aos-delay="300">
+    <div class="event-meta">
+      <span class="event-badge">⚽ Спорт</span>
+      <span class="event-date">5 февраля 2026</span>
+    </div>
+    <div class="event-title">Турнир по мини-футболу</div>
+    <div class="event-desc">
+      Межклассовый турнир для 8–11 классов. Формат: команды по 5 человек.
+      Заявки принимает учитель физкультуры до 1 февраля.
+    </div>
+    <div class="event-classes">
+      <span class="event-class-tag">8 класс</span>
+      <span class="event-class-tag">9 класс</span>
+      <span class="event-class-tag">10 класс</span>
+      <span class="event-class-tag">11 класс</span>
+    </div>
+  </div>
+
+  <div class="event-card type-announce" data-type="announce" data-aos="fade-up" data-aos-delay="350">
+    <div class="event-meta">
+      <span class="event-badge">📋 Объявление</span>
+      <span class="event-date">10 февраля 2026</span>
+    </div>
+    <div class="event-title">Изменение расписания на неделю 10–14 февраля</div>
+    <div class="event-desc">
+      В связи с проведением диагностических работ расписание 9 и 11 классов будет изменено.
+      Обновлённое расписание появится в электронном дневнике до 7 февраля.
+    </div>
+    <div class="event-classes">
+      <span class="event-class-tag">9 класс</span>
+      <span class="event-class-tag">11 класс</span>
+    </div>
+  </div>
+
+  <div class="event-card type-olympiad" data-type="olympiad" data-aos="fade-up" data-aos-delay="400">
+    <div class="event-meta">
+      <span class="event-badge">🏆 Олимпиада</span>
+      <span class="event-date">20 февраля 2026</span>
+    </div>
+    <div class="event-title">Олимпиада по термоядерной физике</div>
+    <div class="event-desc">
+      Уникальная олимпиада для продвинутых учеников!
+      Задания включают теоретические вопросы и расчётные задачи.
+      Участие по приглашению учителя.
+    </div>
+    <div class="event-classes">
+      <span class="event-class-tag">9 класс</span>
+      <span class="event-class-tag">10 класс</span>
+      <span class="event-class-tag">11 класс</span>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+<script>
+  AOS.init({ once: true, offset: 50 });
+
+  /* Theme */
+  (function() {
+    const saved = localStorage.getItem('school_theme');
+    if (saved) document.documentElement.setAttribute('data-theme', saved);
+  })();
+
+  /* Filter */
+  function filterEvents(type) {
+    document.querySelectorAll('.ev-filter-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+
+    document.querySelectorAll('.event-card').forEach(card => {
+      if (type === 'all' || card.getAttribute('data-type') === type) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+</script>
+</body>
+</html>
