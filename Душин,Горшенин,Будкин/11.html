@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<HTML>
+<HEAD>
+<TITLE>Расписание — 11 класс</TITLE>
+<META charset="UTF-8">
+<META name="viewport" content="width=device-width, initial-scale=1.0">
+<STYLE>
+  :root{--accent:#f39c12;--accent-dark:#d68910;--accent-glow:rgba(243,156,18,0.5)}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;min-height:100vh;background:url('42ni.jpg') center/cover fixed;color:#f0f0f0}
+  body::before{content:'';position:fixed;inset:0;background:rgba(15,10,0,0.80);z-index:0}
+  .page-wrapper{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:20px 20px 60px}
+  .header{text-align:center;padding:50px 20px 30px}
+  .main-title{font-size:5rem;font-weight:900;letter-spacing:4px;text-transform:uppercase;background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:8px;line-height:1}
+  .sub-title{font-size:2rem;color:var(--accent);font-style:italic;margin-bottom:30px;text-shadow:0 0 20px var(--accent-glow)}
+  .image-container{display:inline-block;border:3px solid var(--accent);border-radius:20px;box-shadow:0 0 30px var(--accent-glow),0 10px 40px rgba(0,0,0,0.6);background:rgba(255,255,255,0.08);padding:6px;transition:transform 0.4s,box-shadow 0.4s}
+  .image-container:hover{transform:scale(1.05) rotate(1deg);box-shadow:0 0 50px var(--accent-glow),0 15px 50px rgba(0,0,0,0.7)}
+  .image-container img{display:block;border-radius:14px;max-width:300px}
+  .nav-days{position:sticky;top:10px;z-index:100;display:flex;justify-content:center;flex-wrap:wrap;gap:6px;background:rgba(0,0,0,0.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.15);border-radius:50px;padding:10px 18px;margin:0 auto 10px;width:fit-content;max-width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.4)}
+  .nav-days a{color:#ffd700;font-size:14px;font-weight:700;text-decoration:none;padding:6px 14px;border-radius:25px;transition:all 0.25s;letter-spacing:0.5px;white-space:nowrap}
+  .nav-days a:hover{background:var(--accent);color:#fff;box-shadow:0 0 15px var(--accent-glow);transform:translateY(-2px)}
+  .day-section{margin-top:30px;background:rgba(255,255,255,0.07);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.14);border-radius:24px;padding:22px;box-shadow:0 8px 32px rgba(0,0,0,0.35);animation:fadeUp 0.5s ease both}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(25px)}to{opacity:1;transform:translateY(0)}}
+  .day-title{display:inline-block;font-size:1.5rem;font-weight:800;color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent-dark));border-radius:12px;padding:8px 22px;margin-bottom:15px;box-shadow:0 4px 15px rgba(0,0,0,0.3);text-shadow:0 2px 4px rgba(0,0,0,0.3);text-decoration:none}
+  .schedule-table{width:100%;border-collapse:collapse;border-radius:16px;overflow:hidden}
+  .schedule-table thead tr{background:rgba(40,25,0,0.85);border-bottom:2px solid var(--accent)}
+  .schedule-table thead th{padding:13px 10px;font-size:14px;font-weight:700;color:#ffd700;text-align:center;letter-spacing:1px;text-transform:uppercase}
+  .schedule-table tbody tr{background:rgba(255,255,255,0.06);transition:background 0.25s,transform 0.2s;border-bottom:1px solid rgba(255,255,255,0.06)}
+  .schedule-table tbody tr:nth-child(even){background:rgba(255,255,255,0.11)}
+  .schedule-table tbody tr:hover{background:rgba(243,156,18,0.18);transform:scaleX(1.005)}
+  .schedule-table tbody td{padding:11px 12px;font-family:'Courier New',monospace;font-size:14px;color:#eee;text-align:center}
+  .schedule-table tbody td:first-child{font-weight:900;font-size:1.15rem;color:var(--accent);width:55px}
+  .footer{margin-top:60px;text-align:center}
+  .back-top{display:inline-block;background:linear-gradient(135deg,var(--accent),var(--accent-dark));color:#fff;text-decoration:none;padding:12px 32px;border-radius:30px;font-size:1rem;font-weight:700;margin-bottom:25px;transition:all 0.3s;box-shadow:0 5px 20px rgba(0,0,0,0.4);letter-spacing:1px}
+  .back-top:hover{transform:translateY(-3px);box-shadow:0 10px 30px var(--accent-glow)}
+  .footer-img-link{display:inline-block;border:3px solid var(--accent);border-radius:15px;overflow:hidden;transition:all 0.3s;box-shadow:0 5px 20px rgba(0,0,0,0.4)}
+  .footer-img-link:hover{transform:scale(1.05);box-shadow:0 10px 30px var(--accent-glow)}
+  .footer-img-link img{display:block;border-radius:12px}
+  @media(max-width:768px){.main-title{font-size:3rem}.sub-title{font-size:1.4rem}.nav-days a{font-size:12px;padding:5px 10px}.day-title{font-size:1.2rem}.schedule-table thead th,.schedule-table tbody td{font-size:12px;padding:8px 6px}.image-container img{max-width:220px}}
+</STYLE>
+</HEAD>
+<BODY>
+<DIV CLASS="page-wrapper">
+  <DIV CLASS="header" id="TOP">
+    <DIV CLASS="main-title">Расписание</DIV>
+    <DIV CLASS="sub-title">занятий 11 класса</DIV>
+    <DIV CLASS="image-container"><IMG SRC="5opka.jpg" ALT="11 класс"></DIV>
+  </DIV>
+
+  <DIV CLASS="nav-days">
+    <A HREF="#ПН">📅 Понедельник</A><A HREF="#ВТ">📅 Вторник</A>
+    <A HREF="#СР">📅 Среда</A><A HREF="#ЧТ">📅 Четверг</A>
+    <A HREF="#ПТ">📅 Пятница</A><A HREF="#СБ">📅 Суббота</A>
+  </DIV>
+
+  <DIV CLASS="day-section">
+    <A CLASS="day-title" NAME="ПН">🌅 Понедельник</A>
+    <TABLE CLASS="schedule-table">
+      <THEAD><TR><TH>№</TH><TH>11 «Z»</TH><TH>11 «O»</TH><TH>11 «V»</TH></TR></THEAD>
+      <TBODY>
+        <TR><TD>1</TD><TD>Русский язык</TD><TD>Литература</TD><TD>История СВО</TD></TR>
+        <TR><TD>2</TD><TD>Математика</TD><TD>Дроноводство</TD><TD>Азбука СВО</TD></TR>
+        <TR><TD>3</TD><TD>История СВО</TD><TD>Математика</TD><TD>Дроноводство</TD></TR>
+        <TR><TD>4</TD><TD>Физика</TD><TD>Химия</TD><TD>Алгебра</TD></TR>
+        <TR><TD>5</TD><TD>Химия</TD><TD>Физика</TD><TD>Информатика</TD></TR>
+        <TR><TD>6</TD><TD>Информатика</TD><TD>Азбука СВО</TD><TD>Математика</TD></TR>
+        <TR><TD>7</TD><TD>Азбука СВО</TD><TD>Информатика</TD><TD>Физика</TD></TR>
+      </TBODY>
+    </TABLE>
+  </DIV>
+
+  <DIV CLASS="day-section">
+    <A CLASS="day-title" NAME="ВТ">🌄 Вторник</A>
+    <TABLE CLASS="schedule-table">
+      <THEAD><TR><TH>№</TH><TH>11 «Z»</TH><TH>11 «O»</TH><TH>11 «V»</TH></TR></THEAD>
+      <TBODY>
+        <TR><TD>1</TD><TD>Азбука СВО</TD><TD>Литература</TD><TD>История СВО</TD></TR>
+        <TR><TD>2</TD><TD>Концерт Вагнера</TD><TD>Штурм окопов</TD><TD>Азбука СВО</TD></TR>
+        <TR><TD>3</TD><TD>История СВО</TD><TD>Киев за 3 дня</TD><TD>Термоядерная физика</TD></TR>
+        <TR><TD>4</TD><TD>Алгебра</TD><TD>Информатика</TD><TD>Химия</TD></TR>
+        <TR><TD>5</TD><TD>Информатика</TD><TD>Физика</TD><TD>Математика</TD></TR>
+        <TR><TD>6</TD><TD>Математика</TD><TD>Химия</TD><TD>Информатика</TD></TR>
+        <TR><TD>7</TD><TD>Физика</TD><TD>Азбука СВО</TD><TD>Алгебра</TD></TR>
+      </TBODY>
+    </TABLE>
+  </DIV>
+
+  <DIV CLASS="day-section">
+    <A CLASS="day-title" NAME="СР">☀️ Среда</A>
+    <TABLE CLASS="schedule-table">
+      <THEAD><TR><TH>№</TH><TH>11 «Z»</TH><TH>11 «O»</TH><TH>11 «V»</TH></TR></THEAD>
+      <TBODY>
+        <TR><TD>1</TD><TD>Литература</TD><TD>История СВО</TD><TD>Математика</TD></TR>
+        <TR><TD>2</TD><TD>Математика</TD><TD>Азбука СВО</TD><TD>Литература</TD></TR>
+        <TR><TD>3</TD><TD>Физика</TD><TD>Дроноводство</TD><TD>Концерт Вагнера</TD></TR>
+        <TR><TD>4</TD><TD>Химия</TD><TD>Алгебра</TD><TD>Физика</TD></TR>
+        <TR><TD>5</TD><TD>Информатика</TD><TD>Химия</TD><TD>Азбука СВО</TD></TR>
+        <TR><TD>6</TD><TD>История СВО</TD><TD>Математика</TD><TD>Химия</TD></TR>
+        <TR><TD>7</TD><TD>Азбука СВО</TD><TD>Информатика</TD><TD>История СВО</TD></TR>
+      </TBODY>
+    </TABLE>
+  </DIV>
+
+  <DIV CLASS="day-section">
+    <A CLASS="day-title" NAME="ЧТ">🌤️ Четверг</A>
+    <TABLE CLASS="schedule-table">
+      <THEAD><TR><TH>№</TH><TH>11 «Z»</TH><TH>11 «O»</TH><TH>11 «V»</TH></TR></THEAD>
+      <TBODY>
+        <TR><TD>1</TD><TD>Дроноводство</TD><TD>Математика</TD><TD>Азбука СВО</TD></TR>
+        <TR><TD>2</TD><TD>История СВО</TD><TD>Физика</TD><TD>Дроноводство</TD></TR>
+        <TR><TD>3</TD><TD>Азбука СВО</TD><TD>Литература</TD><TD>История СВО</TD></TR>
+        <TR><TD>4</TD><TD>Алгебра</TD><TD>Химия</TD><TD>Химия</TD></TR>
+        <TR><TD>5</TD><TD>Информатика</TD><TD>Информатика</TD><TD>Алгебра</TD></TR>
+        <TR><TD>6</TD><TD>Математика</TD><TD>Азбука СВО</TD><TD>Информатика</TD></TR>
+        <TR><TD>7</TD><TD>Химия</TD><TD>История СВО</TD><TD>Математика</TD></TR>
+      </TBODY>
+    </TABLE>
+  </DIV>
+
+  <DIV CLASS="day-section">
+    <A CLASS="day-title" NAME="ПТ">🌇 Пятница</A>
+    <TABLE CLASS="schedule-table">
+      <THEAD><TR><TH>№</TH><TH>11 «Z»</TH><TH>11 «O»</TH><TH>11 «V»</TH></TR></THEAD>
+      <TBODY>
+        <TR><TD>1</TD><TD>Штурм окопов</TD><TD>Концерт Вагнера</TD><TD>Литература</TD></TR>
+        <TR><TD>2</TD><TD>Киев за 3 дня</TD><TD>Азбука СВО</TD><TD>Математика</TD></TR>
+        <TR><TD>3</TD><TD>Термоядерная физика</TD><TD>История СВО</TD><TD>Дроноводство</TD></TR>
+        <TR><TD>4</TD><TD>Химия</TD><TD>Алгебра</TD><TD>Физика</TD></TR>
+        <TR><TD>5</TD><TD>Информатика</TD><TD>Математика</TD><TD>Химия</TD></TR>
+        <TR><TD>6</TD><TD>Физика</TD><TD>Химия</TD><TD>Азбука СВО</TD></TR>
+        <TR><TD>7</TD><TD>Азбука СВО</TD><TD>Информатика</TD><TD>Информатика</TD></TR>
+      </TBODY>
+    </TABLE>
+  </DIV>
+
+  <DIV CLASS="day-section">
+    <A CLASS="day-title" NAME="СБ">🌆 Суббота</A>
+    <TABLE CLASS="schedule-table">
+      <THEAD><TR><TH>№</TH><TH>11 «Z»</TH><TH>11 «O»</TH><TH>11 «V»</TH></TR></THEAD>
+      <TBODY>
+        <TR><TD>1</TD><TD>Азбука СВО</TD><TD>Термоядерная физика</TD><TD>Концерт Вагнера</TD></TR>
+        <TR><TD>2</TD><TD>Дроноводство</TD><TD>Штурм окопов</TD><TD>Азбука СВО</TD></TR>
+        <TR><TD>3</TD><TD>История СВО</TD><TD>Киев за 3 дня</TD><TD>Математика</TD></TR>
+        <TR><TD>4</TD><TD>Алгебра</TD><TD>Алгебра</TD><TD>Алгебра</TD></TR>
+        <TR><TD>5</TD><TD>Химия</TD><TD>Информатика</TD><TD>Физика</TD></TR>
+        <TR><TD>6</TD><TD>Информатика</TD><TD>Химия</TD><TD>Информатика</TD></TR>
+        <TR><TD>7</TD><TD>Математика</TD><TD>Азбука СВО</TD><TD>История СВО</TD></TR>
+      </TBODY>
+    </TABLE>
+  </DIV>
+
+  <DIV CLASS="footer">
+    <A CLASS="back-top" HREF="#TOP">↑ Вернуться наверх</A><BR>
+    <A CLASS="footer-img-link" HREF="RASP.HTML"><IMG SRC="42b.jpg" ALT="На главную"></A>
+  </DIV>
+</DIV>
+</BODY>
+</HTML>
