@@ -20,11 +20,12 @@
 <script>
   // ▼▼▼ ВСТАВЬ СВОЙ КОНФИГ FIREBASE СЮДА ▼▼▼
   // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
+
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
+// ВАЖНО: без import !!!
 const firebaseConfig = {
   apiKey: "AIzaSyA_rAWj8YakdcZ-WBvQAGNVD1jTGvUFUaQ",
   authDomain: "sait-8a1d6.firebaseapp.com",
@@ -35,11 +36,11 @@ const firebaseConfig = {
   appId: "1:471741162305:web:e0597664c362b91fc8b7c0"
 };
 
-// ИНИЦИАЛИЗАЦИЯ (как в index.html)
+// 🔥 ВАЖНО
 firebase.initializeApp(firebaseConfig);
 
-// ВОТ ЧЕГО ТЕБЕ НЕ ХВАТАЛО
-const db = firebase.database();
+// 🔥 ВАЖНО (глобально!)
+window.db = firebase.database();
 
   // ▼▼▼ ВСТАВЬ СВОИ КЛЮЧИ EMAILJS СЮДА ▼▼▼
   const EMAILJS_PUBLIC_KEY  = "8vNTHG4OhWWJUQUa3";   // Account → API Keys
@@ -606,5 +607,6 @@ async function handleStep3(e) {
   }
 }
 </script>
+     console.log(db);
 </body>
 </html>
