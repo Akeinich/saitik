@@ -35,8 +35,11 @@ const firebaseConfig = {
   appId: "1:471741162305:web:e0597664c362b91fc8b7c0"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// ИНИЦИАЛИЗАЦИЯ (как в index.html)
+firebase.initializeApp(firebaseConfig);
+
+// ВОТ ЧЕГО ТЕБЕ НЕ ХВАТАЛО
+const db = firebase.database();
 
   // ▼▼▼ ВСТАВЬ СВОИ КЛЮЧИ EMAILJS СЮДА ▼▼▼
   const EMAILJS_PUBLIC_KEY  = "8vNTHG4OhWWJUQUa3";   // Account → API Keys
