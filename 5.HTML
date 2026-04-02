@@ -1,562 +1,369 @@
 <!DOCTYPE html>
-<html lang="ru">
-<head>
-<title>Расписание — 5 класс</title>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-<style>
-/* ══ ПЕРЕМЕННЫЕ (менять для каждого класса) ══ */
-:root{
-  --accent:#27ae60; --accent-dark:#1e8449; --accent-glow:rgba(39,174,96,0.45);
-  --bg-overlay:rgba(5,15,10,0.80); --bg-image:url('42k.jpeg');
-  --class-num:"5"; --thead-bg:rgba(0,50,20,0.88);
-}
+<HTML>
+<HEAD>
+<TITLE>Расписание — 5 класс</TITLE>
+<META charset="UTF-8">
+<META name="viewport" content="width=device-width, initial-scale=1.0">
+<STYLE>
+  :root {
+    --accent: #27ae60;
+    --accent-dark: #1e8449;
+    --accent-glow: rgba(39,174,96,0.5);
+  }
 
-/* ══ СБРОС ══ */
-*{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
-/* ══ SCROLL PROGRESS BAR ══ */
-#scrollBar{
-  position:fixed;top:0;left:0;height:3px;width:0%;
-  background:linear-gradient(90deg,var(--accent),#a8ff78);
-  z-index:9999;transition:width .1s linear;
-  box-shadow:0 0 8px var(--accent-glow);
-}
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    background: url('42k.jpeg') center/cover fixed;
+    color: #f0f0f0;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 15, 10, 0.78);
+    z-index: 0;
+  }
 
-/* ══ BODY ══ */
-body{
-  font-family:'Onest',sans-serif;
-  min-height:100vh;
-  background:var(--bg-image) center/cover fixed;
-  color:#f0f0f0;
-  overflow-x:hidden;
-}
-body::before{
-  content:'';position:fixed;inset:0;
-  background:var(--bg-overlay);z-index:0;
-}
+  .page-wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 20px 20px 60px;
+  }
 
-/* ══ WRAPPER ══ */
-.page-wrapper{position:relative;z-index:1;max-width:1100px;margin:0 auto;padding:0 20px 80px}
+  /* ── ШАПКА ── */
+  .header {
+    text-align: center;
+    padding: 50px 20px 30px;
+  }
+  .main-title {
+    font-size: 5rem;
+    font-weight: 900;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #ffffff, var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+    line-height: 1;
+  }
+  .sub-title {
+    font-size: 2rem;
+    color: var(--accent);
+    font-style: italic;
+    margin-bottom: 30px;
+    text-shadow: 0 0 20px var(--accent-glow);
+  }
+  .image-container {
+    display: inline-block;
+    border: 3px solid var(--accent);
+    border-radius: 20px;
+    box-shadow: 0 0 30px var(--accent-glow), 0 10px 40px rgba(0,0,0,0.6);
+    background: rgba(255,255,255,0.08);
+    padding: 6px;
+    transition: transform 0.4s, box-shadow 0.4s;
+  }
+  .image-container:hover {
+    transform: scale(1.05) rotate(1deg);
+    box-shadow: 0 0 50px var(--accent-glow), 0 15px 50px rgba(0,0,0,0.7);
+  }
+  .image-container img { display: block; border-radius: 14px; max-width: 300px; }
 
-/* ══ TOP-NAVBAR ══ */
-.top-bar{
-  position:sticky;top:0;z-index:200;
-  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
-  background:rgba(0,0,0,0.75);backdrop-filter:blur(20px);
-  border-bottom:1px solid rgba(255,255,255,0.1);
-  padding:10px 20px;margin:0 -20px;
-}
-.top-bar-logo{
-  font-weight:900;font-size:15px;letter-spacing:.05em;
-  color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:6px;
-  white-space:nowrap;
-}
-.top-bar-logo:hover{opacity:.8}
-.top-bar-clock{
-  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;
-  color:#ffd700;padding:4px 10px;border:1px solid rgba(255,215,0,.25);
-  border-radius:8px;background:rgba(255,215,0,.08);white-space:nowrap;
-}
-.top-bar-spacer{flex:1}
-.search-wrap{position:relative;display:flex;align-items:center}
-.search-wrap input{
-  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
-  border-radius:20px;padding:6px 12px 6px 30px;
-  color:#fff;font-family:'Onest',sans-serif;font-size:13px;
-  width:180px;outline:none;transition:border-color .25s,width .3s;
-}
-.search-wrap input:focus{border-color:var(--accent);width:220px}
-.search-wrap input::placeholder{color:rgba(255,255,255,.4)}
-.search-wrap .si{
-  position:absolute;left:9px;font-size:13px;color:rgba(255,255,255,.5);
-  pointer-events:none;
-}
-.top-bar-home{
-  display:flex;align-items:center;gap:6px;
-  background:linear-gradient(135deg,var(--accent),var(--accent-dark));
-  color:#fff;text-decoration:none;padding:7px 16px;border-radius:20px;
-  font-size:13px;font-weight:700;transition:all .25s;white-space:nowrap;
-}
-.top-bar-home:hover{transform:translateY(-2px);box-shadow:0 6px 20px var(--accent-glow)}
+  /* ── НАВИГАЦИЯ ── */
+  .nav-days {
+    position: sticky;
+    top: 10px;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 6px;
+    background: rgba(0,0,0,0.72);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 50px;
+    padding: 10px 18px;
+    margin: 0 auto 10px;
+    width: fit-content;
+    max-width: 100%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .nav-days a {
+    color: #ffd700;
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 25px;
+    transition: all 0.25s;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+  .nav-days a:hover {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 0 15px var(--accent-glow);
+    transform: translateY(-2px);
+  }
 
-/* ══ ШАПКА ══ */
-.header{text-align:center;padding:50px 20px 30px}
-.main-title{
-  font-size:clamp(3rem,8vw,5.5rem);font-weight:900;letter-spacing:4px;
-  text-transform:uppercase;line-height:1;margin-bottom:8px;
-  background:linear-gradient(135deg,#fff,var(--accent));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-}
-.sub-title{
-  font-size:clamp(1.3rem,4vw,2rem);color:var(--accent);
-  font-style:italic;margin-bottom:20px;
-  text-shadow:0 0 20px var(--accent-glow);
-}
+  /* ── СЕКЦИИ ДНЯ ── */
+  .day-section {
+    margin-top: 30px;
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 24px;
+    padding: 22px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    animation: fadeUp 0.5s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(25px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
 
-/* year progress */
-.year-strip{
-  display:inline-flex;flex-direction:column;align-items:center;gap:5px;
-  margin-bottom:24px;
-}
-.year-labels{
-  font-family:'JetBrains Mono',monospace;font-size:10px;
-  color:rgba(255,255,255,.45);letter-spacing:.1em;
-  display:flex;gap:10px;
-}
-.year-track{
-  width:260px;height:5px;border-radius:5px;
-  background:rgba(255,255,255,.12);overflow:hidden;
-}
-.year-fill{
-  height:100%;border-radius:5px;width:0;
-  background:linear-gradient(90deg,var(--accent),#a8ff78);
-  transition:width 1.5s cubic-bezier(.4,0,.2,1) .5s;
-  box-shadow:0 0 10px var(--accent-glow);
-}
+  .day-title {
+    display: inline-block;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #fff;
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    border-radius: 12px;
+    padding: 8px 22px;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    text-decoration: none;
+  }
 
-.image-container{
-  display:inline-block;border:3px solid var(--accent);border-radius:20px;
-  box-shadow:0 0 30px var(--accent-glow),0 10px 40px rgba(0,0,0,.6);
-  background:rgba(255,255,255,.08);padding:6px;
-  transition:transform .4s,box-shadow .4s;
-}
-.image-container:hover{
-  transform:scale(1.05) rotate(1deg);
-  box-shadow:0 0 50px var(--accent-glow),0 15px 50px rgba(0,0,0,.7);
-}
-.image-container img{display:block;border-radius:14px;max-width:280px}
+  /* ── ТАБЛИЦА ── */
+  .schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .schedule-table thead tr {
+    background: rgba(0, 50, 30, 0.85);
+    border-bottom: 2px solid var(--accent);
+  }
+  .schedule-table thead th {
+    padding: 13px 10px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffd700;
+    text-align: center;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .schedule-table tbody tr {
+    background: rgba(255,255,255,0.06);
+    transition: background 0.25s, transform 0.2s;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .schedule-table tbody tr:nth-child(even) {
+    background: rgba(255,255,255,0.11);
+  }
+  .schedule-table tbody tr:hover {
+    background: rgba(39,174,96,0.18);
+    transform: scaleX(1.005);
+  }
+  .schedule-table tbody td {
+    padding: 11px 12px;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    color: #eee;
+    text-align: center;
+  }
+  .schedule-table tbody td:first-child {
+    font-weight: 900;
+    font-size: 1.15rem;
+    color: var(--accent);
+    width: 55px;
+  }
 
-/* ══ NAV DAYS ══ */
-.nav-days{
-  position:sticky;top:58px;z-index:100;
-  display:flex;justify-content:center;flex-wrap:wrap;gap:6px;
-  background:rgba(0,0,0,.78);backdrop-filter:blur(20px);
-  border:1px solid rgba(255,255,255,.12);border-radius:50px;
-  padding:10px 18px;margin:0 -20px 6px;
-  box-shadow:0 8px 32px rgba(0,0,0,.4);
-}
-.nav-days a{
-  color:#ffd700;font-size:13px;font-weight:700;
-  text-decoration:none;padding:6px 14px;border-radius:25px;
-  transition:all .25s;white-space:nowrap;position:relative;
-}
-.nav-days a:hover{
-  background:var(--accent);color:#fff;
-  box-shadow:0 0 14px var(--accent-glow);transform:translateY(-2px);
-}
-.nav-days a.active-day{
-  background:var(--accent);color:#fff;
-  box-shadow:0 0 14px var(--accent-glow);
-}
-.nav-days a .lesson-count{
-  position:absolute;top:-6px;right:-4px;
-  background:#ffd700;color:#111;font-size:9px;font-weight:800;
-  border-radius:10px;padding:1px 5px;line-height:1.4;
-}
+  /* ── ФУТЕР ── */
+  .footer {
+    margin-top: 60px;
+    text-align: center;
+  }
+  .back-top {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+    color: #fff;
+    text-decoration: none;
+    padding: 12px 32px;
+    border-radius: 30px;
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 25px;
+    transition: all 0.3s;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+    letter-spacing: 1px;
+  }
+  .back-top:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px var(--accent-glow);
+  }
+  .footer-img-link {
+    display: inline-block;
+    border: 3px solid var(--accent);
+    border-radius: 15px;
+    overflow: hidden;
+    transition: all 0.3s;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.4);
+  }
+  .footer-img-link:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 30px var(--accent-glow);
+  }
+  .footer-img-link img { display: block; border-radius: 12px; }
 
-/* ══ SEARCH HIGHLIGHT ══ */
-.hl{background:var(--accent);color:#000;border-radius:3px;padding:0 2px}
+  @media (max-width: 768px) {
+    .main-title { font-size: 3rem; }
+    .sub-title  { font-size: 1.4rem; }
+    .nav-days a { font-size: 12px; padding: 5px 10px; }
+    .day-title  { font-size: 1.2rem; }
+    .schedule-table thead th,
+    .schedule-table tbody td { font-size: 12px; padding: 8px 6px; }
+    .image-container img { max-width: 220px; }
+  }
+</STYLE>
+</HEAD>
+<BODY>
 
-/* ══ DAY SECTION ══ */
-.day-section{
-  margin-top:26px;background:rgba(255,255,255,.07);
-  backdrop-filter:blur(12px);
-  border:1px solid rgba(255,255,255,.13);border-radius:24px;
-  padding:22px;box-shadow:0 8px 32px rgba(0,0,0,.3);
-  opacity:0;transform:translateY(28px);
-  transition:opacity .5s ease,transform .5s ease;
-}
-.day-section.visible{opacity:1;transform:translateY(0)}
-.day-section.today-section{
-  border-color:var(--accent);
-  box-shadow:0 8px 32px rgba(0,0,0,.3),0 0 20px var(--accent-glow);
-}
-.day-section.today-section .day-title::after{
-  content:'  📌 сегодня';font-size:.75rem;font-weight:600;
-  opacity:.8;font-style:normal;
-}
+<DIV CLASS="page-wrapper">
 
-.day-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:15px}
-.day-title{
-  display:inline-block;font-size:1.45rem;font-weight:800;color:#fff;
-  background:linear-gradient(135deg,var(--accent),var(--accent-dark));
-  border-radius:12px;padding:8px 22px;
-  box-shadow:0 4px 15px rgba(0,0,0,.3);
-  text-shadow:0 2px 4px rgba(0,0,0,.3);text-decoration:none;
-}
-.lesson-badge{
-  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
-  padding:5px 12px;border-radius:10px;
-  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);
-  color:rgba(255,255,255,.7);white-space:nowrap;
-}
+  <!-- ШАПКА -->
+  <DIV CLASS="header" id="TOP">
+    <DIV CLASS="main-title">Расписание</DIV>
+    <DIV CLASS="sub-title">занятий 5 класса</DIV>
+    <DIV CLASS="image-container">
+      <IMG SRC="5opka.jpg" ALT="5 класс">
+    </DIV>
+  </DIV>
 
-/* ══ ТАБЛИЦА ══ */
-.schedule-table{width:100%;border-collapse:collapse;border-radius:16px;overflow:hidden}
-.schedule-table thead tr{background:var(--thead-bg);border-bottom:2px solid var(--accent)}
-.schedule-table thead th{
-  padding:12px 10px;font-size:13px;font-weight:700;
-  color:#ffd700;text-align:center;letter-spacing:.8px;text-transform:uppercase;
-  font-family:'JetBrains Mono',monospace;
-}
-.schedule-table tbody tr{
-  background:rgba(255,255,255,.06);
-  transition:background .2s,transform .2s;
-  border-bottom:1px solid rgba(255,255,255,.05);
-}
-.schedule-table tbody tr:nth-child(even){background:rgba(255,255,255,.10)}
-.schedule-table tbody tr:hover{
-  background:color-mix(in srgb,var(--accent) 18%,transparent);
-  transform:scaleX(1.004);
-}
-.schedule-table tbody td{
-  padding:10px 12px;font-family:'JetBrains Mono',monospace;
-  font-size:13px;color:#eee;text-align:center;
-}
-.schedule-table tbody td:first-child{
-  font-weight:900;font-size:1.1rem;color:var(--accent);width:50px;
-}
-/* любимый предмет */
-.schedule-table tbody td.fav-subject{
-  color:#ffd700;font-weight:700;
-  text-shadow:0 0 8px rgba(255,215,0,.4);
-}
-.schedule-table tbody td.fav-subject::after{content:' ⭐';font-size:.75em}
+  <!-- НАВИГАЦИЯ -->
+  <DIV CLASS="nav-days">
+    <A HREF="#ПН">📅 Понедельник</A>
+    <A HREF="#ВТ">📅 Вторник</A>
+    <A HREF="#СР">📅 Среда</A>
+    <A HREF="#ЧТ">📅 Четверг</A>
+    <A HREF="#ПТ">📅 Пятница</A>
+    <A HREF="#СБ">📅 Суббота</A>
+  </DIV>
 
-/* ══ TOAST ══ */
-.toast{
-  position:fixed;bottom:90px;left:50%;
-  transform:translateX(-50%) translateY(60px);
-  background:rgba(0,0,0,.9);border:1px solid var(--accent);
-  border-radius:12px;padding:10px 22px;
-  font-size:13px;font-weight:700;color:#fff;
-  z-index:9998;opacity:0;pointer-events:none;
-  transition:all .35s cubic-bezier(.16,1,.3,1);
-  backdrop-filter:blur(12px);white-space:nowrap;
-}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  <!-- ПОНЕДЕЛЬНИК -->
+  <DIV CLASS="day-section">
+    <A CLASS="day-title" NAME="ПН">🌅 Понедельник</A>
+    <TABLE CLASS="schedule-table">
+      <THEAD>
+        <TR><TH>№</TH><TH>5 «Z»</TH><TH>5 «O»</TH><TH>5 «V»</TH></TR>
+      </THEAD>
+      <TBODY>
+        <TR><TD>1</TD><TD>Русский язык</TD><TD>Литература</TD><TD>История СВ</TD></TR>
+        <TR><TD>2</TD><TD>Математика</TD><TD>Друноводство</TD><TD>Азбука СВ</TD></TR>
+        <TR><TD>3</TD><TD>История СВ</TD><TD>Математика</TD><TD>Друноводство</TD></TR>
+        <TR><TD>4</TD><TD>Азбука СВ</TD><TD>Русский язык</TD><TD>Литература</TD></TR>
+      </TBODY>
+    </TABLE>
+  </DIV>
 
-/* ══ FLOATING КНОПКА НАВЕРХ ══ */
-.fab-top{
-  position:fixed;bottom:24px;right:24px;z-index:500;
-  width:46px;height:46px;border-radius:50%;
-  background:linear-gradient(135deg,var(--accent),var(--accent-dark));
-  color:#fff;font-size:18px;border:none;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 6px 20px var(--accent-glow);
-  opacity:0;transform:scale(0);transition:all .3s cubic-bezier(.34,1.56,.64,1);
-}
-.fab-top.show{opacity:1;transform:scale(1)}
-.fab-top:hover{transform:scale(1.12) translateY(-3px)}
+  <!-- ВТОРНИК -->
+  <DIV CLASS="day-section">
+    <A CLASS="day-title" NAME="ВТ">🌄 Вторник</A>
+    <TABLE CLASS="schedule-table">
+      <THEAD>
+        <TR><TH>№</TH><TH>5 «Z»</TH><TH>5 «O»</TH><TH>5 «V»</TH></TR>
+      </THEAD>
+      <TBODY>
+        <TR><TD>1</TD><TD>Азбука СВ</TD><TD>Литература</TD><TD>История СВ</TD></TR>
+        <TR><TD>2</TD><TD>Концерт Вангеров</TD><TD>копать</TD><TD>Азбука СВ</TD></TR>
+        <TR><TD>3</TD><TD>История СВ</TD><TD>Киев</TD><TD>Термоядерная физика</TD></TR>
+        <TR><TD>4</TD><TD>Литература</TD><TD>Азбука СВ</TD><TD>Математика</TD></TR>
+      </TBODY>
+    </TABLE>
+  </DIV>
 
-/* ══ FOOTER ══ */
-.footer{margin-top:60px;text-align:center}
-.footer-img-link{
-  display:inline-block;border:3px solid var(--accent);border-radius:15px;
-  overflow:hidden;transition:all .3s;box-shadow:0 5px 20px rgba(0,0,0,.4);
-}
-.footer-img-link:hover{transform:scale(1.05);box-shadow:0 10px 30px var(--accent-glow)}
-.footer-img-link img{display:block;border-radius:12px}
+  <!-- СРЕДА -->
+  <DIV CLASS="day-section">
+    <A CLASS="day-title" NAME="СР">☀️ Среда</A>
+    <TABLE CLASS="schedule-table">
+      <THEAD>
+        <TR><TH>№</TH><TH>5 «Z»</TH><TH>5 «O»</TH><TH>5 «V»</TH></TR>
+      </THEAD>
+      <TBODY>
+        <TR><TD>1</TD><TD>Литература</TD><TD>История СВ</TD><TD>Математика</TD></TR>
+        <TR><TD>2</TD><TD>Математика</TD><TD>Азбука СВ</TD><TD>Литература</TD></TR>
+        <TR><TD>3</TD><TD>Физика</TD><TD>Друноводство</TD><TD>Концерт Вангеров</TD></TR>
+        <TR><TD>4</TD><TD>Азбука СВ</TD><TD>Русский язык</TD><TD>История СВ</TD></TR>
+      </TBODY>
+    </TABLE>
+  </DIV>
 
-/* ══ АДАПТИВ ══ */
-@media(max-width:768px){
-  .main-title{letter-spacing:2px}
-  .top-bar-clock{display:none}
-  .nav-days a{font-size:11px;padding:5px 9px}
-  .day-title{font-size:1.15rem}
-  .schedule-table thead th,.schedule-table tbody td{font-size:11px;padding:7px 5px}
-  .image-container img{max-width:200px}
-  .search-wrap input{width:130px}
-}
-</style>
-</head>
-<body>
+  <!-- ЧЕТВЕРГ -->
+  <DIV CLASS="day-section">
+    <A CLASS="day-title" NAME="ЧТ">🌤️ Четверг</A>
+    <TABLE CLASS="schedule-table">
+      <THEAD>
+        <TR><TH>№</TH><TH>5 «Z»</TH><TH>5 «O»</TH><TH>5 «V»</TH></TR>
+      </THEAD>
+      <TBODY>
+        <TR><TD>1</TD><TD>Друноводство</TD><TD>Математика</TD><TD>Азбука СВ</TD></TR>
+        <TR><TD>2</TD><TD>История СВ</TD><TD>Физика</TD><TD>Друноводство</TD></TR>
+        <TR><TD>3</TD><TD>Азбука СВ</TD><TD>Литература</TD><TD>История СВ</TD></TR>
+        <TR><TD>4</TD><TD>Русский язык</TD><TD>Концерт Вангеров</TD><TD>Математика</TD></TR>
+      </TBODY>
+    </TABLE>
+  </DIV>
 
-<div id="scrollBar"></div>
+  <!-- ПЯТНИЦА -->
+  <DIV CLASS="day-section">
+    <A CLASS="day-title" NAME="ПТ">🌇 Пятница</A>
+    <TABLE CLASS="schedule-table">
+      <THEAD>
+        <TR><TH>№</TH><TH>5 «Z»</TH><TH>5 «O»</TH><TH>5 «V»</TH></TR>
+      </THEAD>
+      <TBODY>
+        <TR><TD>1</TD><TD>копать</TD><TD>Концерт Вангеров</TD><TD>Литература</TD></TR>
+        <TR><TD>2</TD><TD>Киев</TD><TD>Азбука СВ</TD><TD>Математика</TD></TR>
+        <TR><TD>3</TD><TD>Термоядерная физика</TD><TD>История СВ</TD><TD>Друноводство</TD></TR>
+        <TR><TD>4</TD><TD>Друноводство</TD><TD>Литература</TD><TD>Азбука СВ</TD></TR>
+      </TBODY>
+    </TABLE>
+  </DIV>
 
-<!-- ══ TOP NAVBAR ══ -->
-<div class="top-bar" id="TOP">
-  <a class="top-bar-logo" href="RASP.HTML">📚 Электронный дневник</a>
-  <div class="top-bar-clock" id="clock">00:00:00</div>
-  <div class="top-bar-spacer"></div>
-  <div class="search-wrap">
-    <span class="si">🔍</span>
-    <input type="text" id="searchInput" placeholder="Найти предмет..." autocomplete="off">
-  </div>
-  <a class="top-bar-home" href="RASP.HTML">🏠 На главную</a>
-</div>
+  <!-- СУББОТА -->
+  <DIV CLASS="day-section">
+    <A CLASS="day-title" NAME="СБ">🌆 Суббота</A>
+    <TABLE CLASS="schedule-table">
+      <THEAD>
+        <TR><TH>№</TH><TH>5 «Z»</TH><TH>5 «O»</TH><TH>5 «V»</TH></TR>
+      </THEAD>
+      <TBODY>
+        <TR><TD>1</TD><TD>Азбука СВ</TD><TD>Термоядерная физика</TD><TD>Концерт Вангеров</TD></TR>
+        <TR><TD>2</TD><TD>Друноводство</TD><TD>копать</TD><TD>Азбука СВ</TD></TR>
+        <TR><TD>3</TD><TD>История СВ</TD><TD>Киев</TD><TD>Математика</TD></TR>
+        <TR><TD>4</TD><TD>Литература</TD><TD>Друноводство</TD><TD>Русский язык</TD></TR>
+      </TBODY>
+    </TABLE>
+  </DIV>
 
-<div class="page-wrapper">
+  <!-- ФУТЕР -->
+  <DIV CLASS="footer">
+    <A CLASS="back-top" HREF="#TOP">↑ Вернуться наверх</A><BR>
+    <A CLASS="footer-img-link" HREF="RASP.HTML">
+      <IMG SRC="42b.jpg" ALT="На главную">
+    </A>
+  </DIV>
 
-  <!-- ══ ШАПКА ══ -->
-  <div class="header">
-    <div class="main-title">Расписание</div>
-    <div class="sub-title">занятий 5 класса</div>
-    <div class="year-strip">
-      <div class="year-labels">
-        <span>1 сен 2025</span><span id="yearPct">0%</span><span>31 май 2026</span>
-      </div>
-      <div class="year-track"><div class="year-fill" id="yearFill"></div></div>
-    </div>
-    <div class="image-container"><img src="5opka.jpg" alt="5 класс"></div>
-  </div>
-
-  <!-- ══ НАВИГАЦИЯ ══ -->
-  <nav class="nav-days" id="navDays">
-    <a href="#ПН" data-day="1">🌅 Пн <span class="lesson-count" id="cnt-1"></span></a>
-    <a href="#ВТ" data-day="2">🌄 Вт <span class="lesson-count" id="cnt-2"></span></a>
-    <a href="#СР" data-day="3">☀️ Ср <span class="lesson-count" id="cnt-3"></span></a>
-    <a href="#ЧТ" data-day="4">🌤️ Чт <span class="lesson-count" id="cnt-4"></span></a>
-    <a href="#ПТ" data-day="5">🌇 Пт <span class="lesson-count" id="cnt-5"></span></a>
-    <a href="#СБ" data-day="6">🌆 Сб <span class="lesson-count" id="cnt-6"></span></a>
-  </nav>
-
-  <!-- ══ ПОНЕДЕЛЬНИК ══ -->
-  <div class="day-section" id="ПН" data-day="1">
-    <div class="day-header">
-      <span class="day-title">🌅 Понедельник</span>
-      <span class="lesson-badge" id="badge-1"></span>
-    </div>
-    <table class="schedule-table">
-      <thead><tr><th>№</th><th>5 «Z»</th><th>5 «O»</th><th>5 «V»</th></tr></thead>
-      <tbody>
-        <tr><td>1</td><td>Русский язык</td><td>Литература</td><td>История СВ</td></tr>
-        <tr><td>2</td><td>Математика</td><td>Друноводство</td><td>Азбука СВ</td></tr>
-        <tr><td>3</td><td>История СВ</td><td>Математика</td><td>Друноводство</td></tr>
-        <tr><td>4</td><td>Азбука СВ</td><td>Русский язык</td><td>Литература</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- ══ ВТОРНИК ══ -->
-  <div class="day-section" id="ВТ" data-day="2">
-    <div class="day-header">
-      <span class="day-title">🌄 Вторник</span>
-      <span class="lesson-badge" id="badge-2"></span>
-    </div>
-    <table class="schedule-table">
-      <thead><tr><th>№</th><th>5 «Z»</th><th>5 «O»</th><th>5 «V»</th></tr></thead>
-      <tbody>
-        <tr><td>1</td><td>Азбука СВ</td><td>Литература</td><td>История СВ</td></tr>
-        <tr><td>2</td><td>Концерт Вангеров</td><td>копать</td><td>Азбука СВ</td></tr>
-        <tr><td>3</td><td>История СВ</td><td>Киев</td><td>Термоядерная физика</td></tr>
-        <tr><td>4</td><td>Литература</td><td>Азбука СВ</td><td>Математика</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- ══ СРЕДА ══ -->
-  <div class="day-section" id="СР" data-day="3">
-    <div class="day-header">
-      <span class="day-title">☀️ Среда</span>
-      <span class="lesson-badge" id="badge-3"></span>
-    </div>
-    <table class="schedule-table">
-      <thead><tr><th>№</th><th>5 «Z»</th><th>5 «O»</th><th>5 «V»</th></tr></thead>
-      <tbody>
-        <tr><td>1</td><td>Литература</td><td>История СВ</td><td>Математика</td></tr>
-        <tr><td>2</td><td>Математика</td><td>Азбука СВ</td><td>Литература</td></tr>
-        <tr><td>3</td><td>Физика</td><td>Друноводство</td><td>Концерт Вангеров</td></tr>
-        <tr><td>4</td><td>Азбука СВ</td><td>Русский язык</td><td>История СВ</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- ══ ЧЕТВЕРГ ══ -->
-  <div class="day-section" id="ЧТ" data-day="4">
-    <div class="day-header">
-      <span class="day-title">🌤️ Четверг</span>
-      <span class="lesson-badge" id="badge-4"></span>
-    </div>
-    <table class="schedule-table">
-      <thead><tr><th>№</th><th>5 «Z»</th><th>5 «O»</th><th>5 «V»</th></tr></thead>
-      <tbody>
-        <tr><td>1</td><td>Друноводство</td><td>Математика</td><td>Азбука СВ</td></tr>
-        <tr><td>2</td><td>История СВ</td><td>Физика</td><td>Друноводство</td></tr>
-        <tr><td>3</td><td>Азбука СВ</td><td>Литература</td><td>История СВ</td></tr>
-        <tr><td>4</td><td>Русский язык</td><td>Концерт Вангеров</td><td>Математика</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- ══ ПЯТНИЦА ══ -->
-  <div class="day-section" id="ПТ" data-day="5">
-    <div class="day-header">
-      <span class="day-title">🌇 Пятница</span>
-      <span class="lesson-badge" id="badge-5"></span>
-    </div>
-    <table class="schedule-table">
-      <thead><tr><th>№</th><th>5 «Z»</th><th>5 «O»</th><th>5 «V»</th></tr></thead>
-      <tbody>
-        <tr><td>1</td><td>копать</td><td>Концерт Вангеров</td><td>Литература</td></tr>
-        <tr><td>2</td><td>Киев</td><td>Азбука СВ</td><td>Математика</td></tr>
-        <tr><td>3</td><td>Термоядерная физика</td><td>История СВ</td><td>Друноводство</td></tr>
-        <tr><td>4</td><td>Друноводство</td><td>Литература</td><td>Азбука СВ</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- ══ СУББОТА ══ -->
-  <div class="day-section" id="СБ" data-day="6">
-    <div class="day-header">
-      <span class="day-title">🌆 Суббота</span>
-      <span class="lesson-badge" id="badge-6"></span>
-    </div>
-    <table class="schedule-table">
-      <thead><tr><th>№</th><th>5 «Z»</th><th>5 «O»</th><th>5 «V»</th></tr></thead>
-      <tbody>
-        <tr><td>1</td><td>Азбука СВ</td><td>Термоядерная физика</td><td>Концерт Вангеров</td></tr>
-        <tr><td>2</td><td>Друноводство</td><td>копать</td><td>Азбука СВ</td></tr>
-        <tr><td>3</td><td>История СВ</td><td>Киев</td><td>Математика</td></tr>
-        <tr><td>4</td><td>Литература</td><td>Друноводство</td><td>Русский язык</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- ══ FOOTER ══ -->
-  <div class="footer">
-    <a class="footer-img-link" href="RASP.HTML"><img src="42b.jpg" alt="На главную"></a>
-  </div>
-
-</div><!-- /page-wrapper -->
-
-<!-- FLOATING BTN -->
-<button class="fab-top" id="fabTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="Наверх">↑</button>
-
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
-
-<!-- ══════════════ JAVASCRIPT ══════════════ -->
-<script>
-/* ── Scroll progress bar ── */
-window.addEventListener('scroll', () => {
-  const st = document.documentElement.scrollTop;
-  const sh = document.documentElement.scrollHeight - window.innerHeight;
-  document.getElementById('scrollBar').style.width = (st / sh * 100) + '%';
-  document.getElementById('fabTop').classList.toggle('show', st > 300);
-});
-
-/* ── Живые часы ── */
-function tick() {
-  const n = new Date(), p = v => String(v).padStart(2,'0');
-  document.getElementById('clock').textContent = p(n.getHours())+':'+p(n.getMinutes())+':'+p(n.getSeconds());
-}
-tick(); setInterval(tick, 1000);
-
-/* ── Прогресс учебного года ── */
-(function(){
-  const s = new Date('2025-09-01'), e = new Date('2026-05-31'), n = new Date();
-  const pct = Math.min(100, Math.max(0, Math.round((n-s)/(e-s)*100)));
-  document.getElementById('yearPct').textContent = pct + '%';
-  requestAnimationFrame(() => setTimeout(() => {
-    document.getElementById('yearFill').style.width = pct + '%';
-  }, 300));
-})();
-
-/* ── Счётчик уроков на день ── */
-document.querySelectorAll('.day-section').forEach(sec => {
-  const d = sec.dataset.day;
-  const cnt = sec.querySelectorAll('tbody tr').length;
-  const badge = document.getElementById('badge-' + d);
-  const navCnt = document.getElementById('cnt-' + d);
-  if (badge) badge.textContent = cnt + ' урок' + (cnt===1?'':cnt<5?'а':'ов');
-  if (navCnt) navCnt.textContent = cnt;
-});
-
-/* ── Подсветка текущего дня ── */
-(function(){
-  const dow = new Date().getDay(); // 0=вс,1=пн...6=сб
-  // map: 1→ПН,2→ВТ,3→СР,4→ЧТ,5→ПТ,6→СБ
-  const map = {1:'ПН',2:'ВТ',3:'СР',4:'ЧТ',5:'ПТ',6:'СБ'};
-  if (!map[dow]) return;
-  const sec = document.getElementById(map[dow]);
-  if (!sec) return;
-  sec.classList.add('today-section');
-  // Подсвечиваем ссылку в навигации
-  document.querySelector(`[data-day="${dow}"]`)?.classList.add('active-day');
-  // Автоскролл с задержкой
-  setTimeout(() => sec.scrollIntoView({behavior:'smooth', block:'start'}), 900);
-})();
-
-/* ── Stagger-анимация секций ── */
-(function(){
-  const obs = new IntersectionObserver(entries => {
-    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
-  }, {threshold:0.06});
-  document.querySelectorAll('.day-section').forEach((s,i) => {
-    s.style.transitionDelay = (i * 0.07) + 's';
-    obs.observe(s);
-  });
-})();
-
-/* ── Подсветка любимого предмета ── */
-(function(){
-  const fav = localStorage.getItem('profile_subject');
-  if (!fav) return;
-  document.querySelectorAll('.schedule-table tbody td:not(:first-child)').forEach(td => {
-    if (td.textContent.trim() === fav) td.classList.add('fav-subject');
-  });
-})();
-
-/* ── Поиск по предметам ── */
-const searchInput = document.getElementById('searchInput');
-let origHTML = {}; // сохраняем оригинальный текст
-
-document.querySelectorAll('.schedule-table tbody td:not(:first-child)').forEach((td,i) => {
-  origHTML[i] = td.textContent;
-  td.dataset.idx = i;
-});
-
-searchInput.addEventListener('input', function(){
-  const q = this.value.trim().toLowerCase();
-  let found = 0;
-
-  document.querySelectorAll('.schedule-table tbody td:not(:first-child)').forEach(td => {
-    const orig = origHTML[td.dataset.idx];
-    if (!q) {
-      td.innerHTML = orig;
-      td.style.opacity = '1';
-      return;
-    }
-    const lower = orig.toLowerCase();
-    if (lower.includes(q)) {
-      const rx = new RegExp(q.replace(/[.*+?^${}()|[$\$/g,'\\$&'), 'gi');
-      td.innerHTML = orig.replace(rx, m => `<span class="hl">${m}</span>`);
-      td.style.opacity = '1';
-      found++;
-    } else {
-      td.innerHTML = orig;
-      td.style.opacity = '0.3';
-    }
-  });
-
-  if (q) showToast(found > 0 ? `🔍 Найдено совпадений: ${found}` : '❌ Не найдено');
-});
-
-/* ── Toast ── */
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.classList.add('show');
-  clearTimeout(t._t);
-  t._t = setTimeout(() => t.classList.remove('show'), 2200);
-}
-
-/* ── Smooth scroll для nav-days ── */
-document.querySelectorAll('.nav-days a').forEach(a => {
-  a.addEventListener('click', e => {
-    e.preventDefault();
-    const id = a.getAttribute('href').slice(1);
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({behavior:'smooth', block:'start'});
-      el.classList.add('visible');
-    }
-  });
-});
-</script>
-</body>
-</html>
+</DIV>
+</BODY>
+</HTML>
