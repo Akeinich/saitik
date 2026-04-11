@@ -1,59 +1,38 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Электронный Дневник — Восстановление</title>
+<title>Электронный Дневник — Восстановление пароля</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
 
+<!-- Firebase Auth — тот же проект что в index.html -->
+<script type="module">
+  import { initializeApp }        from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+  import { getAuth, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
 
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyA_rAWj8YakdcZ-WBvQAGNVD1jTGvUFUaQ",
+    authDomain: "sait-8a1d6.firebaseapp.com",
+    databaseURL: "https://sait-8a1d6-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "sait-8a1d6",
+    storageBucket: "sait-8a1d6.firebasestorage.app",
+    messagingSenderId: "471741162305",
+    appId: "1:471741162305:web:e0597664c362b91fc8b7c0"
+  };
 
+  const app  = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
 
-     // для отправки кода на почту
-      
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-
-<script>
-  
-  // Import the functions you need from the SDKs you need
-
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-
-const firebaseConfig = {
-  apiKey: "AIzaSyA_rAWj8YakdcZ-WBvQAGNVD1jTGvUFUaQ",
-  authDomain: "sait-8a1d6.firebaseapp.com",
-  databaseURL: "https://sait-8a1d6-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "sait-8a1d6",
-  storageBucket: "sait-8a1d6.firebasestorage.app",
-  messagingSenderId: "471741162305",
-  appId: "1:471741162305:web:e0597664c362b91fc8b7c0"
-};
-
-// 🔥 ВАЖНО
-firebase.initializeApp(firebaseConfig);
-
-// 🔥 ВАЖНО (глобально!)
-window.db = firebase.database();
-
- 
-  const EMAILJS_PUBLIC_KEY  = "8vNTHG4OhWWJUQUa3";   // Account → API Keys
-  const EMAILJS_SERVICE_ID  = "service_gla9hhm";   // Email Services → Service ID
-  const EMAILJS_TEMPLATE_ID = "template_mb5oqut";  // Email Templates → Template ID
-  //  КЛЮЧИ EMAILJS 
-
-  emailjs.init(EMAILJS_PUBLIC_KEY);
+  // Единственная нужная функция — отправить письмо сброса пароля
+  window._fbResetPassword = (email) => sendPasswordResetEmail(auth, email);
 </script>
 
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
   --red: #c0392b; --red-hot: #ff2233; --red-glow: #ff000088;
-  --gold: #c9a84c; --dark: #0a0a0a; --dark2: #110508; --text: #e8d5c4;
+  --gold: #c9a84c; --dark2: #110508; --text: #e8d5c4;
 }
 body {
   min-height: 100vh; background: var(--dark2);
@@ -62,132 +41,107 @@ body {
 }
 body::before {
   content: ''; position: fixed; inset: 0;
-  background: radial-gradient(ellipse 60% 50% at 50% 50%, #2a000888 0%, transparent 70%),
-              radial-gradient(ellipse 100% 80% at 50% 100%, #1a000488 0%, transparent 60%);
+  background:
+    radial-gradient(ellipse 60% 50% at 50% 50%, #2a000888 0%, transparent 70%),
+    radial-gradient(ellipse 100% 80% at 50% 100%, #1a000488 0%, transparent 60%);
   animation: bgPulse 4s ease-in-out infinite alternate; pointer-events: none;
 }
 @keyframes bgPulse { from{opacity:.7} to{opacity:1} }
-#particles { position:fixed; inset:0; pointer-events:none; z-index:0; }
+#particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
 .pentagram-bg {
-  position:fixed; width:700px; height:700px; top:50%; left:50%;
-  transform:translate(-50%,-50%); opacity:.04;
-  animation:rotateSlow 60s linear infinite; pointer-events:none; z-index:0;
+  position: fixed; width: 700px; height: 700px;
+  top: 50%; left: 50%; transform: translate(-50%,-50%);
+  opacity: .04; animation: rotateSlow 60s linear infinite; pointer-events: none; z-index: 0;
 }
-@keyframes rotateSlow { to { transform:translate(-50%,-50%) rotate(360deg); } }
+@keyframes rotateSlow { to { transform: translate(-50%,-50%) rotate(360deg); } }
+
 .card {
-  position:relative; z-index:10; width:440px; padding:46px 44px 40px;
-  background:linear-gradient(160deg,#12020588 0%,#0a0a0a99 100%);
-  border:1px solid #3a0a0a; backdrop-filter:blur(18px);
-  box-shadow:0 0 0 1px #ff223311,0 0 40px #ff000033,0 0 100px #c0392b22,inset 0 1px 0 #ffffff08;
-  animation:cardAppear .8s cubic-bezier(.16,1,.3,1) both;
+  position: relative; z-index: 10; width: 440px; padding: 46px 44px 40px;
+  background: linear-gradient(160deg, #12020588 0%, #0a0a0a99 100%);
+  border: 1px solid #3a0a0a; backdrop-filter: blur(18px);
+  box-shadow: 0 0 0 1px #ff223311, 0 0 40px #ff000033, 0 0 100px #c0392b22, inset 0 1px 0 #ffffff08;
+  animation: cardAppear .8s cubic-bezier(.16,1,.3,1) both;
 }
-@keyframes cardAppear { from{opacity:0;transform:translateY(30px) scale(.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+@keyframes cardAppear { from{opacity:0;transform:translateY(30px) scale(.97)} to{opacity:1;transform:none} }
 .card::before,.card::after { content:''; position:absolute; width:22px; height:22px; border-color:var(--red); border-style:solid; }
 .card::before { top:-1px; left:-1px; border-width:2px 0 0 2px; }
 .card::after  { bottom:-1px; right:-1px; border-width:0 2px 2px 0; }
 .corner-tr,.corner-bl { position:absolute; width:22px; height:22px; border-color:var(--red); border-style:solid; }
 .corner-tr { top:-1px; right:-1px; border-width:2px 2px 0 0; }
 .corner-bl { bottom:-1px; left:-1px; border-width:0 0 2px 2px; }
-.logo-wrap { text-align:center; margin-bottom:24px; }
+
+.logo-wrap { text-align:center; margin-bottom:28px; }
 .logo-icon { width:68px; height:68px; margin:0 auto 12px; }
 .logo-icon svg { width:100%; height:100%; filter:drop-shadow(0 0 12px var(--red-hot)); }
 .logo-title { font-family:'Cinzel Decorative',serif; font-size:17px; letter-spacing:3px; text-transform:uppercase; color:#fff; text-shadow:0 0 20px var(--red-hot),0 0 40px var(--red); line-height:1.3; }
-.logo-sub { font-family:'Cinzel Decorative',serif; font-size:9px; letter-spacing:6px; color:var(--gold); text-shadow:0 0 10px #c9a84c88; margin-top:4px; }
-.steps { display:flex; align-items:center; justify-content:center; gap:0; margin-bottom:24px; }
-.step-item { display:flex; flex-direction:column; align-items:center; gap:6px; position:relative; }
-.step-circle {
-  width:32px; height:32px; border-radius:50%; border:2px solid #3a0a0a; background:#0e0202;
-  display:flex; align-items:center; justify-content:center;
-  font-family:'Cinzel Decorative',serif; font-size:11px; color:#5a3535;
-  transition:all .4s; position:relative; z-index:1;
-}
-.step-label { font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#3a1515; transition:color .4s; white-space:nowrap; }
-.step-line { width:60px; height:1px; background:#3a0a0a; margin:0 4px; margin-bottom:20px; transition:background .4s; }
-.step-item.active .step-circle { border-color:var(--red); background:#1a0303; color:var(--red); box-shadow:0 0 14px var(--red-glow); }
-.step-item.active .step-label { color:var(--red); }
-.step-item.done .step-circle { border-color:#2e7d32; background:#0a1a0a; color:#a5d6a7; box-shadow:0 0 10px #00ff0033; }
-.step-item.done .step-label { color:#4a8a4a; }
-.step-line.done { background:#2e7d3266; }
+.logo-sub   { font-family:'Cinzel Decorative',serif; font-size:9px; letter-spacing:6px; color:var(--gold); text-shadow:0 0 10px #c9a84c88; margin-top:4px; }
+
 .divider { display:flex; align-items:center; gap:12px; margin-bottom:20px; }
 .divider span { flex:1; height:1px; background:linear-gradient(90deg,transparent,#c0392b66,transparent); }
 .divider i { color:var(--red); font-size:16px; }
+
 .alert { padding:10px 16px; border-radius:3px; font-size:12px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:16px; display:none; animation:fadeInUp .3s ease both; }
 .alert.error   { background:rgba(192,57,43,.2); border:1px solid #c0392b66; color:#ff8a80; display:block; }
 .alert.success { background:rgba(46,125,50,.2);  border:1px solid #2e7d3266; color:#a5d6a7;  display:block; }
-.step-panel { display:none; }
-.step-panel.active { display:block; animation:fadeInUp .35s ease both; }
-@keyframes fadeInUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
-.form-group { margin-bottom:18px; position:relative; }
+@keyframes fadeInUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:none} }
+
+.form-group { margin-bottom:20px; position:relative; }
 .form-label { display:block; font-size:11px; font-weight:700; letter-spacing:3px; text-transform:uppercase; color:var(--red); margin-bottom:8px; text-shadow:0 0 8px var(--red-glow); }
-.form-input {
-  width:100%; padding:12px 18px 12px 46px; background:#0e020288; border:1px solid #3a0a0a; border-radius:3px;
-  color:var(--text); font-family:'Rajdhani',sans-serif; font-size:16px; font-weight:600; letter-spacing:1px;
-  outline:none; transition:border-color .3s, box-shadow .3s, background .3s;
-}
+.form-input { width:100%; padding:12px 18px 12px 46px; background:#0e020288; border:1px solid #3a0a0a; border-radius:3px; color:var(--text); font-family:'Rajdhani',sans-serif; font-size:16px; font-weight:600; letter-spacing:1px; outline:none; transition:border-color .3s, box-shadow .3s, background .3s; }
 .form-input::placeholder { color:#5a3535; letter-spacing:1px; }
-.form-input:focus { border-color:var(--red); background:#1a030388; box-shadow:0 0 0 2px #ff223322,0 0 20px #ff000022,inset 0 0 10px #ff000011; }
+.form-input:focus { border-color:var(--red); background:#1a030388; box-shadow:0 0 0 2px #ff223322, 0 0 20px #ff000022, inset 0 0 10px #ff000011; }
 .input-icon { position:absolute; left:16px; bottom:12px; color:#5a2020; font-size:17px; transition:color .3s; pointer-events:none; }
 .form-group:focus-within .input-icon { color:var(--red); }
-.code-wrap { display:flex; gap:10px; justify-content:center; margin-bottom:18px; }
-.code-cell {
-  width:52px; height:60px; background:#0e020288; border:1px solid #3a0a0a; border-radius:3px;
-  color:var(--text); font-family:'Cinzel Decorative',serif; font-size:22px; font-weight:700;
-  text-align:center; outline:none; transition:border-color .3s, box-shadow .3s; caret-color:var(--red);
+
+.hint {
+  font-size:12px; font-weight:600; letter-spacing:1px; line-height:1.6;
+  color:#5a3535; margin-bottom:20px; padding:12px 14px;
+  background:rgba(255,255,255,0.03); border-left:2px solid #3a0a0a; border-radius:0 3px 3px 0;
 }
-.code-cell:focus { border-color:var(--red); box-shadow:0 0 0 2px #ff223322,0 0 20px #ff000022; }
-.code-hint { text-align:center; font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#5a3535; margin-bottom:18px; }
-.code-hint span { color:var(--gold); }
-.btn-submit {
-  width:100%; padding:14px;
-  background:linear-gradient(135deg,#8b0000 0%,#c0392b 50%,#8b0000 100%); background-size:200% 100%;
-  border:1px solid #ff223355; border-radius:3px; color:#fff;
-  font-family:'Cinzel Decorative',serif; font-size:12px; letter-spacing:3px; text-transform:uppercase;
-  cursor:pointer; position:relative; overflow:hidden;
-  transition:background-position .4s, box-shadow .4s, transform .15s;
-  box-shadow:0 0 20px #c0392b55, 0 4px 15px #00000088;
-}
+
+.btn-submit { width:100%; padding:14px; background:linear-gradient(135deg,#8b0000 0%,#c0392b 50%,#8b0000 100%); background-size:200% 100%; border:1px solid #ff223355; border-radius:3px; color:#fff; font-family:'Cinzel Decorative',serif; font-size:12px; letter-spacing:3px; text-transform:uppercase; cursor:pointer; position:relative; overflow:hidden; transition:background-position .4s, box-shadow .4s, transform .15s; box-shadow:0 0 20px #c0392b55, 0 4px 15px #00000088; }
 .btn-submit::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,transparent 30%,#ffffff18 50%,transparent 70%); transform:translateX(-100%); transition:transform .5s; }
-.btn-submit:hover { background-position:100% 0; box-shadow:0 0 30px #ff223366,0 0 60px #c0392b44,0 4px 20px #00000099; }
+.btn-submit:hover { background-position:100% 0; box-shadow:0 0 30px #ff223366,0 0 60px #c0392b44; }
 .btn-submit:hover::before { transform:translateX(100%); }
 .btn-submit:active { transform:scale(.98); }
 .btn-submit:disabled { opacity:.5; cursor:not-allowed; }
 .btn-text { position:relative; display:inline-block; }
-.btn-text::before,.btn-text::after { content:attr(data-text); position:absolute; top:0; left:0; width:100%; height:100%; }
-.btn-submit:hover .btn-text::before { color:var(--red-hot); animation:glitch1 .3s steps(1) infinite; clip-path:polygon(0 0,100% 0,100% 45%,0 45%); }
-.btn-submit:hover .btn-text::after  { color:#00ffff44; animation:glitch2 .3s steps(1) infinite; clip-path:polygon(0 55%,100% 55%,100% 100%,0 100%); }
-@keyframes glitch1 { 0%{transform:translate(0)} 33%{transform:translate(-2px,1px)} 66%{transform:translate(2px,-1px)} 100%{transform:translate(0)} }
-@keyframes glitch2 { 0%{transform:translate(0)} 33%{transform:translate(2px,-1px)} 66%{transform:translate(-2px,1px)} 100%{transform:translate(0)} }
+
+.spinner { display:inline-block; width:14px; height:14px; border:2px solid #ffffff44; border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; margin-right:8px; }
+@keyframes spin { to{transform:rotate(360deg)} }
+
+/* Экран успеха */
+.success-screen { display:none; text-align:center; animation:fadeInUp .4s ease both; }
+.success-screen.visible { display:block; }
+.success-icon { margin:0 auto 16px; }
+.success-icon svg { filter:drop-shadow(0 0 14px #00ff0066); animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both; }
+@keyframes popIn { from{transform:scale(0) rotate(-20deg);opacity:0} to{transform:scale(1) rotate(0);opacity:1} }
+.success-title { font-family:'Cinzel Decorative',serif; font-size:14px; letter-spacing:2px; color:#a5d6a7; text-shadow:0 0 10px #00ff0044; margin-bottom:8px; }
+.success-desc  { font-size:13px; font-weight:600; letter-spacing:1px; color:#5a7a5a; margin-bottom:6px; }
+.success-email { font-size:15px; font-weight:700; color:#a5d6a7; margin-bottom:20px; }
+
 .card-footer { margin-top:20px; text-align:center; font-size:12px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:#5a3535; }
 .card-footer a { color:var(--red); text-decoration:none; transition:color .3s,text-shadow .3s; }
 .card-footer a:hover { color:var(--red-hot); text-shadow:0 0 8px var(--red-hot); }
-.success-icon { text-align:center; margin:10px 0 20px; }
-.success-icon svg { filter:drop-shadow(0 0 14px #00ff0066); animation:popIn .5s cubic-bezier(.34,1.56,.64,1) both; }
-@keyframes popIn { from{transform:scale(0) rotate(-20deg);opacity:0} to{transform:scale(1) rotate(0deg);opacity:1} }
-.success-text { text-align:center; font-family:'Cinzel Decorative',serif; font-size:13px; letter-spacing:2px; color:#a5d6a7; text-shadow:0 0 10px #00ff0044; margin-bottom:6px; }
-.success-sub  { text-align:center; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#4a6a4a; margin-bottom:22px; }
-.spinner { display:inline-block; width:14px; height:14px; border:2px solid #ffffff44; border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; vertical-align:middle; margin-right:8px; }
-@keyframes spin { to{transform:rotate(360deg)} }
-.timer-wrap { text-align:center; margin-bottom:14px; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:#5a3535; }
-.timer-wrap span { color:var(--gold); font-weight:700; }
+
 .scanlines { position:fixed; inset:0; background:repeating-linear-gradient(to bottom,transparent 0px,transparent 3px,#00000012 3px,#00000012 4px); pointer-events:none; z-index:100; animation:scanMove 8s linear infinite; }
 @keyframes scanMove { to{background-position:0 100px} }
 .blood-drips { position:fixed; top:0; left:0; right:0; display:flex; justify-content:space-around; pointer-events:none; z-index:1; }
 .drip { width:3px; background:linear-gradient(to bottom,var(--red),transparent); animation:drip linear infinite; border-radius:0 0 3px 3px; opacity:.6; }
 @keyframes drip { 0%{height:0;opacity:.6} 80%{opacity:.4} 100%{height:120px;opacity:0} }
 .watermark { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); font-size:10px; letter-spacing:4px; text-transform:uppercase; color:#3a1515; z-index:5; white-space:nowrap; }
-@media (max-width:480px) { .card{width:95vw;padding:36px 24px 32px} .logo-title{font-size:14px;letter-spacing:2px} .code-cell{width:42px;height:52px;font-size:18px} .step-line{width:36px} }
+@media(max-width:480px){ .card{width:95vw;padding:36px 24px 32px} .logo-title{font-size:14px} }
 </style>
 </head>
 <body>
+
 <canvas id="particles"></canvas>
+<svg class="pentagram-bg" viewBox="0 0 100 100">
+  <path d="M50 5 L61 40 L98 40 L68 62 L79 97 L50 75 L21 97 L32 62 L2 40 L39 40 Z" fill="#c0392b"/>
+</svg>
 <div class="scanlines"></div>
 <div class="blood-drips" id="drips"></div>
-
-<svg class="pentagram-bg" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <polygon points="100,10 40,198 195,78 5,78 160,198" fill="none" stroke="#ff0000" stroke-width="1.5"/>
-  <circle cx="100" cy="100" r="95" fill="none" stroke="#ff0000" stroke-width="1"/>
-  <circle cx="100" cy="100" r="75" fill="none" stroke="#ff0000" stroke-width=".5"/>
-</svg>
+<div class="watermark">© 2025-2026 Электронный Дневник</div>
 
 <div class="card">
   <div class="corner-tr"></div>
@@ -195,416 +149,158 @@ body::before {
 
   <div class="logo-wrap">
     <div class="logo-icon">
-      <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <radialGradient id="skullGrad" cx="50%" cy="40%" r="60%">
-            <stop offset="0%" stop-color="#ff4455"/>
-            <stop offset="100%" stop-color="#8b0000"/>
-          </radialGradient>
-        </defs>
-        <path d="M22 28 L12 6 L26 20 Z" fill="#c0392b" opacity=".9"/>
-        <path d="M58 28 L68 6 L54 20 Z" fill="#c0392b" opacity=".9"/>
-        <ellipse cx="40" cy="38" rx="24" ry="22" fill="url(#skullGrad)"/>
-        <ellipse cx="31" cy="36" rx="6" ry="5" fill="#0a0005"/>
-        <ellipse cx="49" cy="36" rx="6" ry="5" fill="#0a0005"/>
-        <ellipse cx="31" cy="35" rx="3" ry="2.5" fill="#ff0000" opacity=".9"/>
-        <ellipse cx="49" cy="35" rx="3" ry="2.5" fill="#ff0000" opacity=".9"/>
-        <path d="M37 44 L40 40 L43 44 L40 46 Z" fill="#5a0000"/>
-        <rect x="26" y="51" width="28" height="7" rx="2" fill="#7a0000"/>
-        <rect x="28" y="51" width="5" height="6" rx="1" fill="#e0c8c0"/>
-        <rect x="35" y="51" width="5" height="5" rx="1" fill="#e0c8c0"/>
-        <rect x="42" y="51" width="5" height="5" rx="1" fill="#e0c8c0"/>
-        <rect x="47" y="51" width="5" height="6" rx="1" fill="#e0c8c0"/>
-        <path d="M28 28 L32 22 L36 27 L40 20 L44 27 L48 22 L52 28" fill="none" stroke="#c9a84c" stroke-width="1.5" stroke-linejoin="round"/>
+      <svg viewBox="0 0 100 100">
+        <circle cx="50" cy="50" r="45" fill="none" stroke="#c0392b" stroke-width="2"/>
+        <path d="M50 15 L50 85 M15 50 L85 50 M25 25 L75 75 M25 75 L75 25" stroke="#ff2233" stroke-width="1.5"/>
+        <circle cx="50" cy="50" r="15" fill="#c9a84c" opacity="0.6"/>
       </svg>
     </div>
     <div class="logo-title">Электронный Дневник</div>
     <div class="logo-sub">Восстановление Доступа</div>
   </div>
 
-  <!-- Step indicator -->
-  <div class="steps" id="stepsBar">
-    <div class="step-item active" id="s1"><div class="step-circle">1</div><div class="step-label">Почта</div></div>
-    <div class="step-line" id="line1"></div>
-    <div class="step-item" id="s2"><div class="step-circle">2</div><div class="step-label">Код</div></div>
-    <div class="step-line" id="line2"></div>
-    <div class="step-item" id="s3"><div class="step-circle">3</div><div class="step-label">Пароль</div></div>
-  </div>
-
   <div class="divider"><span></span><i>✦</i><span></span></div>
   <div class="alert" id="alertBox"></div>
 
-  <!-- ══ STEP 1 — EMAIL ══ -->
-  <div class="step-panel active" id="panel1">
-    <form onsubmit="handleStep1(event)">
-      <div class="form-group">
-        <label class="form-label">Почта Ученика</label>
-        <div style="position:relative">
-          <svg class="input-icon" width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M20 4H4a2 2 0 00-2 2v12a2 2 0 002 2h16a2 2 0 002-2V6a2 2 0 00-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
-          </svg>
-          <input id="recEmail" class="form-input" type="email" placeholder="example@domain.com" autocomplete="off" required/>
-        </div>
-      </div>
-      <button type="submit" class="btn-submit" id="step1Btn">
-        <span class="btn-text" data-text="Найти Аккаунт">Найти Аккаунт</span>
-      </button>
-    </form>
-    <div class="card-footer"><a href="index.html">← Вернуться к Входу</a></div>
-  </div>
+  <!-- ══ ФОРМА ВОССТАНОВЛЕНИЯ ══ -->
+  <div id="resetForm">
+    <div class="hint">
+      Введи email, указанный при регистрации. Firebase отправит письмо со ссылкой для сброса пароля — обычно приходит в течение минуты.
+    </div>
 
-  <!-- ══ STEP 2 — CODE ══ -->
-  <div class="step-panel" id="panel2">
-    <form onsubmit="handleStep2(event)">
-      <div class="code-hint">
-        Код отправлен на <span id="maskedEmail">—</span><br>
-        Введите 4-значный код подтверждения
+    <form onsubmit="handleReset(event)">
+      <div class="form-group">
+        <label class="form-label" for="resetEmail">E-mail</label>
+        <input
+          type="email"
+          id="resetEmail"
+          class="form-input"
+          placeholder="ученик@школа.ru"
+          autocomplete="email"
+          required
+        >
+        <span class="input-icon">✉</span>
       </div>
-      <div class="timer-wrap">Действителен: <span id="timerDisplay">05:00</span></div>
-      <div class="code-wrap">
-        <input class="code-cell" id="c0" maxlength="1" type="text" inputmode="numeric" autocomplete="off"/>
-        <input class="code-cell" id="c1" maxlength="1" type="text" inputmode="numeric" autocomplete="off"/>
-        <input class="code-cell" id="c2" maxlength="1" type="text" inputmode="numeric" autocomplete="off"/>
-        <input class="code-cell" id="c3" maxlength="1" type="text" inputmode="numeric" autocomplete="off"/>
-      </div>
-      <button type="submit" class="btn-submit" id="step2Btn">
-        <span class="btn-text" data-text="Подтвердить Код">Подтвердить Код</span>
+
+      <button type="submit" class="btn-submit" id="resetBtn">
+        <span class="btn-text" data-text="Отправить Письмо">Отправить Письмо</span>
       </button>
     </form>
-    <div class="card-footer" style="margin-top:14px">
-      <a href="#" onclick="resendCode(); return false;">Отправить повторно</a>
-      &nbsp;·&nbsp;
-      <a href="#" onclick="goStep(1); return false;">← Назад</a>
+
+    <div class="card-footer">
+      <a href="index.html">← Вернуться к Входу</a>
     </div>
   </div>
 
-  <!-- ══ STEP 3 — NEW PASSWORD ══ -->
-  <div class="step-panel" id="panel3">
-    <form onsubmit="handleStep3(event)">
-      <div class="form-group">
-        <label class="form-label">Новый Код Доступа</label>
-        <div style="position:relative">
-          <svg class="input-icon" width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18 8h-1V6A5 5 0 007 6v2H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V10a2 2 0 00-2-2zm-6 9a2 2 0 110-4 2 2 0 010 4zm3.1-9H8.9V6a3.1 3.1 0 016.2 0v2z"/>
-          </svg>
-          <input id="newPass" class="form-input" type="password" placeholder="Минимум 4 символа" autocomplete="off" required/>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Подтверждение</label>
-        <div style="position:relative">
-          <svg class="input-icon" width="17" height="17" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M18 8h-1V6A5 5 0 007 6v2H6a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V10a2 2 0 00-2-2zm-6 9a2 2 0 110-4 2 2 0 010 4zm3.1-9H8.9V6a3.1 3.1 0 016.2 0v2z"/>
-          </svg>
-          <input id="newPassConfirm" class="form-input" type="password" placeholder="Повторите код" autocomplete="off" required/>
-        </div>
-      </div>
-      <button type="submit" class="btn-submit" id="step3Btn">
-        <span class="btn-text" data-text="Установить Пароль">Установить Пароль</span>
-      </button>
-    </form>
-  </div>
-
-  <!-- ══ STEP 4 — SUCCESS ══ -->
-  <div class="step-panel" id="panel4">
+  <!-- ══ ЭКРАН УСПЕХА ══ -->
+  <div class="success-screen" id="successScreen">
     <div class="success-icon">
       <svg width="70" height="70" viewBox="0 0 70 70" fill="none">
         <circle cx="35" cy="35" r="32" stroke="#2e7d32" stroke-width="2" fill="#0a1a0a"/>
         <polyline points="20,36 30,46 50,24" stroke="#a5d6a7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
     </div>
-    <div class="success-text">Доступ Восстановлен</div>
-    <div class="success-sub">Новый код доступа успешно установлен</div>
-    <button class="btn-submit" onclick="window.location.href='index.html'">
-      <span class="btn-text" data-text="Войти в Систему">Войти в Систему</span>
-    </button>
+    <div class="success-title">Письмо Отправлено</div>
+    <div class="success-desc">Ссылка для сброса пароля отправлена на</div>
+    <div class="success-email" id="successEmail">—</div>
+    <div class="hint" style="text-align:left;margin-bottom:20px">
+      Проверь папку «Входящие» и «Спам». Ссылка действует 1 час. После перехода по ней — введи новый пароль и войди через главную страницу.
+    </div>
+    <a href="index.html" class="btn-submit" style="display:block;text-align:center;text-decoration:none;padding:14px;font-family:'Cinzel Decorative',serif;font-size:12px;letter-spacing:3px;text-transform:uppercase">
+      Вернуться к Входу
+    </a>
   </div>
 </div>
 
-<div class="watermark">© Электронный Дневник — Учебный год 2025–2026</div>
-
 <script>
-/* ─── DRIPS ─── */
-(function () {
-  const wrap = document.getElementById('drips');
-  for (let i = 0; i < 20; i++) {
-    const d = document.createElement('div'); d.className = 'drip';
-    d.style.cssText = `margin-left:${Math.random()*100}%;animation-duration:${3+Math.random()*6}s;animation-delay:${Math.random()*8}s;opacity:${0.2+Math.random()*0.5};width:${1+Math.random()*3}px;`;
-    wrap.appendChild(d);
+/* ── BLOOD DRIPS ── */
+(function(){
+  const w = document.getElementById('drips');
+  for(let i=0;i<20;i++){
+    const d=document.createElement('div'); d.className='drip';
+    d.style.cssText=`margin-left:${Math.random()*100}%;animation-duration:${3+Math.random()*6}s;animation-delay:${Math.random()*8}s;opacity:${0.2+Math.random()*0.5};width:${1+Math.random()*3}px;`;
+    w.appendChild(d);
   }
 })();
 
-/* ─── PARTICLES ─── */
-(function () {
-  const canvas = document.getElementById('particles');
-  const ctx = canvas.getContext('2d');
-  let W, H, particles = [];
-  function resize() { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; }
-  window.addEventListener('resize', resize); resize();
-  function rand(a, b) { return a + Math.random() * (b - a); }
-  for (let i = 0; i < 70; i++) {
-    particles.push({ x:rand(0,W), y:rand(0,H), vx:rand(-.3,.3), vy:rand(-1,-.1), size:rand(1,3), alpha:rand(.1,.6), color:Math.random()>.7?`rgba(${~~rand(180,255)},${~~rand(0,30)},${~~rand(0,30)},`:`rgba(${~~rand(160,210)},${~~rand(60,100)},${~~rand(0,20)},` });
-  }
-  function draw() {
-    ctx.clearRect(0,0,W,H);
-    particles.forEach(p => {
-      p.x+=p.vx; p.y+=p.vy; p.alpha-=.001;
-      if (p.y<-10||p.alpha<=0) { p.x=rand(0,W); p.y=H+5; p.alpha=rand(.2,.7); }
-      ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2); ctx.fillStyle=p.color+p.alpha+')'; ctx.fill();
-      ctx.beginPath(); ctx.arc(p.x,p.y,p.size*2.5,0,Math.PI*2);
-      const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.size*2.5);
-      g.addColorStop(0,p.color+(p.alpha*.4)+')'); g.addColorStop(1,'transparent');
-      ctx.fillStyle=g; ctx.fill();
+/* ── PARTICLES ── */
+(function(){
+  const cv=document.getElementById('particles'),cx=cv.getContext('2d');
+  let W,H,ps=[];
+  function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight;}
+  addEventListener('resize',resize);resize();
+  function rand(a,b){return a+Math.random()*(b-a);}
+  for(let i=0;i<70;i++) ps.push({x:rand(0,W),y:rand(0,H),vx:rand(-.3,.3),vy:rand(-1,-.1),sz:rand(1,3),al:rand(.1,.6),col:Math.random()>.7?`rgba(${~~rand(180,255)},${~~rand(0,30)},${~~rand(0,30)},`:`rgba(${~~rand(160,210)},${~~rand(60,100)},${~~rand(0,20)},`});
+  function draw(){
+    cx.clearRect(0,0,W,H);
+    ps.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;p.al-=.001;
+      if(p.y<-10||p.al<=0){p.x=rand(0,W);p.y=H+5;p.al=rand(.2,.7);}
+      cx.beginPath();cx.arc(p.x,p.y,p.sz,0,Math.PI*2);cx.fillStyle=p.col+p.al+')';cx.fill();
+      cx.beginPath();cx.arc(p.x,p.y,p.sz*2.5,0,Math.PI*2);
+      const g=cx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.sz*2.5);
+      g.addColorStop(0,p.col+(p.al*.4)+')');g.addColorStop(1,'transparent');
+      cx.fillStyle=g;cx.fill();
     });
     requestAnimationFrame(draw);
   }
   draw();
 })();
 
-/* ─── STATE ─── */
-let currentStep = 1;
-let foundUsername = null;
-let generatedCode  = null;
-let codeExpiry     = null;
-let timerInterval  = null;
-
-/* ─── HELPERS ─── */
-function showAlert(msg, type) { const el=document.getElementById('alertBox'); el.textContent=msg; el.className='alert '+type; }
-function hideAlert() { document.getElementById('alertBox').className='alert'; }
-
-function maskEmail(email) {
-  const [local, domain] = email.split('@');
-  const masked = local.length <= 2 ? '*'.repeat(local.length) : local[0] + '*'.repeat(local.length-2) + local.slice(-1);
-  return masked + '@' + domain;
+/* ── ALERTS ── */
+function showAlert(msg, type) {
+  const el = document.getElementById('alertBox');
+  el.textContent = msg; el.className = 'alert ' + type;
 }
 
-function setBtnLoading(btn, text) {
+/* ── ЖДЁМ FIREBASE ── */
+function ready(cb, n=0) {
+  if (window._fbResetPassword) { cb(); }
+  else if (n < 60) { setTimeout(() => ready(cb, n+1), 100); }
+  else { showAlert('⚠ Нет соединения с сервером. Обновите страницу.', 'error'); }
+}
+
+/* ── ОБРАБОТЧИК ФОРМЫ ── */
+async function handleReset(e) {
+  e.preventDefault();
+  const email = document.getElementById('resetEmail').value.trim();
+  const btn   = document.getElementById('resetBtn');
+
   btn.disabled = true;
-  btn.querySelector('.btn-text').innerHTML = `<span class="spinner"></span>${text}`;
-}
-function setBtnSuccess(btn, text) {
-  btn.style.background = 'linear-gradient(135deg,#1a4a1a,#2d8b2d,#1a4a1a)';
-  btn.style.boxShadow  = '0 0 30px #00ff0044';
-  btn.querySelector('.btn-text').textContent = text;
-}
-function resetBtn(btn, text) {
-  btn.disabled = false;
-  btn.style.background = '';
-  btn.style.boxShadow  = '';
-  btn.querySelector('.btn-text').innerHTML = text;
-  btn.querySelector('.btn-text').setAttribute('data-text', text);
-}
+  btn.querySelector('.btn-text').innerHTML = '<span class="spinner"></span>Отправка...';
 
-/* ─── TIMER ─── */
-function startTimer() {
-  clearInterval(timerInterval);
-  const end = codeExpiry;
-  function tick() {
-    const left = Math.max(0, end - Date.now());
-    const mm = String(Math.floor(left / 60000)).padStart(2,'0');
-    const ss = String(Math.floor((left % 60000) / 1000)).padStart(2,'0');
-    const el = document.getElementById('timerDisplay');
-    if (el) el.textContent = `${mm}:${ss}`;
-    if (left === 0) { clearInterval(timerInterval); showAlert('⚠ Код истёк. Запросите новый.', 'error'); }
-  }
-  tick();
-  timerInterval = setInterval(tick, 1000);
-}
+  ready(async () => {
+    try {
+      await window._fbResetPassword(email);
 
-/* ─── STEP NAVIGATION ─── */
-function goStep(n) {
-  hideAlert();
-  document.querySelectorAll('.step-panel').forEach((p, i) => p.classList.toggle('active', i+1===n));
-  [1,2,3].forEach(i => {
-    const el = document.getElementById('s'+i);
-    el.classList.remove('active','done');
-    if (i < n) el.classList.add('done');
-    if (i === n) el.classList.add('active');
-  });
-  [1,2].forEach(i => document.getElementById('line'+i).classList.toggle('done', i < n));
-  currentStep = n;
-  if (n !== 2) clearInterval(timerInterval);
-}
+      // Показываем экран успеха
+      document.getElementById('resetForm').style.display   = 'none';
+      document.getElementById('successScreen').classList.add('visible');
+      document.getElementById('successEmail').textContent  = email;
 
-/* ─── CODE CELLS ─── */
-document.querySelectorAll('.code-cell').forEach((cell, idx, cells) => {
-  cell.addEventListener('input', () => {
-    cell.value = cell.value.replace(/\D/g,'').slice(0,1);
-    if (cell.value && idx < cells.length-1) cells[idx+1].focus();
-  });
-  cell.addEventListener('keydown', e => { if (e.key==='Backspace' && !cell.value && idx>0) cells[idx-1].focus(); });
-  cell.addEventListener('paste', e => {
-    e.preventDefault();
-    const text = (e.clipboardData||window.clipboardData).getData('text').replace(/\D/g,'').slice(0,4);
-    [...text].forEach((ch,j) => { if (cells[idx+j]) cells[idx+j].value=ch; });
-    cells[Math.min(idx+text.length, cells.length-1)].focus();
-  });
-});
-
-/* ─── FIREBASE HELPERS ─── */
-async function findUserByEmail(email) {
-  // Ищем пользователя по email через индекс Firebase
-  const snap = await db.ref('users').orderByChild('email').equalTo(email.toLowerCase()).once('value');
-  if (!snap.exists()) return null;
-  let result = null;
-  snap.forEach(child => { result = { username: child.key, data: child.val() }; });
-  return result;
-}
-
-async function saveRecoveryCode(username, code, expiry) {
-  await db.ref('users/' + username + '/recoveryCode').set({ code, expiry });
-}
-
-async function clearRecoveryCode(username) {
-  await db.ref('users/' + username + '/recoveryCode').remove();
-}
-
-async function updatePassword(username, newPassword) {
-  await db.ref('users/' + username).update({ password: newPassword });
-  await clearRecoveryCode(username);
-}
-
-/* ─── EMAILJS: отправка кода ─── */
-async function sendCodeByEmail(toEmail, code) {
-  // Параметры должны совпадать с переменными в вашем шаблоне EmailJS
-  await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-    to_email:   toEmail,
-    to_name:    foundUsername,
-    code:       code,
-    expiry_min: '5'
-  });
-}
-
-/* ─── STEP 1: найти аккаунт + отправить код ─── */
-async function handleStep1(e) {
-  e.preventDefault();
-  hideAlert();
-  const email = document.getElementById('recEmail').value.trim().toLowerCase();
-  const btn   = document.getElementById('step1Btn');
-
-  setBtnLoading(btn, 'Поиск аккаунта...');
-
-  try {
-    const found = await findUserByEmail(email);
-
-    if (!found) {
-      showAlert('⚠ Аккаунт с такой почтой не найден.', 'error');
-      resetBtn(btn, 'Найти Аккаунт');
-      return;
+    } catch (err) {
+      let msg = '⚠ Ошибка отправки.';
+      switch (err.code) {
+        case 'auth/user-not-found':
+          // Намеренно не раскрываем — безопаснее показать тот же успех
+          // чтобы нельзя было определить существование аккаунта по email
+          document.getElementById('resetForm').style.display   = 'none';
+          document.getElementById('successScreen').classList.add('visible');
+          document.getElementById('successEmail').textContent  = email;
+          return;
+        case 'auth/invalid-email':
+          msg = '⚠ Неверный формат email.'; break;
+        case 'auth/too-many-requests':
+          msg = '⚠ Слишком много запросов. Попробуйте позже.'; break;
+        case 'auth/network-request-failed':
+          msg = '⚠ Ошибка сети. Проверьте подключение.'; break;
+      }
+      showAlert(msg, 'error');
+      btn.disabled = false;
+      btn.querySelector('.btn-text').innerHTML = 'Отправить Письмо';
     }
-
-    foundUsername  = found.username;
-    generatedCode  = String(Math.floor(1000 + Math.random() * 9000));
-    codeExpiry     = Date.now() + 5 * 60 * 1000; // 5 минут
-
-    // Сохраняем код в Firebase
-    await saveRecoveryCode(foundUsername, generatedCode, codeExpiry);
-
-    // Обновляем кнопку
-    setBtnLoading(btn, 'Отправка письма...');
-
-    // Отправляем email через EmailJS
-    await sendCodeByEmail(email, generatedCode);
-
-    setBtnSuccess(btn, 'Код отправлен!');
-    document.getElementById('maskedEmail').textContent = maskEmail(email);
-
-    setTimeout(() => {
-      goStep(2);
-      startTimer();
-      resetBtn(btn, 'Найти Аккаунт');
-    }, 700);
-
-  } catch (err) {
-    console.error(err);
-    showAlert('⚠ Ошибка: ' + (err.text || err.message || 'Попробуйте снова.'), 'error');
-    resetBtn(btn, 'Найти Аккаунт');
-  }
-}
-
-/* ─── RESEND ─── */
-async function resendCode() {
-  if (!foundUsername) return;
-  hideAlert();
-  generatedCode = String(Math.floor(1000 + Math.random() * 9000));
-  codeExpiry    = Date.now() + 5 * 60 * 1000;
-  try {
-    await saveRecoveryCode(foundUsername, generatedCode, codeExpiry);
-    const snap = await db.ref('users/' + foundUsername + '/email').once('value');
-    const email = snap.val();
-    await sendCodeByEmail(email, generatedCode);
-    showAlert('✦ Новый код отправлен на вашу почту.', 'success');
-    startTimer();
-  } catch (err) {
-    showAlert('⚠ Ошибка при отправке. Попробуйте снова.', 'error');
-  }
-}
-
-/* ─── STEP 2: проверить код ─── */
-async function handleStep2(e) {
-  e.preventDefault();
-  hideAlert();
-  const entered = [0,1,2,3].map(i => document.getElementById('c'+i).value).join('');
-  const btn = document.getElementById('step2Btn');
-
-  if (entered.length < 4) { showAlert('⚠ Введите все 4 цифры кода.', 'error'); return; }
-
-  setBtnLoading(btn, 'Проверка кода...');
-
-  try {
-    // Читаем актуальный код из Firebase
-    const snap = await db.ref('users/' + foundUsername + '/recoveryCode').once('value');
-    if (!snap.exists()) {
-      showAlert('⚠ Код не найден. Запросите новый.', 'error');
-      resetBtn(btn, 'Подтвердить Код');
-      return;
-    }
-    const { code, expiry } = snap.val();
-
-    if (Date.now() > expiry) {
-      showAlert('⚠ Код истёк. Запросите новый.', 'error');
-      resetBtn(btn, 'Подтвердить Код');
-      return;
-    }
-    if (entered !== code) {
-      showAlert('⚠ Неверный код подтверждения.', 'error');
-      resetBtn(btn, 'Подтвердить Код');
-      return;
-    }
-
-    setBtnSuccess(btn, 'Доступ открыт!');
-    clearInterval(timerInterval);
-    setTimeout(() => { goStep(3); resetBtn(btn, 'Подтвердить Код'); }, 700);
-
-  } catch (err) {
-    showAlert('⚠ Ошибка соединения.', 'error');
-    resetBtn(btn, 'Подтвердить Код');
-  }
-}
-
-/* ─── STEP 3: новый пароль ─── */
-async function handleStep3(e) {
-  e.preventDefault();
-  hideAlert();
-  const newPass    = document.getElementById('newPass').value;
-  const newConfirm = document.getElementById('newPassConfirm').value;
-  const btn        = document.getElementById('step3Btn');
-
-  if (newPass.length < 4) { showAlert('⚠ Код доступа — минимум 4 символа.', 'error'); return; }
-  if (newPass !== newConfirm) { showAlert('⚠ Коды доступа не совпадают.', 'error'); return; }
-
-  setBtnLoading(btn, 'Сохранение...');
-
-  try {
-    await updatePassword(foundUsername, newPass);
-    setBtnSuccess(btn, 'Готово!');
-    setTimeout(() => { goStep(4); resetBtn(btn, 'Установить Пароль'); }, 700);
-  } catch (err) {
-    showAlert('⚠ Ошибка сохранения.', 'error');
-    resetBtn(btn, 'Установить Пароль');
-  }
+  });
 }
 </script>
-     console.log(db);
 </body>
 </html>
