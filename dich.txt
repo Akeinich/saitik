@@ -81,14 +81,13 @@ fun slotMachine(coins: Int): Int {
         println("❌ Неверная ставка!")
         return coins
     }
-    // Символы для слота: добавили "6"
     val symbols = listOf("🍒", "🍋", "💎", "7", "6")
     val slot1 = symbols.random()
     val slot2 = symbols.random()
     val slot3 = symbols.random()
     println("Результат: [$slot1] [$slot2] [$slot3]")
 
-    // 🔥 НОВОЕ ПРАВИЛО: три шестёрки обнуляют баланс
+    // Три шестёрки обнуляют баланс
     if (slot1 == "6" && slot2 == "6" && slot3 == "6") {
         println("💀💀💀 ПРОКЛЯТИЕ КАЗИНО! Три шестёрки! Ваш баланс обнулён! 💀💀💀")
         return 0
@@ -96,8 +95,8 @@ fun slotMachine(coins: Int): Int {
 
     val win = when {
         slot1 == "7" && slot2 == "7" && slot3 == "7" -> bet * 10
-        slot1 == slot2 && slot2 == slot3 -> bet * 5     // три одинаковых (кроме 7, но 7 уже покрыт)
-        slot1 == slot2 || slot2 == slot3 || slot1 == slot3 -> bet * 2 // две одинаковых
+        slot1 == slot2 && slot2 == slot3 -> bet * 5
+        slot1 == slot2 || slot2 == slot3 || slot1 == slot3 -> bet * 2
         else -> 0
     }
     if (win > 0) {
@@ -106,7 +105,5 @@ fun slotMachine(coins: Int): Int {
     } else {
         println("😞 Ничего не совпало. Вы проиграли $bet монет.")
         return coins - bet
-    }
-}        return coins - bet
     }
 }
