@@ -452,5 +452,26 @@
       if (saved) { document.getElementById('loginEmail').value = saved; document.getElementById('rememberMe').checked = true; }
     })();
   </script>
+  <div id="secretCasinoBtn"></div>
+
+<style>
+#secretCasinoBtn{
+  position:fixed;
+  bottom:0;
+  right:0;
+  width:60px;
+  height:60px;
+  z-index:9999;
+  cursor:pointer;
+  /* полностью невидимая */
+  background:transparent;
+}
+</style>
+
+<script>
+document.getElementById('secretCasinoBtn').onclick = () => {
+  window.location.href = "casino.html";
+};
+</script>
 </body>
 </html>
