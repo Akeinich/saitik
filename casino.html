@@ -227,11 +227,66 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
 .confetti-wrap{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
 .confetti-piece{position:absolute;width:8px;height:8px;top:-10px;animation:confetti-fall linear forwards;}
 @keyframes confetti-fall{to{transform:translateY(100vh) rotate(720deg);opacity:0;}}
+
+/* ── FLOATING CONTROLS (music + reset) ── */
+.float-controls{position:fixed;bottom:1.5rem;right:1.5rem;z-index:50;display:flex;flex-direction:column;gap:.6rem;align-items:flex-end;}
+.float-btn{width:48px;height:48px;border-radius:50%;border:1px solid var(--border);background:var(--bg3);color:var(--text2);font-size:1.2rem;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px #00000060;}
+.float-btn:hover{border-color:var(--gold);color:var(--gold);transform:scale(1.08);}
+.float-btn.music-on{border-color:#00ffaa80;color:var(--neon);box-shadow:0 0 16px #00ffaa30;}
+.float-btn.reset-btn{border-color:#ff226640;color:#ff7799;}
+.float-btn.reset-btn:hover{border-color:var(--lose);color:var(--lose);}
+.float-tooltip{position:absolute;right:56px;white-space:nowrap;background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-size:.65rem;letter-spacing:.1em;padding:.25rem .6rem;border-radius:6px;opacity:0;pointer-events:none;transition:opacity .2s;}
+.float-btn:hover + .float-tooltip{opacity:1;}
+/* Reset confirm overlay */
+.reset-overlay{display:none;position:fixed;inset:0;z-index:150;background:#000000cc;align-items:center;justify-content:center;}
+.reset-overlay.show{display:flex;}
+.reset-card{background:var(--bg2);border:1px solid var(--gold-d);border-radius:16px;padding:2rem;text-align:center;max-width:340px;width:90%;}
+.reset-card h3{font-family:'Cinzel Decorative',serif;color:var(--gold);font-size:1.1rem;margin-bottom:.75rem;}
+.reset-card p{font-size:.85rem;color:var(--text2);margin-bottom:1.5rem;line-height:1.6;}
+.reset-btns{display:flex;gap:.75rem;justify-content:center;}
+.reset-cancel{background:none;border:1px solid var(--border);color:var(--text2);padding:.5rem 1.2rem;border-radius:8px;cursor:pointer;font-family:'Cinzel',serif;font-size:.8rem;transition:all .2s;}
+.reset-cancel:hover{border-color:var(--gold);color:var(--gold);}
+.reset-confirm{background:linear-gradient(135deg,#c9a227,#e8c840);color:var(--bg);padding:.5rem 1.2rem;border:none;border-radius:8px;cursor:pointer;font-family:'Cinzel Decorative',serif;font-size:.8rem;font-weight:700;transition:all .2s;}
+.reset-confirm:hover{box-shadow:0 4px 16px #c9a22750;}
+/* Music eq animation */
+@keyframes eq-bar{0%,100%{transform:scaleY(.4);}50%{transform:scaleY(1);}}
+.eq-icon{display:flex;align-items:flex-end;gap:2px;height:16px;}
+.eq-icon span{width:3px;background:var(--neon);border-radius:2px;height:100%;transform-origin:bottom;}
+.eq-icon span:nth-child(1){animation:eq-bar .6s ease-in-out infinite;}
+.eq-icon span:nth-child(2){animation:eq-bar .6s ease-in-out infinite .15s;}
+.eq-icon span:nth-child(3){animation:eq-bar .6s ease-in-out infinite .3s;}
 </style>
 </head>
 <body>
 
 <canvas id="bg"></canvas>
+
+<!-- ── AUDIO ── -->
+<audio id="bgMusic" loop>
+  <source src="Devil May Cry V - Bury The Light.mp3" type="audio/mpeg">
+</audio>
+
+<!-- ── FLOATING CONTROLS ── -->
+<div class="float-controls">
+  <div style="position:relative;display:flex;align-items:center;">
+    <button class="float-btn" id="musicBtn" onclick="toggleMusic()" title="Музыка">🎵</button>
+  </div>
+  <div style="position:relative;display:flex;align-items:center;">
+    <button class="float-btn reset-btn" onclick="showReset()" title="Сброс">↺</button>
+  </div>
+</div>
+
+<!-- ── RESET CONFIRM ── -->
+<div class="reset-overlay" id="resetOverlay">
+  <div class="reset-card">
+    <h3>⚠ Сброс игры</h3>
+    <p>Ваш текущий баланс будет удалён и заменён на <strong style="color:var(--gold);">100 монет</strong>. Вы уверены?</p>
+    <div class="reset-btns">
+      <button class="reset-cancel" onclick="hideReset()">Отмена</button>
+      <button class="reset-confirm" onclick="doReset()">Начать заново</button>
+    </div>
+  </div>
+</div>
 
 <!-- ══════════════════ LOBBY ══════════════════ -->
 <div id="lobby" class="screen active">
@@ -440,8 +495,8 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
           <div class="combo-multi">×5</div>
         </div>
         <div class="special-combo red-combo">
-          <div class="combo-syms" style="color:#ff2266;font-family:'Cinzel Decorative',serif;font-size:1.2rem;">6 6 6 6 6</div>
-          <div class="combo-desc"><div class="combo-name">☠ ПРОКЛЯТИЕ КАЗИНО</div><div class="combo-payout">5 шестёрок на любой линии — баланс обнуляется!</div></div>
+          <div class="combo-syms" style="color:#ff2266;font-family:'Cinzel Decorative',serif;font-size:1.2rem;">6 6 6</div>
+          <div class="combo-desc"><div class="combo-name">☠ ПРОКЛЯТИЕ КАЗИНО</div><div class="combo-payout">3 шестёрки подряд в среднем ряду — баланс обнуляется!</div></div>
           <div class="combo-multi" style="color:var(--lose);">☠ ×0</div>
         </div>
       </div>
@@ -786,13 +841,10 @@ async function spinSlot() {
 //  WIN CALCULATION
 // ═══════════════════════════════════════════════
 function calculateWin(bet, grid) {
-  // Check 5×6 curse on any payline
-  for (let pIdx = 0; pIdx < PAYLINES.length; pIdx++) {
-    const pl = PAYLINES[pIdx];
-    const syms = pl.map((row, col) => grid[row][col]);
-    if (syms.every(s => s === CURSE)) {
-      return { type: 'curse', win: 0, paylines: [pIdx], counts: [5] };
-    }
+  // Check CURSE: exactly 3 sixes on the middle row (row 1, columns 0-2)
+  const midRow = grid[1];
+  if (midRow[0] === CURSE && midRow[1] === CURSE && midRow[2] === CURSE) {
+    return { type: 'curse', win: 0, paylines: [0], counts: [3], curseRow: true };
   }
 
   // Check Clover Jackpot (5 clovers middle line)
@@ -870,11 +922,9 @@ function countConsecutive(syms) {
 // ═══════════════════════════════════════════════
 async function animateOutcome(outcome, bet, grid) {
   if (outcome.type === 'curse') {
-    // Highlight curse cells
-    for (let col = 0; col < NUM_REELS; col++) {
-      const row = PAYLINES[outcome.paylines[0]][col];
-      const cell = reelCells[col][row];
-      if (cell) cell.classList.add('curse-hl');
+    // Highlight the 3 curse cells on middle row
+    for (let col = 0; col < 3; col++) {
+      if (reelCells[col] && reelCells[col][1]) reelCells[col][1].classList.add('curse-hl');
     }
     coins = 0;
     updateAllBalances();
@@ -1001,6 +1051,58 @@ function buildPaylineDiagram() {
     item.appendChild(label);
     diag.appendChild(item);
   });
+}
+
+// ═══════════════════════════════════════════════
+//  MUSIC
+// ═══════════════════════════════════════════════
+let musicOn = false;
+const music = document.getElementById('bgMusic');
+music.volume = 0.45;
+function toggleMusic() {
+  const btn = document.getElementById('musicBtn');
+  if (musicOn) {
+    music.pause();
+    musicOn = false;
+    btn.innerHTML = '🎵';
+    btn.classList.remove('music-on');
+  } else {
+    music.play().then(() => {
+      musicOn = true;
+      btn.innerHTML = '<div class="eq-icon"><span></span><span></span><span></span></div>';
+      btn.classList.add('music-on');
+    }).catch(() => {
+      btn.title = 'Поместите MP3 рядом с HTML-файлом';
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  RESET
+// ═══════════════════════════════════════════════
+function showReset() { document.getElementById('resetOverlay').classList.add('show'); }
+function hideReset() { document.getElementById('resetOverlay').classList.remove('show'); }
+function doReset() {
+  coins = 100;
+  coinChoice = null;
+  diceGuess = null;
+  isSpinning = false;
+  document.getElementById('headsBtn').classList.remove('selected');
+  document.getElementById('tailsBtn').classList.remove('selected');
+  document.querySelectorAll('.guess-btn').forEach(b => b.classList.remove('selected'));
+  ['coinResult','diceResult'].forEach(id => {
+    const el = document.getElementById(id);
+    el.className = 'result-box';
+    el.textContent = '';
+  });
+  document.getElementById('slotResultMsg').textContent = '';
+  document.getElementById('winAmount').className = 'win-amount';
+  document.getElementById('winLines').innerHTML = '';
+  clearHighlights();
+  buildReels();
+  updateAllBalances();
+  hideReset();
+  showScreen('lobby');
 }
 
 // ═══════════════════════════════════════════════
