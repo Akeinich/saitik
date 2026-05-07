@@ -1,107 +1,74 @@
-import kotlin.random.Random
+using System;
+using System.Windows.Forms;
 
-fun main() {
-    println("🎰 Добро пожаловать в казино «Удача»! 🎲")
-    println("У вас есть 100 монет для начала. Удачи!\n")
+namespace Laba2   // замените на имя вашего проекта, если другое
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
 
-    var coins = 100
-
-    while (coins > 0) {
-        println("У вас $coins монет.")
-        println("Выберите игру:")
-        println("1 - Орёл или решка (ставка на угадывание)")
-        println("2 - Игральный кубик (угадай число)")
-        println("3 - Слот-машина (три символа)")
-        println("0 - Выйти из казино")
-        print("Ваш выбор: ")
-
-        val choice = readLine()?.toIntOrNull()
-        when (choice) {
-            1 -> coins = coinFlip(coins)
-            2 -> coins = diceGame(coins)
-            3 -> coins = slotMachine(coins)
-            0 -> {
-                println("Спасибо за игру! Вы уходите с $coins монетами. Ждём снова!")
-                return
+        // Вычисление расстояния (s = v * t)
+        private void btnCalcS_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                double v = Convert.ToDouble(txtV.Text);
+                double t = Convert.ToDouble(txtT.Text);
+                double s = v * t;
+                txtS.Text = Convert.ToString(s);
             }
-            else -> println("❌ Неверный ввод, выберите 1, 2, 3 или 0.")
+            catch
+            {
+                MessageBox.Show("Введите корректные числа в поля скорости и времени!");
+            }
         }
-        if (coins <= 0) {
-            println("💸 У вас закончились монеты. Попробуйте в другой раз! 💸")
-            return
+
+        // Вычисление времени (t = s / v)
+        private void btnCalcT_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                double s = Convert.ToDouble(txtS.Text);
+                double v = Convert.ToDouble(txtV.Text);
+                if (v == 0)
+                {
+                    MessageBox.Show("Скорость не может быть нулевой для вычисления времени!");
+                    return;
+                }
+                double t = s / v;
+                txtT.Text = Convert.ToString(t);
+            }
+            catch
+            {
+                MessageBox.Show("Введите корректные числа в поля расстояния и скорости!");
+            }
         }
-        println("-----------------------------------")
-    }
-}
 
-fun coinFlip(coins: Int): Int {
-    print("Сколько монет ставите? (до $coins): ")
-    val bet = readLine()?.toIntOrNull()
-    if (bet == null || bet <= 0 || bet > coins) {
-        println("❌ Неверная ставка! Попробуйте ещё.")
-        return coins
+        // Вычисление скорости (v = s / t)
+        private void btnCalcV_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                double s = Convert.ToDouble(txtS.Text);
+                double t = Convert.ToDouble(txtT.Text);
+                if (t == 0)
+                {
+                    MessageBox.Show("Время не может быть нулевым для вычисления скорости!");
+                    return;
+                }
+                double v = s / t;
+                txtV.Text = Convert.ToString(v);
+            }
+            catch
+            {
+                MessageBox.Show("Введите корректные числа в поля расстояния и времени!");
+            }
+        }
     }
-    println("Выберите: 1 - Орёл, 2 - Решка")
-    val playerChoice = readLine()?.toIntOrNull()
-    val result = Random.nextInt(1, 3)
-    val resultName = if (result == 1) "Орёл" else "Решка"
-
-    if ((playerChoice == 1 && result == 1) || (playerChoice == 2 && result == 2)) {
-        println("🎉 Выпал $resultName! Вы выиграли $bet монет!")
-        return coins + bet
-    } else {
-        println("😞 Выпал $resultName. Вы проиграли $bet монет.")
-        return coins - bet
-    }
-}
-
-fun diceGame(coins: Int): Int {
-    print("Сколько монет ставите? (до $coins): ")
-    val bet = readLine()?.toIntOrNull()
-    if (bet == null || bet <= 0 || bet > coins) {
-        println("❌ Неверная ставка!")
-        return coins
-    }
-    print("Угадайте число на кубике (1-6): ")
-    val guess = readLine()?.toIntOrNull()
-    val dice = Random.nextInt(1, 7)
-    if (guess == dice) {
-        println("🎉 Ура! Выпало $dice. Вы выиграли ${bet * 2} монет!")
-        return coins + bet * 2
-    } else {
-        println("😞 Выпало $dice. Вы проиграли $bet монет.")
-        return coins - bet
-    }
-}
-
-fun slotMachine(coins: Int): Int {
-    print("Сколько монет ставите? (до $coins): ")
-    val bet = readLine()?.toIntOrNull()
-    if (bet == null || bet <= 0 || bet > coins) {
-        println("❌ Неверная ставка!")
-        return coins
-    }
-    val symbols = listOf("🍒", "🍋", "💎", "7", "6")
-    val slot1 = symbols.random()
-    val slot2 = symbols.random()
-    val slot3 = symbols.random()
-    println("Результат: [$slot1] [$slot2] [$slot3]")
-
-    // Три шестёрки обнуляют баланс
-    if (slot1 == "6" && slot2 == "6" && slot3 == "6") {
-        println("💀💀💀 ПРОКЛЯТИЕ КАЗИНО! Три шестёрки! Ваш баланс обнулён! 💀💀💀")
-        return 0
-    }
-
-    val win = when {
-        slot1 == "7" && slot2 == "7" && slot3 == "7" -> bet * 10
-        slot1 == slot2 && slot2 == slot3 -> bet * 5
-        slot1 == slot2 || slot2 == slot3 || slot1 == slot3 -> bet * 2
-        else -> 0
-    }
-    if (win > 0) {
-        println("🎉 Поздравляем! Вы выиграли $win монет!")
-        return coins + win
+}        return coins + win
     } else {
         println("😞 Ничего не совпало. Вы проиграли $bet монет.")
         return coins - bet
