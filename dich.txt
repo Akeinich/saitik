@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Forms;
 
-namespace Lab3_Resistors_Text   // замените на имя вашего проекта, если другое
+namespace Lab4_Branching   // замените на имя вашего проекта
 {
     public partial class Form1 : Form
     {
@@ -10,69 +10,113 @@ namespace Lab3_Resistors_Text   // замените на имя вашего п�
             InitializeComponent();
         }
 
-        // Вспомогательная функция для чтения значений из текстовых полей
-        private bool ReadValues(out double r1, out double r2, out double r3)
+        // Задание 1: переключение текста кнопки ВКЛ/ВЫКЛ
+        private void btnToggle_Click(object sender, EventArgs e)
         {
-            r1 = r2 = r3 = 0;
+            if (btnToggle.Text == "ВКЛ")
+                btnToggle.Text = "ВЫКЛ";
+            else
+                btnToggle.Text = "ВКЛ";
+        }
+
+        // Задание 2: перемещение метки вниз и проверка условия
+        private void btnMoveDown_Click(object sender, EventArgs e)
+        {
+            lblMoving.Top += 10;   // смещаем на 10 пикселей вниз
+            if (lblMoving.Top > 200)
+            {
+                lblMoving.Text = "Я опустилась ниже 200!";
+            }
+        }
+
+        // Задание 3: успеет ли агент на встречу
+        private void btnCheckMeeting_Click(object sender, EventArgs e)
+        {
             try
             {
-                r1 = Convert.ToDouble(txtR1.Text);
-                r2 = Convert.ToDouble(txtR2.Text);
-                r3 = Convert.ToDouble(txtR3.Text);
-                if (r1 < 0 || r2 < 0 || r3 < 0)
+                double distance = Convert.ToDouble(txtDistance.Text);
+                double speed = Convert.ToDouble(txtSpeed.Text);
+                double timeLimit = Convert.ToDouble(txtTime.Text);
+
+                if (speed <= 0)
                 {
-                    MessageBox.Show("Сопротивления не могут быть отрицательными!");
-                    return false;
+                    MessageBox.Show("Скорость должна быть больше нуля!");
+                    return;
                 }
-                return true;
+
+                double timeNeeded = distance / speed;
+                if (timeNeeded <= timeLimit)
+                {
+                    lblMeetingResult.Text = $"Агент УСПЕЕТ. В пути {timeNeeded:F2} ч, а есть {timeLimit} ч.";
+                }
+                else
+                {
+                    lblMeetingResult.Text = $"Агент НЕ УСПЕЕТ. Нужно {timeNeeded:F2} ч, а есть {timeLimit} ч.";
+                }
             }
             catch
             {
-                MessageBox.Show("Введите корректные числовые значения сопротивлений (используйте запятую для дробной части)!");
-                return false;
+                MessageBox.Show("Введите числа во все три поля (расстояние, скорость, время)");
             }
         }
 
-        // Последовательное соединение
-        private void btnSeq_Click(object sender, EventArgs e)
+        // Задание 4: день недели по номеру (switch)
+        private void btnWeekday_Click(object sender, EventArgs e)
         {
-            if (!ReadValues(out double r1, out double r2, out double r3)) return;
-            double total = r1 + r2 + r3;
-            txtResult.Text = total.ToString("0.##") + " Ом";
-            lblSchemeDesc.Text = "Последовательное соединение: Rобщ = R1 + R2 + R3 = " + 
-                                 r1 + " + " + r2 + " + " + r3 + " = " + total.ToString("0.##") + " Ом";
-        }
-
-        // Параллельное соединение
-        private void btnPar_Click(object sender, EventArgs e)
-        {
-            if (!ReadValues(out double r1, out double r2, out double r3)) return;
-            if (r1 == 0 || r2 == 0 || r3 == 0)
+            try
             {
-                MessageBox.Show("Для параллельного соединения сопротивления не могут быть нулевыми!");
-                return;
+                int day = Convert.ToInt32(txtDayNumber.Text);
+                string dayName;
+                switch (day)
+                {
+                    case 1: dayName = "Понедельник"; break;
+                    case 2: dayName = "Вторник";     break;
+                    case 3: dayName = "Среда";       break;
+                    case 4: dayName = "Четверг";     break;
+                    case 5: dayName = "Пятница";     break;
+                    case 6: dayName = "Суббота";     break;
+                    case 7: dayName = "Воскресенье"; break;
+                    default: dayName = "Некорректный номер (1-7)"; break;
+                }
+                lblWeekdayResult.Text = dayName;
             }
-            double total = 1 / (1 / r1 + 1 / r2 + 1 / r3);
-            txtResult.Text = total.ToString("0.##") + " Ом";
-            lblSchemeDesc.Text = "Параллельное соединение: 1/Rобщ = 1/R1 + 1/R2 + 1/R3\n" +
-                                 "Rобщ = " + total.ToString("0.##") + " Ом";
+            catch
+            {
+                MessageBox.Show("Введите целое число от 1 до 7");
+            }
         }
 
-        // Смешанное соединение (R1 последовательно с (R2 || R3))
-        private void btnMix_Click(object sender, EventArgs e)
+        // Задание 5: определение времени года по номеру месяца (switch)
+        private void btnSeason_Click(object sender, EventArgs e)
         {
-            if (!ReadValues(out double r1, out double r2, out double r3)) return;
-            if (r2 == 0 || r3 == 0)
+            try
             {
-                MessageBox.Show("R2 и R3 не могут быть нулевыми для параллельного участка!");
-                return;
+                int month = Convert.ToInt32(txtMonth.Text);
+                string season;
+                switch (month)
+                {
+                    case 12: case 1: case 2:
+                        season = "Зима";
+                        break;
+                    case 3: case 4: case 5:
+                        season = "Весна";
+                        break;
+                    case 6: case 7: case 8:
+                        season = "Лето";
+                        break;
+                    case 9: case 10: case 11:
+                        season = "Осень";
+                        break;
+                    default:
+                        season = "Некорректный номер месяца (1-12)";
+                        break;
+                }
+                lblSeasonResult.Text = season;
             }
-            double parallel = 1 / (1 / r2 + 1 / r3);
-            double total = r1 + parallel;
-            txtResult.Text = total.ToString("0.##") + " Ом";
-            lblSchemeDesc.Text = "Смешанное соединение: R1 + (R2 || R3)\n" +
-                                 "R2||R3 = " + parallel.ToString("0.##") + " Ом\n" +
-                                 "Rобщ = " + r1 + " + " + parallel.ToString("0.##") + " = " + total.ToString("0.##") + " Ом";
+            catch
+            {
+                MessageBox.Show("Введите целое число от 1 до 12");
+            }
         }
     }
 }
