@@ -988,6 +988,15 @@ async function spinSlot() {
   }
 
   const outcome = calculateWin(bet, grid);
+
+  // Show scatter progress
+  const sc = outcome.scatterCount || 0;
+  if (sc > 0) {
+    const bar = '🍀'.repeat(sc) + '⬜'.repeat(Math.max(0, 5 - sc));
+    document.getElementById('slotResultMsg').textContent =
+      (document.getElementById('slotResultMsg').textContent || '') +
+      `  │ Scatter: ${bar} ${sc}/5`;
+  }
   await animateOutcome(outcome, bet, grid);
 
   isSpinning = false;
@@ -1123,12 +1132,12 @@ async function animateOutcome(outcome, bet, grid) {
     await sleep(200);
     checkBankrupt();
     // Check bonus trigger AFTER regular win
-    if ((outcome.scatterCount || 0) >= 3) await triggerBonus(bet);
+    if ((outcome.scatterCount || 0) >= 5) await triggerBonus(bet);
     return;
   }
 
   document.getElementById('slotResultMsg').textContent = '😞 Нет паттернов. Крути ещё!';
-  if ((outcome.scatterCount || 0) >= 3) await triggerBonus(bet);
+  if ((outcome.scatterCount || 0) >= 5) await triggerBonus(bet);
   checkBankrupt();
 }
 
