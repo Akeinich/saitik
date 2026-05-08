@@ -170,6 +170,8 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
 .spin-btn{background:linear-gradient(135deg,#c9a227,#e8c840,#c9a227);color:var(--bg);font-family:'Cinzel Decorative',serif;font-size:1.1rem;font-weight:700;padding:.7rem 2rem;border:none;border-radius:10px;cursor:pointer;letter-spacing:.05em;transition:all .2s;box-shadow:0 4px 20px #c9a22750;min-width:120px;}
 .spin-btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;}
 .spin-btn:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 6px 30px #c9a22770;}
+.spin-btn.stop-active{background:linear-gradient(135deg,#c0392b,#e74c3c,#c0392b);box-shadow:0 4px 20px #c0392b80;animation:stopPulse .7s ease-in-out infinite alternate;}
+@keyframes stopPulse{from{box-shadow:0 4px 20px #c0392b60;}to{box-shadow:0 4px 32px #ff000099,0 0 20px #ff000055;}}
 
 .win-amount{font-family:'Cinzel Decorative',serif;font-size:1.3rem;color:var(--win);text-shadow:0 0 12px #00ffaa60;opacity:0;transition:opacity .3s;}
 .win-amount.show{opacity:1;}
@@ -210,7 +212,31 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
 .pline-cell.active{background:var(--gold);}
 .pline-label{font-size:.6rem;color:var(--text2);letter-spacing:.05em;text-align:center;}
 
-/* ── FLOAT ANIMATIONS ── */
+/* ── BONUS OVERLAY ── */
+.bonus-overlay{display:none;position:fixed;inset:0;z-index:210;background:#000000dd;align-items:center;justify-content:center;}
+.bonus-overlay.show{display:flex;animation:fade-in .35s ease;}
+.bonus-card{background:linear-gradient(160deg,#061a06,#0a2a0a);border:2px solid var(--gold-d);border-radius:20px;padding:2.5rem 2rem;max-width:520px;width:92%;text-align:center;box-shadow:0 0 60px #00ffaa30,0 30px 80px #00000080;position:relative;overflow:hidden;}
+.bonus-card::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,#00ffaa0a,transparent 60%);pointer-events:none;}
+.bonus-crown{font-size:3rem;display:block;margin-bottom:.5rem;animation:float 2s ease-in-out infinite;}
+.bonus-title{font-family:'Cinzel Decorative',serif;font-size:1.6rem;color:var(--gold);letter-spacing:.08em;text-shadow:0 0 20px #c9a22780;margin-bottom:.4rem;}
+.bonus-subtitle{font-size:.85rem;letter-spacing:.15em;text-transform:uppercase;color:var(--text2);margin-bottom:1.8rem;}
+.bonus-chests{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:1.5rem;}
+.bonus-chest{background:var(--bg3);border:2px solid var(--gold-d);border-radius:14px;padding:1.2rem .8rem;cursor:pointer;transition:all .25s;display:flex;flex-direction:column;align-items:center;gap:.5rem;position:relative;overflow:hidden;}
+.bonus-chest::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,#c9a22718,transparent);pointer-events:none;}
+.bonus-chest:not(.opened):hover{border-color:var(--gold);transform:translateY(-4px);box-shadow:0 8px 24px #c9a22740;}
+.bonus-chest.opened{cursor:default;border-color:#00ffaa60;background:#001a00;transform:none;}
+.bonus-chest.opened:hover{transform:none;box-shadow:none;}
+.bonus-chest-icon{font-size:2.4rem;transition:all .3s;}
+.bonus-chest.opened .bonus-chest-icon{font-size:1.8rem;opacity:.5;}
+.bonus-chest-val{font-family:'Cinzel Decorative',serif;font-size:1.1rem;color:var(--gold);min-height:1.4rem;opacity:0;transform:scale(.5);transition:all .4s cubic-bezier(.34,1.56,.64,1);}
+.bonus-chest.opened .bonus-chest-val{opacity:1;transform:scale(1);}
+.bonus-chest-label{font-size:.65rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);min-height:.9rem;}
+.bonus-total-row{display:flex;align-items:center;justify-content:center;gap:.6rem;margin-bottom:1.2rem;font-size:1rem;}
+.bonus-total-label{color:var(--text2);font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;}
+.bonus-total-val{font-family:'Cinzel Decorative',serif;font-size:1.6rem;color:var(--win);text-shadow:0 0 12px #00ffaa60;transition:all .3s;}
+.bonus-scatter-badges{display:flex;gap:.5rem;justify-content:center;margin-bottom:1rem;}
+.bonus-badge{background:rgba(0,255,170,.12);border:1px solid rgba(0,255,170,.35);border-radius:20px;padding:.3rem .8rem;font-size:.7rem;letter-spacing:.1em;color:var(--win);}
+.bonus-collect-btn{margin-top:.5rem;padding:1rem 3rem;font-size:1rem;animation:stopPulse .8s ease-in-out infinite alternate;}
 @keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
 @keyframes glow-pulse{0%,100%{opacity:.7;}50%{opacity:1;}}
 @keyframes fade-in{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
@@ -547,6 +573,24 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
   </div>
 </div>
 
+<!-- ══════════════════ BONUS OVERLAY ══════════════════ -->
+<div class="bonus-overlay" id="bonusOverlay">
+  <div class="bonus-card">
+    <div class="bonus-crown">🍀</div>
+    <div class="bonus-title">БОНУСНАЯ ИГРА</div>
+    <div class="bonus-subtitle" id="bonusSubtitle">Выберите 3 сундука!</div>
+    <div class="bonus-chests" id="bonusChests"></div>
+    <div class="bonus-total-row">
+      <span class="bonus-total-label">Бонус:</span>
+      <span class="bonus-total-val" id="bonusTotalVal">0</span>
+      <span class="bonus-total-label">монет</span>
+    </div>
+    <button class="action-btn bonus-collect-btn" id="bonusCollectBtn" onclick="collectBonus()" style="display:none;">
+      💰 Забрать!
+    </button>
+  </div>
+</div>
+
 <!-- ══════════════════ JACKPOT BANNER ══════════════════ -->
 <div class="jackpot-banner" id="jackpotBanner">
   <div class="confetti-wrap" id="confettiWrap"></div>
@@ -820,44 +864,72 @@ function makeCell(sym) {
 }
 
 // ═══════════════════════════════════════════════
+//  QUICK STOP
+// ═══════════════════════════════════════════════
+const reelStoppers = []; // each entry is a function that immediately finishes that reel
+
+function quickStop() {
+  if (!isSpinning) return;
+  // Fire all registered stoppers
+  reelStoppers.forEach(fn => fn());
+  reelStoppers.length = 0;
+}
+
+// ═══════════════════════════════════════════════
 //  SPIN A SINGLE REEL
 // ═══════════════════════════════════════════════
 function spinReel(col, finalSyms, delay, duration) {
   return new Promise(resolve => {
     const reel = document.getElementById('reel' + col);
     const strip = reel.querySelector('.reel-strip');
-    // Disable transition
+
     strip.style.transition = 'none';
     strip.style.transform = 'translateY(0)';
     strip.innerHTML = '';
-    // Add spinning buffer cells
-    for (let i = 0; i < SPIN_EXTRA; i++) {
-      strip.appendChild(makeCell(rndSym()));
-    }
-    // Add final 3 cells
+    for (let i = 0; i < SPIN_EXTRA; i++) strip.appendChild(makeCell(rndSym()));
     finalSyms.forEach(s => strip.appendChild(makeCell(s)));
-    // Force reflow
-    strip.offsetHeight;
+    strip.offsetHeight; // reflow
+
     const targetY = -(SPIN_EXTRA * CELL_H);
-    setTimeout(() => {
-      strip.style.transition = `transform ${duration}ms cubic-bezier(0.12, 0.92, 0.28, 1)`;
+    let resolved = false;
+    let timer = null;
+    let transHandler = null;
+
+    function finish() {
+      if (resolved) return;
+      resolved = true;
+      if (transHandler) strip.removeEventListener('transitionend', transHandler);
+      strip.style.transition = 'none';
+      strip.innerHTML = '';
+      finalSyms.forEach((s, row) => {
+        const cell = makeCell(s);
+        strip.appendChild(cell);
+        reelCells[col][row] = cell;
+      });
+      strip.style.transform = 'translateY(0)';
+      currentGrid[col] = [...finalSyms];
+      resolve();
+    }
+
+    function startAnim(fast) {
+      transHandler = finish;
+      strip.style.transition = `transform ${fast ? 180 : duration}ms cubic-bezier(0.12, 0.92, 0.28, 1)`;
       strip.style.transform = `translateY(${targetY}px)`;
-      function onEnd() {
-        strip.removeEventListener('transitionend', onEnd);
-        // Reset cleanly
-        strip.style.transition = 'none';
-        strip.innerHTML = '';
-        finalSyms.forEach((s, row) => {
-          const cell = makeCell(s);
-          strip.appendChild(cell);
-          reelCells[col][row] = cell;
-        });
-        strip.style.transform = 'translateY(0)';
-        currentGrid[col] = [...finalSyms];
-        resolve();
-      }
-      strip.addEventListener('transitionend', onEnd, { once: true });
-    }, delay);
+      strip.addEventListener('transitionend', transHandler, { once: true });
+    }
+
+    timer = setTimeout(() => startAnim(false), delay);
+
+    // Register stopper: clears timer, cancels transition, resolves instantly
+    reelStoppers.push(() => {
+      if (resolved) return;
+      clearTimeout(timer);
+      if (transHandler) strip.removeEventListener('transitionend', transHandler);
+      strip.style.transition = 'none';
+      strip.style.transform = `translateY(${targetY}px)`;
+      strip.offsetHeight; // reflow to commit position
+      finish();
+    });
   });
 }
 
@@ -872,30 +944,41 @@ async function spinSlot() {
     return;
   }
   isSpinning = true;
+  reelStoppers.length = 0; // clear previous stoppers
+
   coins -= bet;
   updateAllBalances();
   const btn = document.getElementById('spinBtn');
-  btn.disabled = true;
+
+  // Switch to STOP button
+  btn.textContent = '⏹ СТОП';
+  btn.className = 'spin-btn stop-active';
+  btn.disabled = false;
+  btn.onclick = quickStop;
+
   clearHighlights();
   document.getElementById('winAmount').className = 'win-amount';
   document.getElementById('slotResultMsg').textContent = '🎰 Крутим...';
   document.getElementById('winLines').innerHTML = '';
 
-  // Generate results for each reel (col)
   const results = [];
   for (let col = 0; col < NUM_REELS; col++) {
     results.push([rndSym(), rndSym(), rndSym()]);
   }
 
-  // Spin all reels with staggered start and stop
   const promises = results.map((syms, col) =>
     spinReel(col, syms, col * 130, 1800 + col * 280)
   );
   await Promise.all(promises);
-  await sleep(120);
+  reelStoppers.length = 0;
+  await sleep(80);
 
-  // currentGrid[col][row] now reflects final symbols
-  // Build grid[row][col] for payline checking
+  // Restore SPIN button
+  btn.textContent = '▶ СПИН';
+  btn.className = 'spin-btn';
+  btn.onclick = spinSlot;
+  btn.disabled = true; // will be re-enabled after animateOutcome
+
   const grid = [];
   for (let row = 0; row < NUM_ROWS; row++) {
     grid[row] = [];
@@ -952,14 +1035,17 @@ function calculateWin(bet, grid) {
     hitPatterns.push({ name: pattern.name, cells: pattern.cells, sym: base, win: Math.round(win), mult: pattern.mult });
   }
 
+  // ── Count scattered wilds (bonus trigger) ──
+  const scatterCount = grid.flat().filter(s => s === WILD).length;
+
   // ── JACKPOT check (7 fills entire board) ──
   const allSeven = grid.every(row => row.every(s => s === '7'));
   if (allSeven) {
-    return { type:'jackpot', win: bet * 70, hitPatterns:[] };
+    return { type:'jackpot', win: bet * 70, hitPatterns:[], scatterCount };
   }
 
-  if (totalWin > 0) return { type:'win', win: Math.round(totalWin), hitPatterns };
-  return { type:'lose', win:0, hitPatterns:[] };
+  if (totalWin > 0) return { type:'win', win: Math.round(totalWin), hitPatterns, scatterCount };
+  return { type:'lose', win:0, hitPatterns:[], scatterCount };
 }
 
 function countConsecutive(syms) { // kept for compatibility
@@ -1036,10 +1122,13 @@ async function animateOutcome(outcome, bet, grid) {
     showWinLines(outcome.hitPatterns);
     await sleep(200);
     checkBankrupt();
+    // Check bonus trigger AFTER regular win
+    if ((outcome.scatterCount || 0) >= 3) await triggerBonus(bet);
     return;
   }
 
   document.getElementById('slotResultMsg').textContent = '😞 Нет паттернов. Крути ещё!';
+  if ((outcome.scatterCount || 0) >= 3) await triggerBonus(bet);
   checkBankrupt();
 }
 
@@ -1085,6 +1174,99 @@ function spawnConfetti() {
     p.style.cssText = `left:${Math.random()*100}%;background:${colors[i%colors.length]};animation-duration:${1.5+Math.random()*2}s;animation-delay:${Math.random()*.5}s;transform:rotate(${Math.random()*360}deg);border-radius:${Math.random()<0.5?'50%':'0'};`;
     wrap.appendChild(p);
   }
+}
+
+// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+//  BONUS GAME
+// ═══════════════════════════════════════════════
+let bonusResolve = null;
+let bonusBet = 0;
+let bonusPicks = 0;
+let bonusTotal = 0;
+const BONUS_MAX_PICKS = 3;
+
+const BONUS_PRIZES = [
+  { v: 2,  w: 25, label: '×2',    icon: '💰' },
+  { v: 3,  w: 20, label: '×3',    icon: '💰' },
+  { v: 5,  w: 18, label: '×5',    icon: '💎' },
+  { v: 8,  w: 12, label: '×8',    icon: '💎' },
+  { v: 10, w: 10, label: '×10',   icon: '🏆' },
+  { v: 15, w: 7,  label: '×15',   icon: '🏆' },
+  { v: 20, w: 5,  label: '×20',   icon: '⭐' },
+  { v: 0,  w: 3,  label: '💀 ×0', icon: '💀' },
+];
+
+function weightedPick(prizes) {
+  const total = prizes.reduce((s, p) => s + p.w, 0);
+  let r = Math.random() * total;
+  for (const p of prizes) { r -= p.w; if (r <= 0) return p; }
+  return prizes[0];
+}
+
+async function triggerBonus(bet) {
+  bonusBet = bet;
+  bonusPicks = 0;
+  bonusTotal = 0;
+
+  const prizes = Array.from({ length: 6 }, () => weightedPick(BONUS_PRIZES));
+
+  const container = document.getElementById('bonusChests');
+  container.innerHTML = '';
+  prizes.forEach((prize, i) => {
+    const chest = document.createElement('div');
+    chest.className = 'bonus-chest';
+    chest.innerHTML = `<span class="bonus-chest-icon">📦</span><span class="bonus-chest-val" id="bv${i}"></span><span class="bonus-chest-label" id="bl${i}"></span>`;
+    chest.onclick = () => pickChest(chest, prize, i);
+    container.appendChild(chest);
+  });
+
+  document.getElementById('bonusTotalVal').textContent = '0';
+  document.getElementById('bonusSubtitle').textContent = `Выберите ${BONUS_MAX_PICKS} сундука! (0/${BONUS_MAX_PICKS})`;
+  document.getElementById('bonusCollectBtn').style.display = 'none';
+  document.getElementById('bonusOverlay').classList.add('show');
+
+  return new Promise(r => { bonusResolve = r; });
+}
+
+function pickChest(el, prize, idx) {
+  if (el.classList.contains('opened') || bonusPicks >= BONUS_MAX_PICKS) return;
+  bonusPicks++;
+  el.classList.add('opened');
+  el.onclick = null;
+
+  el.querySelector('.bonus-chest-icon').textContent = prize.icon;
+  document.getElementById(`bv${idx}`).textContent = prize.label;
+  document.getElementById(`bl${idx}`).textContent = prize.v > 0 ? `+${prize.v * bonusBet}` : 'ничего';
+
+  if (prize.v > 0) {
+    bonusTotal += prize.v * bonusBet;
+    document.getElementById('bonusTotalVal').textContent = bonusTotal;
+    spawnConfetti();
+  }
+
+  document.getElementById('bonusSubtitle').textContent =
+    bonusPicks < BONUS_MAX_PICKS
+      ? `Выберите ${BONUS_MAX_PICKS} сундука! (${bonusPicks}/${BONUS_MAX_PICKS})`
+      : '🍀 Готово! Забирайте награду!';
+
+  if (bonusPicks >= BONUS_MAX_PICKS) {
+    document.querySelectorAll('.bonus-chest:not(.opened)').forEach(ch => {
+      ch.style.opacity = '.3'; ch.onclick = null;
+    });
+    setTimeout(() => { document.getElementById('bonusCollectBtn').style.display = 'block'; }, 500);
+  }
+}
+
+function collectBonus() {
+  document.getElementById('bonusOverlay').classList.remove('show');
+  if (bonusTotal > 0) {
+    coins += bonusTotal;
+    updateAllBalances();
+    document.getElementById('slotResultMsg').textContent = `🍀 БОНУС: +${bonusTotal} монет!`;
+  }
+  if (bonusResolve) { bonusResolve(); bonusResolve = null; }
+  checkBankrupt();
 }
 
 // ═══════════════════════════════════════════════
@@ -1166,10 +1348,13 @@ function doReset() {
   coinChoice = null;
   diceGuess = null;
   isSpinning = false;
+  reelStoppers.length = 0;
   autoSpinActive = false;
   autoSpinRemaining = 0;
   const ab = document.getElementById('autoSpinBtn');
   if (ab) { ab.textContent = '🔄 АВТО'; ab.style.borderColor = ''; }
+  const sb = document.getElementById('spinBtn');
+  if (sb) { sb.textContent = '▶ СПИН'; sb.className = 'spin-btn'; sb.onclick = spinSlot; sb.disabled = false; }
   document.getElementById('headsBtn').classList.remove('selected');
   document.getElementById('tailsBtn').classList.remove('selected');
   document.querySelectorAll('.guess-btn').forEach(b => b.classList.remove('selected'));
