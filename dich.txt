@@ -1,122 +1,238 @@
 using System;
+using System.Drawing;
 using System.Windows.Forms;
 
-namespace Lab4_Branching   // замените на имя вашего проекта
+namespace Lab5_Controls_CodeOnly
 {
-    public partial class Form1 : Form
+    public class MainForm : Form
     {
-        public Form1()
+        // Элементы управления
+        private GroupBox gbGreeting;
+        private RadioButton rbOfficial, rbFriendly, rbNeutral;
+        private GroupBox gbGender;
+        private RadioButton rbMale, rbFemale;
+        private Label lblName;
+        private TextBox txtName;
+        private Label lblHoliday;
+        private ComboBox cbHoliday;
+        private Label lblCopies;
+        private NumericUpDown numCopies;
+        private Button btnPreview, btnReady, btnClear;
+        private TextBox txtResult;
+        private ToolTip toolTip1;
+        private ContextMenuStrip contextMenuStrip1;
+        private ToolStripMenuItem tsmiPreview, tsmiClear;
+
+        public MainForm()
         {
-            InitializeComponent();
+            InitializeControls();
+            SetupToolTips();
+            SetupContextMenu();
         }
 
-        // Задание 1: переключение текста кнопки ВКЛ/ВЫКЛ
-        private void btnToggle_Click(object sender, EventArgs e)
+        private void InitializeControls()
         {
-            if (btnToggle.Text == "ВКЛ")
-                btnToggle.Text = "ВЫКЛ";
-            else
-                btnToggle.Text = "ВКЛ";
+            // Настройка формы
+            this.Text = "Лабораторная работа №5 - Элементы управления";
+            this.Size = new Size(550, 600);
+            this.StartPosition = FormStartPosition.CenterScreen;
+
+            // GroupBox "Приветствие"
+            gbGreeting = new GroupBox();
+            gbGreeting.Text = "Приветствие";
+            gbGreeting.Location = new Point(20, 20);
+            gbGreeting.Size = new Size(200, 120);
+
+            rbOfficial = new RadioButton();
+            rbOfficial.Text = "Уважаемый";
+            rbOfficial.Location = new Point(10, 30);
+            rbOfficial.Checked = true;
+
+            rbFriendly = new RadioButton();
+            rbFriendly.Text = "Дорогой";
+            rbFriendly.Location = new Point(10, 55);
+
+            rbNeutral = new RadioButton();
+            rbNeutral.Text = "Здравствуйте";
+            rbNeutral.Location = new Point(10, 80);
+
+            gbGreeting.Controls.Add(rbOfficial);
+            gbGreeting.Controls.Add(rbFriendly);
+            gbGreeting.Controls.Add(rbNeutral);
+
+            // GroupBox "Пол"
+            gbGender = new GroupBox();
+            gbGender.Text = "Пол";
+            gbGender.Location = new Point(240, 20);
+            gbGender.Size = new Size(150, 90);
+
+            rbMale = new RadioButton();
+            rbMale.Text = "Мужской";
+            rbMale.Location = new Point(10, 30);
+            rbMale.Checked = true;
+
+            rbFemale = new RadioButton();
+            rbFemale.Text = "Женский";
+            rbFemale.Location = new Point(10, 55);
+
+            gbGender.Controls.Add(rbMale);
+            gbGender.Controls.Add(rbFemale);
+
+            // Поле для имени
+            lblName = new Label();
+            lblName.Text = "Имя:";
+            lblName.Location = new Point(20, 160);
+            lblName.Size = new Size(80, 25);
+
+            txtName = new TextBox();
+            txtName.Location = new Point(100, 160);
+            txtName.Size = new Size(200, 25);
+
+            // ComboBox для праздника
+            lblHoliday = new Label();
+            lblHoliday.Text = "Праздник:";
+            lblHoliday.Location = new Point(20, 200);
+            lblHoliday.Size = new Size(80, 25);
+
+            cbHoliday = new ComboBox();
+            cbHoliday.Location = new Point(100, 200);
+            cbHoliday.Size = new Size(200, 25);
+            cbHoliday.DropDownStyle = ComboBoxStyle.DropDownList;
+            cbHoliday.Items.AddRange(new object[] { "День рождения", "Новый год", "8 Марта", "23 Февраля" });
+            cbHoliday.SelectedIndex = 0;
+
+            // NumericUpDown для количества копий
+            lblCopies = new Label();
+            lblCopies.Text = "Количество копий:";
+            lblCopies.Location = new Point(20, 240);
+            lblCopies.Size = new Size(120, 25);
+
+            numCopies = new NumericUpDown();
+            numCopies.Location = new Point(150, 240);
+            numCopies.Size = new Size(60, 25);
+            numCopies.Minimum = 1;
+            numCopies.Maximum = 10;
+            numCopies.Value = 1;
+
+            // Кнопки
+            btnPreview = new Button();
+            btnPreview.Text = "Просмотр";
+            btnPreview.Location = new Point(20, 280);
+            btnPreview.Size = new Size(100, 30);
+            btnPreview.Click += BtnPreview_Click;
+
+            btnReady = new Button();
+            btnReady.Text = "Готово";
+            btnReady.Location = new Point(140, 280);
+            btnReady.Size = new Size(100, 30);
+            btnReady.Click += BtnReady_Click;
+
+            btnClear = new Button();
+            btnClear.Text = "Очистить";
+            btnClear.Location = new Point(260, 280);
+            btnClear.Size = new Size(100, 30);
+            btnClear.Click += BtnClear_Click;
+
+            // Многострочный TextBox для результата
+            txtResult = new TextBox();
+            txtResult.Location = new Point(20, 330);
+            txtResult.Size = new Size(490, 200);
+            txtResult.Multiline = true;
+            txtResult.ScrollBars = ScrollBars.Vertical;
+            txtResult.ReadOnly = true;
+
+            // Добавляем все элементы на форму
+            this.Controls.Add(gbGreeting);
+            this.Controls.Add(gbGender);
+            this.Controls.Add(lblName);
+            this.Controls.Add(txtName);
+            this.Controls.Add(lblHoliday);
+            this.Controls.Add(cbHoliday);
+            this.Controls.Add(lblCopies);
+            this.Controls.Add(numCopies);
+            this.Controls.Add(btnPreview);
+            this.Controls.Add(btnReady);
+            this.Controls.Add(btnClear);
+            this.Controls.Add(txtResult);
         }
 
-        // Задание 2: перемещение метки вниз и проверка условия
-        private void btnMoveDown_Click(object sender, EventArgs e)
+        private void SetupToolTips()
         {
-            lblMoving.Top += 10;   // смещаем на 10 пикселей вниз
-            if (lblMoving.Top > 200)
-            {
-                lblMoving.Text = "Я опустилась ниже 200!";
-            }
+            toolTip1 = new ToolTip();
+            toolTip1.SetToolTip(btnPreview, "Показать один экземпляр приглашения");
+            toolTip1.SetToolTip(btnReady, "Сгенерировать указанное количество копий");
+            toolTip1.SetToolTip(btnClear, "Очистить результат и сбросить настройки");
+            toolTip1.SetToolTip(txtName, "Введите имя");
+            toolTip1.SetToolTip(numCopies, "Количество копий (от 1 до 10)");
+            toolTip1.SetToolTip(cbHoliday, "Выберите праздник");
         }
 
-        // Задание 3: успеет ли агент на встречу
-        private void btnCheckMeeting_Click(object sender, EventArgs e)
+        private void SetupContextMenu()
         {
-            try
-            {
-                double distance = Convert.ToDouble(txtDistance.Text);
-                double speed = Convert.ToDouble(txtSpeed.Text);
-                double timeLimit = Convert.ToDouble(txtTime.Text);
-
-                if (speed <= 0)
-                {
-                    MessageBox.Show("Скорость должна быть больше нуля!");
-                    return;
-                }
-
-                double timeNeeded = distance / speed;
-                if (timeNeeded <= timeLimit)
-                {
-                    lblMeetingResult.Text = $"Агент УСПЕЕТ. В пути {timeNeeded:F2} ч, а есть {timeLimit} ч.";
-                }
-                else
-                {
-                    lblMeetingResult.Text = $"Агент НЕ УСПЕЕТ. Нужно {timeNeeded:F2} ч, а есть {timeLimit} ч.";
-                }
-            }
-            catch
-            {
-                MessageBox.Show("Введите числа во все три поля (расстояние, скорость, время)");
-            }
+            contextMenuStrip1 = new ContextMenuStrip();
+            tsmiPreview = new ToolStripMenuItem("Просмотр");
+            tsmiClear = new ToolStripMenuItem("Очистить");
+            contextMenuStrip1.Items.Add(tsmiPreview);
+            contextMenuStrip1.Items.Add(tsmiClear);
+            tsmiPreview.Click += BtnPreview_Click;
+            tsmiClear.Click += BtnClear_Click;
+            this.ContextMenuStrip = contextMenuStrip1;
         }
 
-        // Задание 4: день недели по номеру (switch)
-        private void btnWeekday_Click(object sender, EventArgs e)
+        // Формирование одного приглашения
+        private string MakeInvitation()
         {
-            try
+            string greeting = "";
+            if (rbOfficial.Checked) greeting = rbOfficial.Text;
+            else if (rbFriendly.Checked) greeting = rbFriendly.Text;
+            else if (rbNeutral.Checked) greeting = rbNeutral.Text;
+
+            // Склонение для "Уважаемый/Уважаемая" и "Дорогой/Дорогая"
+            if (greeting == "Уважаемый")
             {
-                int day = Convert.ToInt32(txtDayNumber.Text);
-                string dayName;
-                switch (day)
-                {
-                    case 1: dayName = "Понедельник"; break;
-                    case 2: dayName = "Вторник";     break;
-                    case 3: dayName = "Среда";       break;
-                    case 4: dayName = "Четверг";     break;
-                    case 5: dayName = "Пятница";     break;
-                    case 6: dayName = "Суббота";     break;
-                    case 7: dayName = "Воскресенье"; break;
-                    default: dayName = "Некорректный номер (1-7)"; break;
-                }
-                lblWeekdayResult.Text = dayName;
+                greeting = rbMale.Checked ? "Уважаемый" : "Уважаемая";
             }
-            catch
+            else if (greeting == "Дорогой")
             {
-                MessageBox.Show("Введите целое число от 1 до 7");
+                greeting = rbMale.Checked ? "Дорогой" : "Дорогая";
             }
+
+            string name = txtName.Text.Trim();
+            if (string.IsNullOrEmpty(name)) name = "Гость";
+
+            string holiday = cbHoliday.SelectedItem?.ToString() ?? "праздником";
+
+            return $"{greeting} {name}! Поздравляем вас с {holiday}!";
         }
 
-        // Задание 5: определение времени года по номеру месяца (switch)
-        private void btnSeason_Click(object sender, EventArgs e)
+        // Обработчик кнопки "Просмотр"
+        private void BtnPreview_Click(object sender, EventArgs e)
         {
-            try
+            txtResult.Text = MakeInvitation();
+        }
+
+        // Обработчик кнопки "Готово" (много копий)
+        private void BtnReady_Click(object sender, EventArgs e)
+        {
+            string invitation = MakeInvitation();
+            int copies = (int)numCopies.Value;
+            string result = "";
+            for (int i = 1; i <= copies; i++)
             {
-                int month = Convert.ToInt32(txtMonth.Text);
-                string season;
-                switch (month)
-                {
-                    case 12: case 1: case 2:
-                        season = "Зима";
-                        break;
-                    case 3: case 4: case 5:
-                        season = "Весна";
-                        break;
-                    case 6: case 7: case 8:
-                        season = "Лето";
-                        break;
-                    case 9: case 10: case 11:
-                        season = "Осень";
-                        break;
-                    default:
-                        season = "Некорректный номер месяца (1-12)";
-                        break;
-                }
-                lblSeasonResult.Text = season;
+                result += $"{i}. {invitation}\r\n";
             }
-            catch
-            {
-                MessageBox.Show("Введите целое число от 1 до 12");
-            }
+            txtResult.Text = result;
+        }
+
+        // Очистка всех полей и сброс
+        private void BtnClear_Click(object sender, EventArgs e)
+        {
+            txtName.Clear();
+            txtResult.Clear();
+            rbOfficial.Checked = true;
+            rbMale.Checked = true;
+            cbHoliday.SelectedIndex = 0;
+            numCopies.Value = 1;
         }
     }
 }
