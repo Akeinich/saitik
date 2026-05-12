@@ -1718,21 +1718,28 @@ updateAllBalances();
 #wheelCanvas{border-radius:50%;border:3px solid var(--gold-d);box-shadow:0 0 30px #c9a22730;display:block;}
 
 /* ── RUSSIAN ROULETTE ── */
-.revolver-wrap{display:flex;flex-direction:column;align-items:center;gap:.5rem;}
-.revolver-cylinder{width:200px;height:200px;position:relative;transition:transform .4s cubic-bezier(.34,1.56,.64,1);}
-.chamber-ring{position:absolute;inset:0;border-radius:50%;border:3px solid #444;}
-.chamber{position:absolute;width:52px;height:52px;border-radius:50%;transform-origin:100px 100px;}
-.chamber:nth-child(1){top:10px;left:74px;transform:rotate(0deg) translateY(-74px);}
-.chamber:nth-child(2){top:10px;left:74px;transform:rotate(60deg) translateY(-74px);}
-.chamber:nth-child(3){top:10px;left:74px;transform:rotate(120deg) translateY(-74px);}
-.chamber:nth-child(4){top:10px;left:74px;transform:rotate(180deg) translateY(-74px);}
-.chamber:nth-child(5){top:10px;left:74px;transform:rotate(240deg) translateY(-74px);}
-.chamber:nth-child(6){top:10px;left:74px;transform:rotate(300deg) translateY(-74px);}
-.chamber-inner{width:100%;height:100%;border-radius:50%;background:radial-gradient(circle at 35% 35%,#2a2a2a,#111);border:2px solid #555;display:flex;align-items:center;justify-content:center;font-size:1.4rem;transition:all .3s;}
-.chamber.active .chamber-inner{border-color:var(--gold);box-shadow:0 0 14px #c9a22788;}
+.revolver-wrap{display:flex;flex-direction:column;align-items:center;gap:.75rem;}
+.revolver-cylinder{width:200px;height:200px;position:relative;border-radius:50%;background:radial-gradient(circle at 40% 35%,#3a3a3a,#111);border:3px solid #555;box-shadow:inset 0 0 20px #00000088,0 0 20px #00000066;}
+.chamber-ring{position:absolute;inset:0;border-radius:50%;}
+/* 6 chambers at radius=67px from center(100,100), size 46×46px */
+/* θ=0° top, 60° top-right, 120° bottom-right, 180° bottom, 240° bottom-left, 300° top-left */
+.chamber{position:absolute;width:46px;height:46px;border-radius:50%;}
+.chamber:nth-child(1){top:10px; left:77px;}   /* θ=  0° */
+.chamber:nth-child(2){top:43px; left:135px;}  /* θ= 60° */
+.chamber:nth-child(3){top:110px;left:135px;}  /* θ=120° */
+.chamber:nth-child(4){top:144px;left:77px;}   /* θ=180° */
+.chamber:nth-child(5){top:110px;left:19px;}   /* θ=240° */
+.chamber:nth-child(6){top:43px; left:19px;}   /* θ=300° */
+.chamber-inner{width:100%;height:100%;border-radius:50%;background:radial-gradient(circle at 35% 35%,#2a2a2a,#111);border:2px solid #555;display:flex;align-items:center;justify-content:center;font-size:1.3rem;transition:all .3s;}
+.chamber.active .chamber-inner{border-color:var(--gold);box-shadow:0 0 12px #c9a22799,inset 0 0 6px #c9a22733;}
 .chamber.fired  .chamber-inner{background:radial-gradient(circle,#3a1010,#1a0505);border-color:#ff2266;}
 .chamber.bullet-fired .chamber-inner{background:radial-gradient(circle,#ff0000,#660000);border-color:#ff0000;box-shadow:0 0 20px #ff000099;}
-.revolver-barrel{font-size:3rem;filter:drop-shadow(0 0 8px #00000088);}
+/* Mechanical click animation */
+@keyframes cylClick{0%{transform:rotate(0)}30%{transform:rotate(9deg)}70%{transform:rotate(-4deg)}100%{transform:rotate(0)}}
+.revolver-cylinder.clicking{animation:cylClick .35s ease-out;}
+/* Firing position indicator (top notch) */
+.revolver-cylinder::before{content:'▼';position:absolute;top:-22px;left:50%;transform:translateX(-50%);color:var(--gold);font-size:14px;text-shadow:0 0 8px #c9a22799;}
+.revolver-barrel{font-size:3rem;filter:drop-shadow(0 0 8px #00000088);margin-top:.25rem;}
 .roulette-info{display:flex;gap:1.5rem;align-items:center;font-size:.85rem;}
 .roulette-shot-count{font-family:'Cinzel',serif;font-weight:700;color:var(--text2);letter-spacing:.05em;}
 .roulette-odds{font-family:'JetBrains Mono',monospace;color:var(--win);font-size:.8rem;}
@@ -2052,16 +2059,25 @@ function rouletteReload() {
   rrCurrent   = 0;
   rrShotsLeft = 6;
   rrBusy      = false;
-  updateRouletteChambers();
+  resetRouletteChambers();
   document.getElementById('rouletteShotNum').textContent = '1';
-  document.getElementById('rouletteOdds').textContent =
-    `Шанс выжить: ${rrShotsLeft - 1}/${rrShotsLeft}`;
+  document.getElementById('rouletteOdds').textContent = 'Шанс выжить: 5/6';
   document.getElementById('rouletteResult').className = 'result-box';
   document.getElementById('rouletteShootBtn').disabled = false;
   document.getElementById('roulettePassBtn').disabled  = false;
 }
 
 function updateRouletteChambers() {
+  // Only update active indicator, preserve fired/bullet-fired states
+  for (let i = 0; i < 6; i++) {
+    document.getElementById(`ch${i}`).classList.remove('active');
+  }
+  if (rrCurrent < 6) {
+    document.getElementById(`ch${rrCurrent}`).classList.add('active');
+  }
+}
+
+function resetRouletteChambers() {
   for (let i = 0; i < 6; i++) {
     const ch = document.getElementById(`ch${i}`);
     ch.classList.remove('active','fired','bullet-fired');
@@ -2084,19 +2100,19 @@ async function rouletteShoot() {
   document.getElementById('rouletteShootBtn').disabled = true;
   document.getElementById('roulettePassBtn').disabled  = true;
 
-  // Rotate cylinder to current chamber
-  const rotDeg = rrCurrent * 60;
-  document.getElementById('revolverCylinder').style.transform = `rotate(${rotDeg}deg)`;
-  await sleep(450);
+  // Click animation
+  const cyl = document.getElementById('revolverCylinder');
+  cyl.classList.add('clicking');
+  await sleep(380);
+  cyl.classList.remove('clicking');
 
   const ch = document.getElementById(`ch${rrCurrent}`);
   if (rrCurrent === rrBullet) {
-    // BANG!
+    ch.classList.remove('active');
     ch.classList.add('bullet-fired');
     ch.querySelector('.chamber-inner').textContent = '💥';
     coins -= bet;
     updateAllBalances();
-    document.getElementById('rouletteBalance').textContent = coins;
     document.getElementById('rouletteResult').className = 'result-box lose show';
     document.getElementById('rouletteResult').textContent = `💥 БАХ! Пуля! -${bet} монет.`;
     rrShotsLeft = 0;
@@ -2106,22 +2122,21 @@ async function rouletteShoot() {
     document.getElementById('roulettePassBtn').disabled  = true;
     checkBankrupt();
   } else {
-    // Click — safe
+    ch.classList.remove('active');
     ch.classList.add('fired');
     ch.querySelector('.chamber-inner').textContent = '🔓';
-    const win = Math.round(bet * 3);
+    const win = Math.round(bet * 2); // ×2 (reduced from ×3)
     coins += win;
     updateAllBalances();
-    document.getElementById('rouletteBalance').textContent = coins;
     rrShotsLeft--;
     rrCurrent++;
     document.getElementById('rouletteShotNum').textContent = Math.min(rrCurrent + 1, 6);
+    updateRouletteChambers();
     const remaining = 6 - rrCurrent;
-    const bullets   = rrCurrent < 6 ? 1 : 0;
     document.getElementById('rouletteOdds').textContent =
-      remaining > 0 ? `Шанс выжить: ${remaining - bullets}/${remaining}` : 'Барабан пуст!';
+      remaining > 0 ? `Шанс выжить: ${remaining - 1}/${remaining}` : 'Барабан пуст!';
     document.getElementById('rouletteResult').className = 'result-box win show';
-    document.getElementById('rouletteResult').textContent = `🔓 Вхолостую! +${win} монет (×3)`;
+    document.getElementById('rouletteResult').textContent = `🔓 Вхолостую! +${win} монет (×2)`;
     if (rrCurrent >= 6) {
       document.getElementById('rouletteShootBtn').disabled = true;
       document.getElementById('roulettePassBtn').disabled  = true;
@@ -2142,25 +2157,26 @@ async function roulettePass() {
   document.getElementById('rouletteShootBtn').disabled = true;
   document.getElementById('roulettePassBtn').disabled  = true;
 
-  // Reveal current chamber as safe (skip it)
+  const cyl = document.getElementById('revolverCylinder');
+  cyl.classList.add('clicking');
+  await sleep(380);
+  cyl.classList.remove('clicking');
+
   const ch = document.getElementById(`ch${rrCurrent}`);
-  const rotDeg = rrCurrent * 60;
-  document.getElementById('revolverCylinder').style.transform = `rotate(${rotDeg}deg)`;
-  await sleep(350);
+  ch.classList.remove('active');
   ch.classList.add('fired');
   ch.querySelector('.chamber-inner').textContent = '🛑';
 
   const cost = Math.round(bet * 0.5);
   coins -= cost;
   updateAllBalances();
-  document.getElementById('rouletteBalance').textContent = coins;
   rrShotsLeft--;
   rrCurrent++;
   document.getElementById('rouletteShotNum').textContent = Math.min(rrCurrent + 1, 6);
+  updateRouletteChambers();
   const remaining = 6 - rrCurrent;
-  const bullets   = rrCurrent < 6 ? 1 : 0;
   document.getElementById('rouletteOdds').textContent =
-    remaining > 0 ? `Шанс выжить: ${remaining - bullets}/${remaining}` : 'Барабан пуст!';
+    remaining > 0 ? `Шанс выжить: ${remaining - 1}/${remaining}` : 'Барабан пуст!';
   document.getElementById('rouletteResult').className = 'result-box lose show';
   document.getElementById('rouletteResult').textContent = `🛑 Пропустили. -${cost} монет.`;
 
