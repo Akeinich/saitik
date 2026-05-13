@@ -580,8 +580,79 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
 <div class="paytable-modal" id="paytableModal">
   <div class="paytable-inner">
     <button class="paytable-close" onclick="togglePaytable()">✕</button>
-    <div class="paytable-title">✦ ТАБЛИЦА ВЫПЛАТ · CLOVER PIT ✦</div>
-    <!-- ... (paytable content unchanged) ... -->
+    <div class="paytable-title">✦ ТАБЛИЦА ВЫПЛАТ ✦</div>
+
+    <div class="paytable-section">
+      <div class="paytable-section-title">Символы и базовые значения (выигрыш = ставка × значение × множитель паттерна)</div>
+      <div class="pay-grid">
+        <div class="pay-hdr"></div><div class="pay-hdr">Символ</div>
+        <div class="pay-hdr">Значение</div><div class="pay-hdr">Вероятность</div><div class="pay-hdr" style="color:var(--gold);">Особенность</div>
+        <div class="pay-sym">7</div><div class="pay-name" style="color:var(--text);">Семёрка</div><div class="pay-x3" style="color:var(--gold);">7</div><div class="pay-x4">7.5%</div><div class="pay-x5" style="color:var(--gold);">Джекпот ×8</div>
+        <div class="pay-sym">💎</div><div class="pay-name">Бриллиант</div><div class="pay-x3">5</div><div class="pay-x4">11.9%</div><div class="pay-x5">—</div>
+        <div class="pay-sym">🎁</div><div class="pay-name">Клад</div><div class="pay-x3">5</div><div class="pay-x4">11.9%</div><div class="pay-x5">—</div>
+        <div class="pay-sym">🍀</div><div class="pay-name">Клевер</div><div class="pay-x3">3</div><div class="pay-x4">14.9%</div><div class="pay-x5">—</div>
+        <div class="pay-sym">🔔</div><div class="pay-name">Колокол</div><div class="pay-x3">3</div><div class="pay-x4">14.9%</div><div class="pay-x5">—</div>
+        <div class="pay-sym">🍒</div><div class="pay-name">Вишня</div><div class="pay-x3">2</div><div class="pay-x4">18%</div><div class="pay-x5">—</div>
+        <div class="pay-sym">🍋</div><div class="pay-name">Лимон</div><div class="pay-x3">2</div><div class="pay-x4">19%</div><div class="pay-x5">—</div>
+        <div class="pay-sym" style="color:#4488ff;font-family:'Cinzel Decorative',serif;font-size:1.1rem;">9</div><div class="pay-name">Девятка</div><div class="pay-x3" style="color:#4488ff;">9</div><div class="pay-x4" style="color:var(--win);">~1%</div><div class="pay-x5" style="color:#4488ff;">999 = бонус ×20</div>
+        <div class="pay-sym" style="color:#ff2266;font-family:'Cinzel Decorative',serif;font-size:1.1rem;">6</div><div class="pay-name">Шестёрка</div><div class="pay-x3" style="color:var(--lose);">0</div><div class="pay-x4">5%</div><div class="pay-x5" style="color:var(--lose);">666 = потеря раунда</div>
+      </div>
+    </div>
+
+    <div class="paytable-section">
+      <div class="paytable-section-title">Паттерны (форма совпадающих символов × базовый множитель)</div>
+      <div class="special-combos">
+        <div class="special-combo" style="border-color:#ffffff20">
+          <div class="combo-syms" style="font-size:.9rem;letter-spacing:.1em;">HOR / VER / DIAG</div>
+          <div class="combo-desc"><div class="combo-name">Горизонталь / Вертикаль / Диагональ</div><div class="combo-payout">3 одинаковых символа в ряд, столбец или по диагонали</div></div>
+          <div class="combo-multi">×0.7</div>
+        </div>
+        <div class="special-combo" style="border-color:#ffffff20">
+          <div class="combo-syms" style="font-size:.9rem;">HOR-L</div>
+          <div class="combo-desc"><div class="combo-name">Горизонталь-L</div><div class="combo-payout">Г-образная форма из 4 символов</div></div>
+          <div class="combo-multi">×1.5</div>
+        </div>
+        <div class="special-combo" style="border-color:#ffffff20">
+          <div class="combo-syms" style="font-size:.9rem;">HOR-XL</div>
+          <div class="combo-desc"><div class="combo-name">Горизонталь-XL</div><div class="combo-payout">4 одинаковых символа в один горизонтальный ряд</div></div>
+          <div class="combo-multi">×2.0</div>
+        </div>
+        <div class="special-combo green-combo">
+          <div class="combo-syms" style="font-size:.9rem;">ZIG / ZAG</div>
+          <div class="combo-desc"><div class="combo-name">Зиг / Заг</div><div class="combo-payout">5 символов зигзагом (форма Z или S)</div></div>
+          <div class="combo-multi">×3.0</div>
+        </div>
+        <div class="special-combo green-combo">
+          <div class="combo-syms" style="font-size:.9rem;">TOP / BOTTOM</div>
+          <div class="combo-desc"><div class="combo-name">Верх / Низ</div><div class="combo-payout">6 символов П-образно (верхняя или нижняя полоса)</div></div>
+          <div class="combo-multi">×5.0</div>
+        </div>
+        <div class="special-combo gold-combo">
+          <div class="combo-syms" style="font-size:.9rem;">EYE</div>
+          <div class="combo-desc"><div class="combo-name">Глаз</div><div class="combo-payout">8 символов по периметру поля (без угловых ячеек)</div></div>
+          <div class="combo-multi">×6.0</div>
+        </div>
+        <div class="special-combo gold-combo">
+          <div class="combo-syms" style="font-family:'Cinzel Decorative',serif;color:#ffcc00;font-size:1rem;">7 × 15</div>
+          <div class="combo-desc"><div class="combo-name">ДЖЕКПОТ</div><div class="combo-payout">Все 15 ячеек заполнены одним символом</div></div>
+          <div class="combo-multi">×8.0</div>
+        </div>
+        <div class="special-combo red-combo">
+          <div class="combo-syms" style="color:#ff2266;font-family:'Cinzel Decorative',serif;font-size:1.2rem;">6 6 6</div>
+          <div class="combo-desc"><div class="combo-name">Неудача (666)</div><div class="combo-payout">Три шестёрки в среднем ряду — выигрыш раунда сгорает</div></div>
+          <div class="combo-multi" style="color:var(--lose);">−Раунд</div>
+        </div>
+        <div class="special-combo" style="border-color:#4488ff40;background:#4488ff10">
+          <div class="combo-syms" style="color:#4488ff;font-family:'Cinzel Decorative',serif;font-size:1.2rem;">9 9 9</div>
+          <div class="combo-desc"><div class="combo-name">Удача (999)</div><div class="combo-payout">Три девятки в среднем ряду — редкий бонус!</div></div>
+          <div class="combo-multi" style="color:#4488ff;">×20 ★</div>
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:1rem;">
+      <div style="font-size:.7rem;color:var(--text3);letter-spacing:.1em;">Паттерны суммируются — несколько совпадений за 1 спин добавляются!</div>
+    </div>
   </div>
 </div>
 
@@ -640,7 +711,6 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
       </div>
     </div>
     <div style="display:flex;gap:.6rem;">
-      <button class="plinko-risk-btn" data-r="low"    onclick="setPlinkoRisk('low')">🟢 Низкий</button>
       <button class="plinko-risk-btn active" data-r="medium" onclick="setPlinkoRisk('medium')">🟡 Средний</button>
       <button class="plinko-risk-btn" data-r="high"   onclick="setPlinkoRisk('high')">🔴 Высокий</button>
     </div>
@@ -844,8 +914,8 @@ async function playDice() {
   dice.classList.remove('rolling');
   dice.style.transform = `rotateX(${rot.rx}deg) rotateY(${rot.ry}deg) rotateZ(${rot.rz}deg)`;
   if (result === diceGuess) {
-    coins += bet * 2;
-    showResult('diceResult', `🎉 Выпало ${result}! Вы выиграли +${bet * 2} монет!`, 'win');
+    coins += Math.round(bet * 1.5);
+    showResult('diceResult', `🎉 Выпало ${result}! Вы выиграли +${Math.round(bet * 1.5)} монет!`, 'win');
   } else {
     coins -= bet;
     showResult('diceResult', `😞 Выпало ${result}. -${bet} монет.`, 'lose');
@@ -875,12 +945,12 @@ function buildPatterns() {
   const P = [];
   for (let r = 0; r < 3; r++)
     for (let c = 0; c < 3; c++)
-      P.push({ name:'HOR', cells:[[r,c],[r,c+1],[r,c+2]], mult:1.0 });
+      P.push({ name:'HOR', cells:[[r,c],[r,c+1],[r,c+2]], mult:0.7 });
   for (let c = 0; c < 5; c++)
-    P.push({ name:'VER', cells:[[0,c],[1,c],[2,c]], mult:1.0 });
+    P.push({ name:'VER', cells:[[0,c],[1,c],[2,c]], mult:0.7 });
   for (let c = 0; c < 3; c++) {
-    P.push({ name:'DIAG', cells:[[0,c],[1,c+1],[2,c+2]], mult:1.0 });
-    P.push({ name:'DIAG', cells:[[2,c],[1,c+1],[0,c+2]], mult:1.0 });
+    P.push({ name:'DIAG', cells:[[0,c],[1,c+1],[2,c+2]], mult:0.7 });
+    P.push({ name:'DIAG', cells:[[2,c],[1,c+1],[0,c+2]], mult:0.7 });
   }
   const horL = [
     [[1,0],[1,1],[1,2],[0,0]], [[1,0],[1,1],[1,2],[2,0]],
@@ -888,24 +958,24 @@ function buildPatterns() {
     [[0,0],[0,1],[0,2],[1,2]], [[2,0],[2,1],[2,2],[1,2]],
     [[0,2],[0,3],[0,4],[1,2]], [[2,2],[2,3],[2,4],[1,2]],
   ];
-  horL.forEach(cells => P.push({ name:'HOR-L', cells, mult:2.0 }));
+  horL.forEach(cells => P.push({ name:'HOR-L', cells, mult:1.5 }));
   for (let r = 0; r < 3; r++)
     for (let c = 0; c < 2; c++)
-      P.push({ name:'HOR-XL', cells:[[r,c],[r,c+1],[r,c+2],[r,c+3]], mult:3.0 });
-  P.push({ name:'ZIG', cells:[[0,0],[0,1],[1,1],[2,1],[2,2]], mult:4.0 });
-  P.push({ name:'ZIG', cells:[[0,1],[0,2],[1,2],[2,2],[2,3]], mult:4.0 });
-  P.push({ name:'ZIG', cells:[[0,2],[0,3],[1,3],[2,3],[2,4]], mult:4.0 });
-  P.push({ name:'ZAG', cells:[[2,0],[2,1],[1,1],[0,1],[0,2]], mult:4.0 });
-  P.push({ name:'ZAG', cells:[[2,1],[2,2],[1,2],[0,2],[0,3]], mult:4.0 });
-  P.push({ name:'ZAG', cells:[[2,2],[2,3],[1,3],[0,3],[0,4]], mult:4.0 });
-  P.push({ name:'TOP', cells:[[0,0],[0,1],[0,2],[0,3],[0,4],[1,0]], mult:7.0 });
-  P.push({ name:'TOP', cells:[[0,0],[0,1],[0,2],[0,3],[0,4],[1,4]], mult:7.0 });
-  P.push({ name:'TOP', cells:[[0,0],[0,1],[0,2],[0,3],[0,4],[1,2]], mult:7.0 });
-  P.push({ name:'BOTTOM', cells:[[2,0],[2,1],[2,2],[2,3],[2,4],[1,0]], mult:7.0 });
-  P.push({ name:'BOTTOM', cells:[[2,0],[2,1],[2,2],[2,3],[2,4],[1,4]], mult:7.0 });
-  P.push({ name:'BOTTOM', cells:[[2,0],[2,1],[2,2],[2,3],[2,4],[1,2]], mult:7.0 });
-  P.push({ name:'EYE', cells:[[0,1],[0,2],[0,3],[1,0],[1,4],[2,1],[2,2],[2,3]], mult:8.0 });
-  P.push({ name:'JACKPOT', cells: Array.from({length:3},(_,r)=>Array.from({length:5},(_,c)=>[r,c])).flat(), mult:10.0 });
+      P.push({ name:'HOR-XL', cells:[[r,c],[r,c+1],[r,c+2],[r,c+3]], mult:2.0 });
+  P.push({ name:'ZIG', cells:[[0,0],[0,1],[1,1],[2,1],[2,2]], mult:3.0 });
+  P.push({ name:'ZIG', cells:[[0,1],[0,2],[1,2],[2,2],[2,3]], mult:3.0 });
+  P.push({ name:'ZIG', cells:[[0,2],[0,3],[1,3],[2,3],[2,4]], mult:3.0 });
+  P.push({ name:'ZAG', cells:[[2,0],[2,1],[1,1],[0,1],[0,2]], mult:3.0 });
+  P.push({ name:'ZAG', cells:[[2,1],[2,2],[1,2],[0,2],[0,3]], mult:3.0 });
+  P.push({ name:'ZAG', cells:[[2,2],[2,3],[1,3],[0,3],[0,4]], mult:3.0 });
+  P.push({ name:'TOP', cells:[[0,0],[0,1],[0,2],[0,3],[0,4],[1,0]], mult:5.0 });
+  P.push({ name:'TOP', cells:[[0,0],[0,1],[0,2],[0,3],[0,4],[1,4]], mult:5.0 });
+  P.push({ name:'TOP', cells:[[0,0],[0,1],[0,2],[0,3],[0,4],[1,2]], mult:5.0 });
+  P.push({ name:'BOTTOM', cells:[[2,0],[2,1],[2,2],[2,3],[2,4],[1,0]], mult:5.0 });
+  P.push({ name:'BOTTOM', cells:[[2,0],[2,1],[2,2],[2,3],[2,4],[1,4]], mult:5.0 });
+  P.push({ name:'BOTTOM', cells:[[2,0],[2,1],[2,2],[2,3],[2,4],[1,2]], mult:5.0 });
+  P.push({ name:'EYE', cells:[[0,1],[0,2],[0,3],[1,0],[1,4],[2,1],[2,2],[2,3]], mult:6.0 });
+  P.push({ name:'JACKPOT', cells: Array.from({length:3},(_,r)=>Array.from({length:5},(_,c)=>[r,c])).flat(), mult:8.0 });
   return P;
 }
 const PATTERNS = buildPatterns();
@@ -1073,7 +1143,7 @@ function calculateWin(bet, grid) {
     return { type:'curse', win:0, hitPatterns:[] };
   }
   if (midRow[0]===DIVINE && midRow[1]===DIVINE && midRow[2]===DIVINE) {
-    return { type:'divine', win: bet * 30, hitPatterns:[] };
+    return { type:'divine', win: bet * 20, hitPatterns:[] };
   }
   let totalWin = 0;
   const hitPatterns = [];
@@ -1092,7 +1162,7 @@ function calculateWin(bet, grid) {
   }
   const scatterCount = grid.flat().filter(s => s === WILD).length;
   const allSeven = grid.every(row => row.every(s => s === '7'));
-  if (allSeven) return { type:'jackpot', win: bet * 70, hitPatterns:[], scatterCount };
+  if (allSeven) return { type:'jackpot', win: bet * 45, hitPatterns:[], scatterCount };
   if (totalWin > 0) return { type:'win', win: Math.round(totalWin), hitPatterns, scatterCount };
   return { type:'lose', win:0, hitPatterns:[], scatterCount };
 }
@@ -1512,12 +1582,10 @@ const PL_W = 420, PL_H = 460;
 const PL_ROW_H = (PL_H - 100) / (PL_ROWS + 1);
 const PL_SPC   = PL_W / (PL_ROWS + 2);
 const PL_MULTS = {
-  low:    [1.4, 1.2, 1.1, 1.0, 1.0, 1.0, 1.1, 1.2, 1.4],
-  medium: [8.0, 3.0, 1.5, 1.0, 0.5, 1.0, 1.5, 3.0, 8.0],
-  high:   [100, 20,  5.0, 2.0, 0.3, 2.0, 5.0, 20,  100]
+  medium: [5.0, 2.0, 1.2, 0.8, 0.3, 0.8, 1.2, 2.0, 5.0],
+  high:   [50,  12,  3.0, 1.5, 0.2, 1.5, 3.0, 12,  50 ]
 };
 const PL_COLORS = {
-  low:    ['#00aa55','#00cc66','#00ffaa','#aaffcc','#ffffff','#aaffcc','#00ffaa','#00cc66','#00aa55'],
   medium: ['#c0392b','#e67e22','#f39c12','#27ae60','#1a6b4a','#27ae60','#f39c12','#e67e22','#c0392b'],
   high:   ['#ff0000','#ff4400','#ff8800','#ffcc00','#1a3a1a','#ffcc00','#ff8800','#ff4400','#ff0000']
 };
@@ -1661,16 +1729,16 @@ async function dropPlinko() {
 const WH_SEGS = [
   { label:'×0',   mult:0,   color:'#4a0a0a' },
   { label:'×1',   mult:1,   color:'#0d2b0d' },
-  { label:'×2',   mult:2,   color:'#0d1a2b' },
+  { label:'×1.5', mult:1.5, color:'#0d1a2b' },
   { label:'×0',   mult:0,   color:'#4a0a0a' },
-  { label:'×3',   mult:3,   color:'#1a2b0d' },
-  { label:'×0.5', mult:0.5, color:'#2b1a0d' },
-  { label:'×5',   mult:5,   color:'#1a0d2b' },
+  { label:'×2',   mult:2,   color:'#1a2b0d' },
   { label:'×0',   mult:0,   color:'#4a0a0a' },
-  { label:'×2',   mult:2,   color:'#0d2b1a' },
-  { label:'×1',   mult:1,   color:'#0d1a2b' },
-  { label:'×20',  mult:20,  color:'#2b2200' },
+  { label:'×3',   mult:3,   color:'#1a0d2b' },
+  { label:'×0',   mult:0,   color:'#4a0a0a' },
+  { label:'×1.5', mult:1.5, color:'#0d2b1a' },
   { label:'×0.5', mult:0.5, color:'#2b1a0d' },
+  { label:'×8',   mult:8,   color:'#2b2200' },
+  { label:'×0',   mult:0,   color:'#4a0a0a' },
 ];
 let whAngle = 0;
 let whSpinning = false;
@@ -1845,7 +1913,7 @@ async function rouletteShoot() {
     ch.classList.remove('active');
     ch.classList.add('fired');
     ch.querySelector('.chamber-inner').textContent = '✅';
-    const win = Math.round(bet * 2);
+    const win = Math.round(bet * 1.3);
     coins += win;
     updateAllBalances();
     rrShotsLeft--;
