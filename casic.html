@@ -786,12 +786,19 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
       <div class="roulette-odds" id="rouletteOdds">Шанс на приз: 5/6</div>
     </div>
 
+    <!-- Банк накопленных иксов -->
+    <div class="rr-bank" id="rrBankDisplay">
+      <span class="rr-bank-label">Банк:</span>
+      <span class="rr-bank-mult" id="rrBankMult">×0</span>
+      <span class="rr-bank-coins" id="rrBankCoins">= 0 монет</span>
+    </div>
+
     <div style="display:flex;gap:1rem;">
       <button class="action-btn roulette-shoot-btn" id="rouletteShootBtn" onclick="rouletteShoot()">⚡ Рискнуть</button>
-      <button class="action-btn roulette-pass-btn"  id="roulettePassBtn"  onclick="roulettePass()">🛑 Отступить</button>
+      <button class="action-btn roulette-pass-btn"  id="roulettePassBtn"  onclick="roulettePass()">💰 Забрать</button>
     </div>
     <div style="font-size:.7rem;color:var(--text2);text-align:center;letter-spacing:.08em;">
-      Риск: ×2 от ставки · Отступ: −½ ставки · Неудача: −ставка
+      Каждый удачный выстрел +× в банк · Забрать = получить банк · Неудача = потерять ставку
     </div>
     <button class="chip" onclick="rouletteReload()" style="margin-top:.5rem;">🔄 Перемешать ячейки</button>
     <div class="result-box" id="rouletteResult"></div>
@@ -1845,27 +1852,37 @@ let rrBullet    = -1;
 let rrCurrent   = 0;
 let rrShotsLeft = 6;
 let rrBusy      = false;
+let rrAccumMult = 0;   // накопленный множитель
+
+// Иксы за каждый удачный выстрел (нарастающие)
+const RR_SHOT_MULTS = [0.5, 0.8, 1.5, 2.5, 4.0, 6.0];
+
+function updateRRBank(bet) {
+  document.getElementById('rrBankMult').textContent  = `×${rrAccumMult.toFixed(1)}`;
+  document.getElementById('rrBankCoins').textContent = `= ${Math.round(bet * rrAccumMult)} монет`;
+}
 
 function rouletteReload() {
   rrBullet    = Math.floor(Math.random() * 6);
   rrCurrent   = 0;
   rrShotsLeft = 6;
   rrBusy      = false;
+  rrAccumMult = 0;
   resetRouletteChambers();
   document.getElementById('rouletteShotNum').textContent = '1';
-  document.getElementById('rouletteOdds').textContent = 'Шанс на приз: 5/6';
-  document.getElementById('rouletteResult').className = 'result-box';
+  document.getElementById('rouletteOdds').textContent    = 'Шанс на приз: 5/6';
+  document.getElementById('rouletteResult').className    = 'result-box';
+  document.getElementById('rrBankMult').textContent  = '×0';
+  document.getElementById('rrBankCoins').textContent = '= 0 монет';
   document.getElementById('rouletteShootBtn').disabled = false;
   document.getElementById('roulettePassBtn').disabled  = false;
 }
 
 function updateRouletteChambers() {
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 6; i++)
     document.getElementById(`ch${i}`).classList.remove('active');
-  }
-  if (rrCurrent < 6) {
+  if (rrCurrent < 6)
     document.getElementById(`ch${rrCurrent}`).classList.add('active');
-  }
 }
 
 function resetRouletteChambers() {
@@ -1874,104 +1891,109 @@ function resetRouletteChambers() {
     ch.classList.remove('active','fired','bullet-fired');
     ch.querySelector('.chamber-inner').textContent = '';
   }
-  if (rrCurrent < 6) {
+  if (rrCurrent < 6)
     document.getElementById(`ch${rrCurrent}`).classList.add('active');
-  }
 }
 
 async function rouletteShoot() {
   if (rrBusy || rrShotsLeft <= 0) return;
   const bet = getBet('rouletteBet');
   if (bet <= 0 || bet > coins) {
-    document.getElementById('rouletteResult').className = 'result-box lose show';
+    document.getElementById('rouletteResult').className   = 'result-box lose show';
     document.getElementById('rouletteResult').textContent = '❌ Неверная ставка!';
     return;
   }
   rrBusy = true;
   document.getElementById('rouletteShootBtn').disabled = true;
   document.getElementById('roulettePassBtn').disabled  = true;
+
+  // Анимация барабана
   const cyl = document.getElementById('revolverCylinder');
   cyl.classList.add('clicking');
   await sleep(380);
   cyl.classList.remove('clicking');
+
   const ch = document.getElementById(`ch${rrCurrent}`);
+
   if (rrCurrent === rrBullet) {
+    // ── НЕУДАЧА ──
     ch.classList.remove('active');
     ch.classList.add('bullet-fired');
     ch.querySelector('.chamber-inner').textContent = '❌';
     coins -= bet;
+    rrAccumMult = 0;
     updateAllBalances();
-    document.getElementById('rouletteResult').className = 'result-box lose show';
-    document.getElementById('rouletteResult').textContent = `❌ Неудача! -${bet} монет.`;
+    updateRRBank(bet);
+    document.getElementById('rouletteResult').className   = 'result-box lose show';
+    document.getElementById('rouletteResult').textContent = `❌ Неудача! -${bet} монет. Банк сгорел.`;
     rrShotsLeft = 0;
     await sleep(300);
-    showJackpot('❌ Неудача!', `Вы попали в несчастливый сектор. Потеряно ${bet} монет!`, false);
+    showJackpot('❌ Неудача!', `Несчастливый сектор. Потеряно ${bet} монет!`, false);
     document.getElementById('rouletteShootBtn').disabled = true;
     document.getElementById('roulettePassBtn').disabled  = true;
     checkBankrupt();
+
   } else {
+    // ── УДАЧА — добавляем икс в банк ──
     ch.classList.remove('active');
     ch.classList.add('fired');
     ch.querySelector('.chamber-inner').textContent = '✅';
-    const win = Math.round(bet * 1.3);
-    coins += win;
-    updateAllBalances();
+
+    const addedMult = RR_SHOT_MULTS[rrCurrent] ?? 1.0;
+    rrAccumMult += addedMult;
+
     rrShotsLeft--;
     rrCurrent++;
+
+    updateRRBank(bet);
     document.getElementById('rouletteShotNum').textContent = Math.min(rrCurrent + 1, 6);
     updateRouletteChambers();
+
     const remaining = 6 - rrCurrent;
     document.getElementById('rouletteOdds').textContent =
-      remaining > 0 ? `Шанс на приз: ${remaining - 1}/${remaining}` : 'Барабан пуст!';
-    document.getElementById('rouletteResult').className = 'result-box win show';
-    document.getElementById('rouletteResult').textContent = `✅ Повезло! +${win} монет (×2)`;
+      remaining > 0 ? `Шанс на приз: ${remaining - 1}/${remaining}` : 'Все сектора пройдены!';
+
+    document.getElementById('rouletteResult').className   = 'result-box win show';
+    document.getElementById('rouletteResult').textContent =
+      `✅ +×${addedMult} в банк! Итого: ×${rrAccumMult.toFixed(1)}`;
+
     if (rrCurrent >= 6) {
-      document.getElementById('rouletteShootBtn').disabled = true;
-      document.getElementById('roulettePassBtn').disabled  = true;
+      // Прошёл все секторы — автозабор
+      await sleep(400);
+      rouletteCollect(bet);
     } else {
       document.getElementById('rouletteShootBtn').disabled = false;
       document.getElementById('roulettePassBtn').disabled  = false;
     }
-    checkBankrupt();
   }
   rrBusy = false;
 }
 
+// "Забрать" — забираем накопленный банк без риска
 async function roulettePass() {
-  if (rrBusy || rrShotsLeft <= 0) return;
+  if (rrBusy) return;
   const bet = getBet('rouletteBet');
-  if (bet <= 0 || bet > coins) return;
-  rrBusy = true;
+  if (rrAccumMult <= 0) {
+    document.getElementById('rouletteResult').className   = 'result-box lose show';
+    document.getElementById('rouletteResult').textContent = 'Банк пуст — сначала сделайте хотя бы один выстрел!';
+    return;
+  }
   document.getElementById('rouletteShootBtn').disabled = true;
   document.getElementById('roulettePassBtn').disabled  = true;
-  const cyl = document.getElementById('revolverCylinder');
-  cyl.classList.add('clicking');
-  await sleep(380);
-  cyl.classList.remove('clicking');
-  const ch = document.getElementById(`ch${rrCurrent}`);
-  ch.classList.remove('active');
-  ch.classList.add('fired');
-  ch.querySelector('.chamber-inner').textContent = '🛑';
-  const cost = Math.round(bet * 0.5);
-  coins -= cost;
+  rouletteCollect(bet);
+}
+
+function rouletteCollect(bet) {
+  const win = Math.round(bet * rrAccumMult);
+  coins += win;
   updateAllBalances();
-  rrShotsLeft--;
-  rrCurrent++;
-  document.getElementById('rouletteShotNum').textContent = Math.min(rrCurrent + 1, 6);
-  updateRouletteChambers();
-  const remaining = 6 - rrCurrent;
-  document.getElementById('rouletteOdds').textContent =
-    remaining > 0 ? `Шанс на приз: ${remaining - 1}/${remaining}` : 'Барабан пуст!';
-  document.getElementById('rouletteResult').className = 'result-box lose show';
-  document.getElementById('rouletteResult').textContent = `🛑 Отступили. -${cost} монет.`;
-  if (rrCurrent >= 6) {
-    document.getElementById('rouletteShootBtn').disabled = true;
-    document.getElementById('roulettePassBtn').disabled  = true;
-  } else {
-    document.getElementById('rouletteShootBtn').disabled = false;
-    document.getElementById('roulettePassBtn').disabled  = false;
-  }
-  rrBusy = false;
+  document.getElementById('rouletteResult').className   = 'result-box win show';
+  document.getElementById('rouletteResult').textContent = `💰 Забрали ×${rrAccumMult.toFixed(1)} = +${win} монет!`;
+  rrAccumMult = 0;
+  updateRRBank(bet);
+  document.getElementById('rouletteShootBtn').disabled = true;
+  document.getElementById('roulettePassBtn').disabled  = true;
+  if (win / bet >= 5) showBigWin(win / bet, win);
   checkBankrupt();
 }
 
