@@ -322,6 +322,9 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
 .plinko-risk-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:.35rem .9rem;border-radius:8px;cursor:pointer;font-family:'Cinzel',serif;font-size:.75rem;letter-spacing:.08em;transition:all .2s;}
 .plinko-risk-btn:hover{border-color:var(--gold);color:var(--gold);}
 .plinko-risk-btn.active{background:var(--gold-d);border-color:var(--gold);color:var(--gold-l);}
+.plinko-ball-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:.3rem .75rem;border-radius:8px;cursor:pointer;font-family:'Cinzel',serif;font-size:.75rem;letter-spacing:.08em;transition:all .2s;}
+.plinko-ball-btn:hover{border-color:var(--gold);color:var(--gold);}
+.plinko-ball-btn.active{background:var(--gold-d);border-color:var(--gold);color:var(--gold-l);}
 #plinkoCanvas{border-radius:14px;border:1px solid var(--gold-d);display:block;}
 
 /* ── WHEEL ── */
@@ -714,6 +717,18 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
       <button class="plinko-risk-btn active" data-r="medium" onclick="setPlinkoRisk('medium')">🟡 Средний</button>
       <button class="plinko-risk-btn" data-r="high"   onclick="setPlinkoRisk('high')">🔴 Высокий</button>
     </div>
+
+    <!-- Количество шаров -->
+    <div style="display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;justify-content:center;">
+      <span class="bet-label">Шары:</span>
+      <button class="plinko-ball-btn active" data-n="1"  onclick="setPlinkoBalls(1)">×1</button>
+      <button class="plinko-ball-btn"        data-n="3"  onclick="setPlinkoBalls(3)">×3</button>
+      <button class="plinko-ball-btn"        data-n="5"  onclick="setPlinkoBalls(5)">×5</button>
+      <button class="plinko-ball-btn"        data-n="10" onclick="setPlinkoBalls(10)">×10</button>
+      <button class="plinko-ball-btn"        data-n="25" onclick="setPlinkoBalls(25)">×25</button>
+    </div>
+    <!-- Итоговая строка (видна только при >1 шаре) -->
+    <div id="plinkoMultiInfo" style="display:none;font-family:'Cinzel',serif;font-size:.8rem;color:var(--text2);letter-spacing:.06em;text-align:center;"></div>
     <div style="position:relative;">
       <canvas id="plinkoCanvas" width="420" height="460"></canvas>
     </div>
@@ -1608,7 +1623,7 @@ function setPlinkoRisk(r) {
 function plPegX(row, col) { return PL_W/2 + (col - row/2) * PL_SPC; }
 function plPegY(row) { return 30 + (row + 1) * PL_ROW_H; }
 
-function drawPlinkoBoard(ballX, ballY) {
+function drawPlinkoBoard(ballX, ballY, ballColor) {
   const cv = document.getElementById('plinkoCanvas');
   const cx = cv.getContext('2d');
   cx.clearRect(0, 0, PL_W, PL_H);
@@ -1673,57 +1688,118 @@ function computePlinkoBall() {
   return { path, bucket: col };
 }
 
-async function dropPlinko() {
-  if (plDropping) return;
-  const bet = getBet('plinkoBet');
-  if (bet <= 0 || bet > coins) {
-    document.getElementById('plinkoResult').className = 'result-box lose show';
-    document.getElementById('plinkoResult').textContent = '❌ Неверная ставка!';
-    return;
-  }
-  plDropping = true;
-  coins -= bet;
-  updateAllBalances();
-  document.getElementById('plinkoBtn').disabled = true;
-  document.getElementById('plinkoResult').className = 'result-box';
+let plBallCount = 1;
 
-  const { path, bucket } = computePlinkoBall();
-  const totalFrames = path.length;
-  const frameDur = 200;
+function setPlinkoBalls(n) {
+  plBallCount = n;
+  document.querySelectorAll('.plinko-ball-btn').forEach(b =>
+    b.classList.toggle('active', +b.dataset.n === n));
+  const btn = document.getElementById('plinkoBtn');
+  btn.textContent = n === 1 ? '▼ Бросить шар' : `▼ Бросить ×${n} шаров`;
+  document.getElementById('plinkoMultiInfo').style.display = n > 1 ? 'block' : 'none';
+}
 
-  for (let i = 0; i < totalFrames; i++) {
+async function animateBall(path, ballColor) {
+  const frameDur = plBallCount === 1 ? 200
+                 : plBallCount <= 5  ? 120
+                 : plBallCount <= 10 ? 70
+                 : 40; // ×25 — очень быстро
+  for (let i = 0; i < path.length; i++) {
     const { x, y } = path[i];
-    drawPlinkoBoard(x, y);
+    drawPlinkoBoard(x, y, ballColor);
     await sleep(frameDur);
-    if (i + 1 < totalFrames) {
+    if (i + 1 < path.length) {
       const nx = path[i+1].x, ny = path[i+1].y;
-      const steps = 8;
+      const steps = plBallCount >= 10 ? 4 : 8;
       for (let s = 1; s <= steps; s++) {
-        const t = s/steps;
-        const bx = x + (nx-x)*t;
+        const t = s / steps;
+        const bx = x + (nx - x) * t;
         const arc = Math.sin(t * Math.PI) * 8;
-        const by = y + (ny-y)*t - arc;
-        drawPlinkoBoard(bx, by);
+        const by  = y + (ny - y) * t - arc;
+        drawPlinkoBoard(bx, by, ballColor);
         await sleep(frameDur / steps);
       }
     }
   }
+}
 
-  const mult = PL_MULTS[plRisk][bucket];
-  const win  = Math.round(bet * mult);
-  drawPlinkoBoard(path[path.length-1].x, path[path.length-1].y);
-
-  if (win > 0) {
-    coins += win;
-    updateAllBalances();
-    document.getElementById('plinkoResult').className = 'result-box win show';
-    document.getElementById('plinkoResult').textContent = `🎉 Сектор ×${mult} — Приз +${win} монет!`;
-    if (win / bet >= 5) showBigWin(mult, win);
-  } else {
-    document.getElementById('plinkoResult').className = 'result-box lose show';
-    document.getElementById('plinkoResult').textContent = `😞 Сектор ×${mult} — Увы, ничего.`;
+async function dropPlinko() {
+  if (plDropping) return;
+  const bet = getBet('plinkoBet');
+  if (bet <= 0 || bet * plBallCount > coins) {
+    document.getElementById('plinkoResult').className   = 'result-box lose show';
+    document.getElementById('plinkoResult').textContent =
+      plBallCount > 1
+        ? `❌ Не хватает монет для ${plBallCount} шаров (нужно ${bet * plBallCount})`
+        : '❌ Неверная ставка!';
+    return;
   }
 
+  plDropping = true;
+  document.getElementById('plinkoBtn').disabled = true;
+  document.getElementById('plinkoResult').className = 'result-box';
+
+  // Цвета шаров для визуального различия
+  const ballColors = ['#00aaff','#ff6633','#00ffaa','#ffcc00','#cc66ff',
+                      '#ff3388','#33ff99','#ffaa00','#3388ff','#ff5555'];
+
+  let totalBet = 0, totalWin = 0, bestMult = 0, worstMult = Infinity;
+  const multiInfo = document.getElementById('plinkoMultiInfo');
+
+  for (let i = 0; i < plBallCount; i++) {
+    if (i > 0) await sleep(plBallCount >= 10 ? 80 : 200);
+
+    // Снимаем ставку за каждый шар
+    coins -= bet;
+    totalBet += bet;
+    updateAllBalances();
+
+    if (plBallCount > 1) {
+      multiInfo.style.display = 'block';
+      multiInfo.textContent = `Шар ${i + 1}/${plBallCount}  |  Итого: ${totalWin > totalBet ? '+' : ''}${totalWin - totalBet} монет`;
+    }
+
+    const { path, bucket } = computePlinkoBall();
+    const color = ballColors[i % ballColors.length];
+    await animateBall(path, color);
+
+    const mult = PL_MULTS[plRisk][bucket];
+    const win  = Math.round(bet * mult);
+
+    if (win > 0) { coins += win; totalWin += win; }
+    if (mult > bestMult)  bestMult  = mult;
+    if (mult < worstMult) worstMult = mult;
+
+    updateAllBalances();
+
+    // Подсветка последней позиции на доске
+    drawPlinkoBoard(path[path.length - 1].x, path[path.length - 1].y, color);
+  }
+
+  // ── Итоговый результат ──
+  const netGain = totalWin - totalBet;
+
+  if (plBallCount === 1) {
+    const mult = PL_MULTS[plRisk][0]; // не используется тут, берём из первого шара
+    const win = totalWin;
+    if (win > 0) {
+      document.getElementById('plinkoResult').className   = 'result-box win show';
+      document.getElementById('plinkoResult').textContent = `🎉 Сектор ×${bestMult} — Приз +${win} монет!`;
+      if (win / bet >= 5) showBigWin(bestMult, win);
+    } else {
+      document.getElementById('plinkoResult').className   = 'result-box lose show';
+      document.getElementById('plinkoResult').textContent = `😞 Сектор ×${worstMult} — Увы, ничего.`;
+    }
+  } else {
+    const sign = netGain >= 0 ? '+' : '';
+    document.getElementById('plinkoResult').className   = netGain >= 0 ? 'result-box win show' : 'result-box lose show';
+    document.getElementById('plinkoResult').textContent =
+      `${netGain >= 0 ? '🎉' : '😞'} ${plBallCount} шаров: лучший ×${bestMult} · ${sign}${netGain} монет`;
+    multiInfo.textContent = `Потрачено: ${totalBet}  |  Выиграно: ${totalWin}  |  Итог: ${sign}${netGain}`;
+    if (netGain > 0 && netGain / totalBet >= 5) showBigWin(totalWin / totalBet, totalWin);
+  }
+
+  drawPlinkoBoard(); // очищаем шар с доски
   plDropping = false;
   document.getElementById('plinkoBtn').disabled = false;
   document.getElementById('plinkoBalance').textContent = coins;
