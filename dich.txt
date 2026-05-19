@@ -1,120 +1,126 @@
 using System;
-using System.IO;
 using System.Windows.Forms;
 
-namespace Lab6_Notepad
+namespace Lab7_Calculator
 {
     public partial class Form1 : Form
     {
-        private string currentFileName = null;   // Полный путь к текущему файлу
+        private double firstOperand = 0;
+        private string selectedOperator = "";
+        private bool clearDisplay = false;
 
         public Form1()
         {
             InitializeComponent();
-            this.Text = "Блокнот - Безымянный";   // Заголовок окна
         }
 
-        // Обновление заголовка окна
-        private void UpdateTitle()
+        // Обработчик для цифр и точки
+        private void DigitClick(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(currentFileName))
-                this.Text = "Блокнот - Безымянный";
-            else
-                this.Text = $"Блокнот - {Path.GetFileName(currentFileName)}";
+            Button btn = (Button)sender;
+            if (clearDisplay)
+            {
+                txtDisplay.Text = "";
+                clearDisplay = false;
+            }
+            if (btn.Text == "." && txtDisplay.Text.Contains("."))
+                return; // не добавлять вторую точку
+            txtDisplay.Text += btn.Text;
         }
 
-        // Новый файл
-        private void newToolStripMenuItem_Click(object sender, EventArgs e)
+        // Обработчик для арифметических операций (+, -, *, /)
+        private void OperatorClick(object sender, EventArgs e)
         {
-            if (richTextBox1.Text.Length > 0)
+            Button btn = (Button)sender;
+            if (!string.IsNullOrEmpty(selectedOperator))
             {
-                DialogResult result = MessageBox.Show("Сохранить изменения?", "Блокнот", 
-                    MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
-                if (result == DialogResult.Yes)
-                {
-                    saveToolStripMenuItem_Click(sender, e);
-                }
-                else if (result == DialogResult.Cancel)
-                    return;
+                // Если уже есть операция, вычисляем предыдущую
+                Calculate();
             }
-            richTextBox1.Clear();
-            currentFileName = null;
-            UpdateTitle();
+            firstOperand = Convert.ToDouble(txtDisplay.Text);
+            selectedOperator = btn.Text;
+            clearDisplay = true;
         }
 
-        // Открыть файл
-        private void openToolStripMenuItem_Click(object sender, EventArgs e)
+        // Вычисление результата
+        private void Calculate()
         {
-            if (richTextBox1.Text.Length > 0)
+            double secondOperand = Convert.ToDouble(txtDisplay.Text);
+            double result = 0;
+            switch (selectedOperator)
             {
-                DialogResult result = MessageBox.Show("Сохранить изменения?", "Блокнот",
-                    MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
-                if (result == DialogResult.Yes)
-                {
-                    saveToolStripMenuItem_Click(sender, e);
-                }
-                else if (result == DialogResult.Cancel)
-                    return;
+                case "+": result = firstOperand + secondOperand; break;
+                case "-": result = firstOperand - secondOperand; break;
+                case "*": result = firstOperand * secondOperand; break;
+                case "/":
+                    if (secondOperand == 0)
+                    {
+                        MessageBox.Show("Деление на ноль!", "Ошибка");
+                        txtDisplay.Text = "0";
+                        return;
+                    }
+                    result = firstOperand / secondOperand;
+                    break;
+                default: return;
             }
-
-            if (openFileDialog1.ShowDialog() == DialogResult.OK)
-            {
-                try
-                {
-                    richTextBox1.LoadFile(openFileDialog1.FileName, RichTextBoxStreamType.PlainText);
-                    currentFileName = openFileDialog1.FileName;
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Ошибка открытия файла: " + ex.Message);
-                }
-                UpdateTitle();
-            }
+            txtDisplay.Text = result.ToString();
+            firstOperand = result;
+            selectedOperator = "";
+            clearDisplay = true;
         }
 
-        // Сохранить (если файл уже был сохранён, иначе "Сохранить как")
-        private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+        // Кнопка "="
+        private void btnEqual_Click(object sender, EventArgs e)
         {
-            if (string.IsNullOrEmpty(currentFileName))
-            {
-                saveAsToolStripMenuItem_Click(sender, e);
-            }
-            else
-            {
-                try
-                {
-                    richTextBox1.SaveFile(currentFileName, RichTextBoxStreamType.PlainText);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Ошибка сохранения: " + ex.Message);
-                }
-                UpdateTitle();
-            }
+            if (!string.IsNullOrEmpty(selectedOperator))
+                Calculate();
+            selectedOperator = "";
+            clearDisplay = true;
         }
 
-        // Сохранить как
-        private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
+        // Кнопка "C" (очистить всё)
+        private void btnClear_Click(object sender, EventArgs e)
         {
-            if (saveFileDialog1.ShowDialog() == DialogResult.OK)
-            {
-                try
-                {
-                    richTextBox1.SaveFile(saveFileDialog1.FileName, RichTextBoxStreamType.PlainText);
-                    currentFileName = saveFileDialog1.FileName;
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show("Ошибка сохранения: " + ex.Message);
-                }
-                UpdateTitle();
-            }
+            txtDisplay.Text = "0";
+            firstOperand = 0;
+            selectedOperator = "";
+            clearDisplay = false;
         }
 
-        // Выход
-        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+        // Кнопка "√" (квадратный корень)
+        private void btnSqrt_Click(object sender, EventArgs e)
         {
-            Application.Exit();
+            double value = Convert.ToDouble(txtDisplay.Text);
+            if (value < 0)
+            {
+                MessageBox.Show("Нельзя извлечь корень из отрицательного числа");
+                return;
+            }
+            double result = Math.Sqrt(value);
+            txtDisplay.Text = result.ToString();
+            clearDisplay = true;
+        }
+
+        // Кнопка "+/-" (смена знака)
+        private void btnSign_Click(object sender, EventArgs e)
+        {
+            double value = Convert.ToDouble(txtDisplay.Text);
+            value = -value;
+            txtDisplay.Text = value.ToString();
+        }
+
+        // Кнопка "1/x"
+        private void btnReciprocal_Click(object sender, EventArgs e)
+        {
+            double value = Convert.ToDouble(txtDisplay.Text);
+            if (value == 0)
+            {
+                MessageBox.Show("Деление на ноль невозможно");
+                return;
+            }
+            double result = 1 / value;
+            txtDisplay.Text = result.ToString();
+            clearDisplay = true;
         }
     }
 }
