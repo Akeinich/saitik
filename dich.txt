@@ -1,104 +1,100 @@
 using System;
+using System.Drawing;
 using System.Windows.Forms;
 
-namespace Lab9_ElevatorDoor
+namespace Lab10_Shot
 {
     public partial class Form1 : Form
     {
-        private enum DoorState { Opening, Open, Closing, Closed }
-        private DoorState currentState = DoorState.Closed;
-        private int delayCounter = 0;   // счётчик для паузы (1 секунда = 100 тиков таймера, т.к. Interval=10)
+        private double v0, angleRad, vx, vy, x, y, t;
+        private const double dt = 0.05;   // шаг времени (сек)
+        private const double g = 9.8;      // ускорение (можно 5 для замедления)
+        private bool isFlying = false;
+
+        // Начальная позиция снаряда (в пикселях)
+        private int startX = 50;
+        private int startY = 380;   // чуть выше земли
 
         public Form1()
         {
             InitializeComponent();
-            // Начальное состояние: створки полностью закрыты
-            doorLeft.Width = 100;
-            doorRight.Width = 100;
-            doorRight.Left = 100;      // правая створка прижата к правому краю
-            currentState = DoorState.Closed;
-            btnClose.Enabled = false;   // неактивна, пока дверь не открыта
+            // Установка начальной позиции снаряда
+            pbProjectile.Location = new Point(startX, startY);
+        }
+
+        private void btnFire_Click(object sender, EventArgs e)
+        {
+            if (isFlying) return; // уже летит
+
+            try
+            {
+                v0 = Convert.ToDouble(txtSpeed.Text);
+                double angleDeg = Convert.ToDouble(txtAngle.Text);
+                angleRad = angleDeg * Math.PI / 180.0;
+
+                if (v0 <= 0 || angleDeg <= 0 || angleDeg >= 90)
+                {
+                    MessageBox.Show("Угол должен быть от 0 до 90, скорость > 0");
+                    return;
+                }
+
+                // Начальные скорости
+                vx = v0 * Math.Cos(angleRad);
+                vy = v0 * Math.Sin(angleRad);
+
+                // Начальные координаты (в метрах), но мы будем пересчитывать в пиксели
+                // Для простоты: пусть 1 пиксель = 1 метр (но можно масштабировать)
+                x = 0;   // смещение от стартовой точки в метрах
+                y = 0;
+                t = 0;
+
+                // Устанавливаем снаряд в стартовую позицию
+                pbProjectile.Location = new Point(startX, startY);
+                isFlying = true;
+                timer1.Enabled = true;
+                btnFire.Enabled = false;
+            }
+            catch
+            {
+                MessageBox.Show("Введите корректные числа");
+            }
         }
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            switch (currentState)
+            if (!isFlying) return;
+
+            // Шаг по времени
+            t += dt;
+
+            // Новые координаты в метрах
+            x = vx * t;
+            y = vy * t - 0.5 * g * t * t;
+
+            // Переводим в экранные пиксели (сдвиг от стартовой точки)
+            int screenX = startX + (int)x;
+            int screenY = startY - (int)y;   // ось Y в Windows идёт вниз, поэтому минус
+
+            // Проверка попадания в землю или за пределы формы
+            if (screenY >= pbGround.Top - pbProjectile.Height || screenX >= pbTarget.Left + pbTarget.Width)
             {
-                case DoorState.Opening:
-                    // Открываем левую створку (уменьшаем ширину)
-                    if (doorLeft.Width > 8)   // минимальная ширина 8 пикселей
-                    {
-                        doorLeft.Width -= 2;
-                        // при открытии левой створки правая не двигается, но чтобы щель была посередине,
-                        // можно сдвигать правую вправо, но для простоты оставим симметричное открытие:
-                        // на самом деле для реалистичности можно сдвигать правую створку вправо.
-                        // Сделаем простое решение: левая створка уменьшается, правая остаётся на месте.
-                        // Для красоты можно также увеличивать отступ правой.
-                        doorRight.Left += 1;
-                        doorRight.Width -= 1;  // и правая тоже уменьшается
-                    }
-                    else
-                    {
-                        // Открытие завершено
-                        currentState = DoorState.Open;
-                        delayCounter = 0;
-                        btnClose.Enabled = true;
-                        btnOpen.Enabled = false;
-                    }
-                    break;
+                // Снаряд упал или улетел
+                isFlying = false;
+                timer1.Enabled = false;
+                btnFire.Enabled = true;
 
-                case DoorState.Open:
-                    // Ждём 1 секунду (1000 мс / 10 мс = 100 тиков)
-                    delayCounter++;
-                    if (delayCounter >= 100)  // 100 * 10 мс = 1 секунда
-                    {
-                        currentState = DoorState.Closing;
-                        delayCounter = 0;
-                    }
-                    break;
-
-                case DoorState.Closing:
-                    // Закрываем створки
-                    if (doorLeft.Width < 100)
-                    {
-                        doorLeft.Width += 2;
-                        doorRight.Left -= 1;
-                        doorRight.Width += 1;
-                    }
-                    else
-                    {
-                        // Закрытие завершено
-                        currentState = DoorState.Closed;
-                        timer1.Enabled = false;
-                        btnOpen.Enabled = true;
-                        btnClose.Enabled = false;
-                        doorLeft.Width = 100;
-                        doorRight.Width = 100;
-                        doorRight.Left = 100;
-                    }
-                    break;
+                // Проверка попадания в мишень
+                Rectangle projectileRect = new Rectangle(screenX, screenY, pbProjectile.Width, pbProjectile.Height);
+                Rectangle targetRect = new Rectangle(pbTarget.Left, pbTarget.Top, pbTarget.Width, pbTarget.Height);
+                if (projectileRect.IntersectsWith(targetRect))
+                    MessageBox.Show("Попадание в цель!");
+                else
+                    MessageBox.Show("Мимо! Снаряд упал.");
+                return;
             }
-        }
 
-        private void btnOpen_Click(object sender, EventArgs e)
-        {
-            if (currentState == DoorState.Closed)
-            {
-                currentState = DoorState.Opening;
-                timer1.Enabled = true;
-                btnOpen.Enabled = false;
-            }
-        }
-
-        private void btnClose_Click(object sender, EventArgs e)
-        {
-            if (currentState == DoorState.Open)
-            {
-                currentState = DoorState.Closing;
-                timer1.Enabled = true;
-                btnClose.Enabled = false;
-                btnOpen.Enabled = false;
-            }
+            // Перемещаем снаряд
+            pbProjectile.Location = new Point(screenX, screenY);
         }
     }
 }
