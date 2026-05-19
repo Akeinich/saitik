@@ -1,126 +1,88 @@
 using System;
 using System.Windows.Forms;
 
-namespace Lab7_Calculator
+namespace Lab8_Area
 {
     public partial class Form1 : Form
     {
-        private double firstOperand = 0;
-        private string selectedOperator = "";
-        private bool clearDisplay = false;
-
         public Form1()
         {
             InitializeComponent();
         }
 
-        // Обработчик для цифр и точки
-        private void DigitClick(object sender, EventArgs e)
+        // Функция, задающая кривую y = -x^2 + 7x - 6
+        private double F(double x)
         {
-            Button btn = (Button)sender;
-            if (clearDisplay)
+            return -x * x + 7 * x - 6;
+        }
+
+        // Проверка корректности ввода a и b
+        private bool GetBounds(out double a, out double b)
+        {
+            a = b = 0;
+            try
             {
-                txtDisplay.Text = "";
-                clearDisplay = false;
+                a = Convert.ToDouble(txtA.Text);
+                b = Convert.ToDouble(txtB.Text);
+                if (a >= b)
+                {
+                    MessageBox.Show("Нижняя граница должна быть меньше верхней!");
+                    return false;
+                }
+                return true;
             }
-            if (btn.Text == "." && txtDisplay.Text.Contains("."))
-                return; // не добавлять вторую точку
-            txtDisplay.Text += btn.Text;
-        }
-
-        // Обработчик для арифметических операций (+, -, *, /)
-        private void OperatorClick(object sender, EventArgs e)
-        {
-            Button btn = (Button)sender;
-            if (!string.IsNullOrEmpty(selectedOperator))
+            catch
             {
-                // Если уже есть операция, вычисляем предыдущую
-                Calculate();
+                MessageBox.Show("Введите корректные числа для границ!");
+                return false;
             }
-            firstOperand = Convert.ToDouble(txtDisplay.Text);
-            selectedOperator = btn.Text;
-            clearDisplay = true;
         }
 
-        // Вычисление результата
-        private void Calculate()
+        // Метод прямоугольников (разбиение на 100 частей)
+        private void btnRect_Click(object sender, EventArgs e)
         {
-            double secondOperand = Convert.ToDouble(txtDisplay.Text);
-            double result = 0;
-            switch (selectedOperator)
+            if (!GetBounds(out double a, out double b)) return;
+
+            int n = 100;                // количество прямоугольников
+            double width = (b - a) / n; // ширина каждого
+            double sum = 0;
+            double x = a + width / 2;   // середина первого прямоугольника
+            for (int i = 0; i < n; i++)
             {
-                case "+": result = firstOperand + secondOperand; break;
-                case "-": result = firstOperand - secondOperand; break;
-                case "*": result = firstOperand * secondOperand; break;
-                case "/":
-                    if (secondOperand == 0)
-                    {
-                        MessageBox.Show("Деление на ноль!", "Ошибка");
-                        txtDisplay.Text = "0";
-                        return;
-                    }
-                    result = firstOperand / secondOperand;
-                    break;
-                default: return;
+                double height = F(x);
+                sum += width * height;
+                x += width;
             }
-            txtDisplay.Text = result.ToString();
-            firstOperand = result;
-            selectedOperator = "";
-            clearDisplay = true;
+            txtResult.Text = sum.ToString("F6");
+            lblInfo.Text = $"Метод прямоугольников: {n} полосок, площадь ≈ {sum:F6}";
         }
 
-        // Кнопка "="
-        private void btnEqual_Click(object sender, EventArgs e)
+        // Метод Монте-Карло (10 000 случайных точек)
+        private void btnMonteCarlo_Click(object sender, EventArgs e)
         {
-            if (!string.IsNullOrEmpty(selectedOperator))
-                Calculate();
-            selectedOperator = "";
-            clearDisplay = true;
-        }
+            if (!GetBounds(out double a, out double b)) return;
 
-        // Кнопка "C" (очистить всё)
-        private void btnClear_Click(object sender, EventArgs e)
-        {
-            txtDisplay.Text = "0";
-            firstOperand = 0;
-            selectedOperator = "";
-            clearDisplay = false;
-        }
+            int totalPoints = 10000;
+            Random rand = new Random();
+            int hitCount = 0;
 
-        // Кнопка "√" (квадратный корень)
-        private void btnSqrt_Click(object sender, EventArgs e)
-        {
-            double value = Convert.ToDouble(txtDisplay.Text);
-            if (value < 0)
+            // Найдём максимальное значение функции на [a,b] (для простоты можно взять фиксированную высоту 7,
+            // но правильнее вычислить максимум на отрезке. Здесь для демонстрации используем заведомо большую высоту 7,
+            // так как на отрезке [2,5] максимум = 6.25. Возьмём 7 для надёжности.
+            double maxY = 7.0; // можно вычислить точнее: вершина при x=3.5, F(3.5)=6.25
+
+            for (int i = 0; i < totalPoints; i++)
             {
-                MessageBox.Show("Нельзя извлечь корень из отрицательного числа");
-                return;
+                double x = a + rand.NextDouble() * (b - a);
+                double y = rand.NextDouble() * maxY;
+                if (y <= F(x) && F(x) >= 0) // учитываем только область над осью X, где функция неотрицательна
+                    hitCount++;
             }
-            double result = Math.Sqrt(value);
-            txtDisplay.Text = result.ToString();
-            clearDisplay = true;
-        }
 
-        // Кнопка "+/-" (смена знака)
-        private void btnSign_Click(object sender, EventArgs e)
-        {
-            double value = Convert.ToDouble(txtDisplay.Text);
-            value = -value;
-            txtDisplay.Text = value.ToString();
-        }
-
-        // Кнопка "1/x"
-        private void btnReciprocal_Click(object sender, EventArgs e)
-        {
-            double value = Convert.ToDouble(txtDisplay.Text);
-            if (value == 0)
-            {
-                MessageBox.Show("Деление на ноль невозможно");
-                return;
-            }
-            double result = 1 / value;
-            txtDisplay.Text = result.ToString();
-            clearDisplay = true;
+            double rectangleArea = (b - a) * maxY;
+            double area = rectangleArea * hitCount / totalPoints;
+            txtResult.Text = area.ToString("F6");
+            lblInfo.Text = $"Метод Монте-Карло: {totalPoints} точек, попаданий {hitCount}, площадь ≈ {area:F6}";
         }
     }
 }
