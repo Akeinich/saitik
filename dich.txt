@@ -1,88 +1,16 @@
-using System;
-using System.Windows.Forms;
-
-namespace Lab8_Area
+private void btnMeeting_Click(object sender, EventArgs e)
 {
-    public partial class Form1 : Form
+    Random rand = new Random();
+    int days = 365;
+    int meetings = 0;
+    for (int day = 0; day < days; day++)
     {
-        public Form1()
-        {
-            InitializeComponent();
-        }
-
-        // Функция, задающая кривую y = -x^2 + 7x - 6
-        private double F(double x)
-        {
-            return -x * x + 7 * x - 6;
-        }
-
-        // Проверка корректности ввода a и b
-        private bool GetBounds(out double a, out double b)
-        {
-            a = b = 0;
-            try
-            {
-                a = Convert.ToDouble(txtA.Text);
-                b = Convert.ToDouble(txtB.Text);
-                if (a >= b)
-                {
-                    MessageBox.Show("Нижняя граница должна быть меньше верхней!");
-                    return false;
-                }
-                return true;
-            }
-            catch
-            {
-                MessageBox.Show("Введите корректные числа для границ!");
-                return false;
-            }
-        }
-
-        // Метод прямоугольников (разбиение на 100 частей)
-        private void btnRect_Click(object sender, EventArgs e)
-        {
-            if (!GetBounds(out double a, out double b)) return;
-
-            int n = 100;                // количество прямоугольников
-            double width = (b - a) / n; // ширина каждого
-            double sum = 0;
-            double x = a + width / 2;   // середина первого прямоугольника
-            for (int i = 0; i < n; i++)
-            {
-                double height = F(x);
-                sum += width * height;
-                x += width;
-            }
-            txtResult.Text = sum.ToString("F6");
-            lblInfo.Text = $"Метод прямоугольников: {n} полосок, площадь ≈ {sum:F6}";
-        }
-
-        // Метод Монте-Карло (10 000 случайных точек)
-        private void btnMonteCarlo_Click(object sender, EventArgs e)
-        {
-            if (!GetBounds(out double a, out double b)) return;
-
-            int totalPoints = 10000;
-            Random rand = new Random();
-            int hitCount = 0;
-
-            // Найдём максимальное значение функции на [a,b] (для простоты можно взять фиксированную высоту 7,
-            // но правильнее вычислить максимум на отрезке. Здесь для демонстрации используем заведомо большую высоту 7,
-            // так как на отрезке [2,5] максимум = 6.25. Возьмём 7 для надёжности.
-            double maxY = 7.0; // можно вычислить точнее: вершина при x=3.5, F(3.5)=6.25
-
-            for (int i = 0; i < totalPoints; i++)
-            {
-                double x = a + rand.NextDouble() * (b - a);
-                double y = rand.NextDouble() * maxY;
-                if (y <= F(x) && F(x) >= 0) // учитываем только область над осью X, где функция неотрицательна
-                    hitCount++;
-            }
-
-            double rectangleArea = (b - a) * maxY;
-            double area = rectangleArea * hitCount / totalPoints;
-            txtResult.Text = area.ToString("F6");
-            lblInfo.Text = $"Метод Монте-Карло: {totalPoints} точек, попаданий {hitCount}, площадь ≈ {area:F6}";
-        }
+        // Время прихода каждого в минутах от 11:00 (0) до 13:00 (120)
+        double t1 = rand.NextDouble() * 120;
+        double t2 = rand.NextDouble() * 120;
+        if (Math.Abs(t1 - t2) <= 15)
+            meetings++;
     }
+    double probability = (double)meetings / days;
+    MessageBox.Show($"За {days} дней встретились {meetings} раз.\nВероятность: {probability:P2}");
 }
