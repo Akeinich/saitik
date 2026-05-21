@@ -1,70 +1,72 @@
 using System;
 using System.IO;
 
-namespace Lab11_CountingSort
+namespace Lab13_DataProcessing
 {
     class Program
     {
         static void Main(string[] args)
         {
-            string inputFile = "input.txt";
-            string outputFile = "output.txt";
+            string file1 = "data1.bin";   // первый файл (основной)
+            string file2 = "data2.bin";   // второй файл (запросы)
+            string output = "result.txt"; // выходной текстовый файл
 
-            // Проверяем, существует ли входной файл
-            if (!File.Exists(inputFile))
+            if (!File.Exists(file1) || !File.Exists(file2))
             {
-                Console.WriteLine("Ошибка: файл input.txt не найден!");
-                Console.WriteLine("Поместите его в папку с программой.");
+                Console.WriteLine("Один из входных файлов не найден.");
                 Console.ReadKey();
                 return;
             }
 
             try
             {
-                // Читаем все строки из файла
-                string[] lines = File.ReadAllLines(inputFile);
-                if (lines.Length == 0)
-                {
-                    Console.WriteLine("Файл пуст.");
-                    return;
-                }
+                // Массив для подсчёта частот чисел от 1 до 1000
+                int[] count = new int[1001];
 
-                // Первая строка – количество чисел
-                int n = int.Parse(lines[0]);
-                if (n < 1 || n > 1000000)
+                // Читаем первый файл
+                using (BinaryReader reader = new BinaryReader(File.OpenRead(file1)))
                 {
-                    Console.WriteLine("Количество чисел должно быть от 1 до 1 000 000.");
-                    return;
-                }
-
-                // Массив для подсчёта (индексы 1..1000)
-                int[] count = new int[1001]; // 0-й индекс не используем
-
-                // Обрабатываем следующие n строк
-                for (int i = 1; i <= n && i < lines.Length; i++)
-                {
-                    int value = int.Parse(lines[i]);
-                    if (value < 1 || value > 1000)
+                    int n = reader.ReadInt32(); // количество чисел
+                    for (int i = 0; i < n; i++)
                     {
-                        Console.WriteLine($"Число {value} вне диапазона 1..1000, пропускаем.");
-                        continue;
+                        int val = reader.ReadInt32();
+                        if (val >= 1 && val <= 1000)
+                            count[val]++;
+                        else
+                            Console.WriteLine($"Число {val} вне диапазона 1..1000, пропущено.");
                     }
-                    count[value]++;
                 }
 
-                // Записываем результат
-                using (StreamWriter writer = new StreamWriter(outputFile))
+                // Вычисляем префиксные суммы и общее количество
+                long[] prefix = new long[1001];
+                long total = 0;
+                for (int i = 1; i <= 1000; i++)
                 {
-                    for (int num = 1; num <= 1000; num++)
+                    total += count[i];
+                    prefix[i] = prefix[i - 1] + count[i];
+                }
+
+                // Обрабатываем второй файл и пишем результат
+                using (BinaryReader reader = new BinaryReader(File.OpenRead(file2)))
+                using (StreamWriter writer = new StreamWriter(output))
+                {
+                    int m = reader.ReadInt32(); // количество запросов
+                    for (int i = 0; i < m; i++)
                     {
-                        for (int c = 0; c < count[num]; c++)
+                        int x = reader.ReadInt32();
+                        if (x < 1 || x > 1000)
                         {
-                            writer.WriteLine(num);
+                            writer.WriteLine("0 0 0");
+                            continue;
                         }
+                        long equal = count[x];
+                        long less = prefix[x - 1];
+                        long greater = total - prefix[x];
+                        writer.WriteLine($"{equal} {less} {greater}");
                     }
                 }
 
-                Console.WriteLine($"Сортировка завершена. Результат в файле {outputFile}");
+                Console.WriteLine($"Обработка завершена. Результат в файле {output}");
             }
             catch (Exception ex)
             {
