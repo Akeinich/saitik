@@ -1,55 +1,5 @@
-Collecting playsound
-  Using cached playsound-1.3.0.tar.gz (7.7 kB)
-  Installing build dependencies: started
-  Installing build dependencies: finished with status 'done'
-  Getting requirements to build wheel: started
-  Getting requirements to build wheel: finished with status 'error'
+Cannot open Local Terminal
+Failed to start [powershell.exe] in C:\Program Files\Python311
 
-  error: subprocess-exited-with-error
-  
-  Getting requirements to build wheel did not run successfully.
-  exit code: 1
-  
-  [28 lines of output]
-  Traceback (most recent call last):
-    File "C:\Users\Student_49_10\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\pip\_vendor\pyproject_hooks\_in_process\_in_process.py", line 389, in <module>
-      main()
-    File "C:\Users\Student_49_10\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\pip\_vendor\pyproject_hooks\_in_process\_in_process.py", line 373, in main
-      json_out["return_val"] = hook(**hook_input["kwargs"])
-                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    File "C:\Users\Student_49_10\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\pip\_vendor\pyproject_hooks\_in_process\_in_process.py", line 143, in get_requires_for_build_wheel
-      return hook(config_settings)
-             ^^^^^^^^^^^^^^^^^^^^^
-    File "C:\Windows\Temp\pip-build-env-7he64jds\overlay\Lib\site-packages\setuptools\build_meta.py", line 333, in get_requires_for_build_wheel
-      return self._get_build_requires(config_settings, requirements=[])
-             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    File "C:\Windows\Temp\pip-build-env-7he64jds\overlay\Lib\site-packages\setuptools\build_meta.py", line 301, in _get_build_requires
-      self.run_setup()
-    File "C:\Windows\Temp\pip-build-env-7he64jds\overlay\Lib\site-packages\setuptools\build_meta.py", line 520, in run_setup
-      super().run_setup(setup_script=setup_script)
-    File "C:\Windows\Temp\pip-build-env-7he64jds\overlay\Lib\site-packages\setuptools\build_meta.py", line 317, in run_setup
-      exec(code, locals())
-    File "<string>", line 6, in <module>
-    File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\inspect.py", line 1258, in getsource
-      lines, lnum = getsourcelines(object)
-                    ^^^^^^^^^^^^^^^^^^^^^^
-    File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\inspect.py", line 1240, in getsourcelines
-      lines, lnum = findsource(object)
-                    ^^^^^^^^^^^^^^^^^^
-    File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\inspect.py", line 1077, in findsource
-      raise OSError('could not get source code')
-  OSError: could not get source code
-  [end of output]
-  
-  note: This error originates from a subprocess, and is likely not a problem with pip.
 
-[notice] A new release of pip is available: 25.1.1 -> 26.1.1
-[notice] To update, run: C:\Users\Student_49_10\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\python.exe -m pip install --upgrade pip
-error: subprocess-exited-with-error
-
-Getting requirements to build wheel did not run successfully.
-exit code: 1
-
-See above for output.
-
-note: This error originates from a subprocess, and is likely not a problem with pip.
+See IDE log (Help | Show Log in Explorer) for the details.
