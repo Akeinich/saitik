@@ -1,28 +1,128 @@
- Класс Form1 можно сконструировать, но это не первый класс в файле. В Visual Studio конструктор должен использовать первый класс в файле. Переместите код класса, чтобы он был первым в файле, и еще раз попробуйте загрузить конструктор.     
- 
-  
- 
-  
- 
-Экземпляры ошибки (1)  
- 
-1.   Показать стек вызовов  
- 
-в System.ComponentModel.Design.Serialization.CodeDomDesignerLoader.EnsureDocument(IDesignerSerializationManager manager)
-в System.ComponentModel.Design.Serialization.CodeDomDesignerLoader.PerformLoad(IDesignerSerializationManager manager)
-в Microsoft.VisualStudio.Design.Serialization.CodeDom.VSCodeDomDesignerLoader.PerformLoad(IDesignerSerializationManager serializationManager)
-в System.ComponentModel.Design.Serialization.BasicDesignerLoader.BeginLoad(IDesignerLoaderHost host)  
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Windows.Forms;
 
- 
-Показать информацию по данной ошибке  
- 
-Не удалось обнаружить раздел справки, связанный с этой ошибкой. Проверить список ошибок времени разработки Windows Forms   
- 
+namespace Lab14_ShoppingList_Designer
+{
+    public partial class Form1 : Form
+    {
+        // Списки
+        private List<Product> products = new List<Product>();
+        private List<CartItem> cart = new List<CartItem>();
 
- 
-Сообщения об этой ошибке в форуме  
- 
-Поиск сообщений о данной ошибке в форумах MSDN   
- 
- 
- 
+        public Form1()
+        {
+            InitializeComponent();
+            LoadProducts();
+            cbProducts.DataSource = products;
+            cbProducts.DisplayMember = "Name";
+            cbProducts.SelectedIndex = -1;
+            UpdateTotal();
+        }
+
+        // Загрузка товаров из файла products.txt
+        private void LoadProducts()
+        {
+            string file = "products.txt";
+            if (File.Exists(file))
+            {
+                string[] lines = File.ReadAllLines(file);
+                foreach (string line in lines)
+                {
+                    string[] parts = line.Split(',');
+                    if (parts.Length == 2 && decimal.TryParse(parts[1], out decimal price))
+                    {
+                        products.Add(new Product { Name = parts[0].Trim(), Price = price });
+                    }
+                }
+            }
+            else
+            {
+                // Товары по умолчанию
+                products.Add(new Product { Name = "Молоко", Price = 60 });
+                products.Add(new Product { Name = "Хлеб", Price = 30 });
+                products.Add(new Product { Name = "Масло", Price = 120 });
+                products.Add(new Product { Name = "Сыр", Price = 250 });
+            }
+        }
+
+        private void cbProducts_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (cbProducts.SelectedItem is Product prod)
+                txtPrice.Text = prod.Price.ToString("F2");
+            else
+                txtPrice.Clear();
+        }
+
+        private void btnAdd_Click(object sender, EventArgs e)
+        {
+            if (cbProducts.SelectedItem == null)
+            {
+                MessageBox.Show("Выберите товар!", "Внимание");
+                return;
+            }
+
+            Product prod = (Product)cbProducts.SelectedItem;
+            int quantity = (int)numQuantity.Value;
+
+            CartItem existing = cart.Find(item => item.Product == prod);
+            if (existing != null)
+                existing.Quantity += quantity;
+            else
+                cart.Add(new CartItem { Product = prod, Quantity = quantity });
+
+            UpdateCartDisplay();
+        }
+
+        private void btnRemove_Click(object sender, EventArgs e)
+        {
+            if (lbCart.SelectedIndex != -1)
+            {
+                cart.RemoveAt(lbCart.SelectedIndex);
+                UpdateCartDisplay();
+            }
+            else
+            {
+                MessageBox.Show("Выберите позицию для удаления!", "Внимание");
+            }
+        }
+
+        private void chkMultiSelect_CheckedChanged(object sender, EventArgs e)
+        {
+            lbCart.SelectionMode = chkMultiSelect.Checked ? SelectionMode.MultiExtended : SelectionMode.One;
+        }
+
+        private void UpdateCartDisplay()
+        {
+            lbCart.Items.Clear();
+            foreach (var item in cart)
+                lbCart.Items.Add(item);
+            UpdateTotal();
+        }
+
+        private void UpdateTotal()
+        {
+            decimal total = 0;
+            foreach (var item in cart)
+                total += item.Total;
+            txtTotal.Text = total.ToString("F2");
+        }
+    }
+
+    // --- Вспомогательные классы (теперь после Form1) ---
+    public class Product
+    {
+        public string Name { get; set; }
+        public decimal Price { get; set; }
+        public override string ToString() => Name;
+    }
+
+    public class CartItem
+    {
+        public Product Product { get; set; }
+        public int Quantity { get; set; }
+        public decimal Total => Product.Price * Quantity;
+        public override string ToString() => $"{Product.Name} x {Quantity} = {Total:F2} руб.";
+    }
+}
