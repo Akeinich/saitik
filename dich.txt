@@ -1,136 +1,28 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Windows.Forms;
+ Класс Form1 можно сконструировать, но это не первый класс в файле. В Visual Studio конструктор должен использовать первый класс в файле. Переместите код класса, чтобы он был первым в файле, и еще раз попробуйте загрузить конструктор.     
+ 
+  
+ 
+  
+ 
+Экземпляры ошибки (1)  
+ 
+1.   Показать стек вызовов  
+ 
+в System.ComponentModel.Design.Serialization.CodeDomDesignerLoader.EnsureDocument(IDesignerSerializationManager manager)
+в System.ComponentModel.Design.Serialization.CodeDomDesignerLoader.PerformLoad(IDesignerSerializationManager manager)
+в Microsoft.VisualStudio.Design.Serialization.CodeDom.VSCodeDomDesignerLoader.PerformLoad(IDesignerSerializationManager serializationManager)
+в System.ComponentModel.Design.Serialization.BasicDesignerLoader.BeginLoad(IDesignerLoaderHost host)  
 
-namespace Lab14_ShoppingList_Designer
-{
-    // --- Класс товара ---
-    public class Product
-    {
-        public string Name { get; set; }
-        public decimal Price { get; set; }
-        public override string ToString() => Name;
-    }
+ 
+Показать информацию по данной ошибке  
+ 
+Не удалось обнаружить раздел справки, связанный с этой ошибкой. Проверить список ошибок времени разработки Windows Forms   
+ 
 
-    // --- Класс позиции в корзине ---
-    public class CartItem
-    {
-        public Product Product { get; set; }
-        public int Quantity { get; set; }
-        public decimal Total => Product.Price * Quantity;
-        public override string ToString() => $"{Product.Name} x {Quantity} = {Total:F2} руб.";
-    }
-
-    public partial class Form1 : Form
-    {
-        // Списки
-        private List<Product> products = new List<Product>();
-        private List<CartItem> cart = new List<CartItem>();
-
-        public Form1()
-        {
-            InitializeComponent();
-            LoadProducts();               // загружаем товары из файла или по умолчанию
-            cbProducts.DataSource = products;
-            cbProducts.DisplayMember = "Name";
-            cbProducts.SelectedIndex = -1;
-            UpdateTotal();                // начальная сумма 0
-        }
-
-        // Загрузка товаров из файла products.txt (одна строка: Название,Цена)
-        private void LoadProducts()
-        {
-            string file = "products.txt";
-            if (File.Exists(file))
-            {
-                string[] lines = File.ReadAllLines(file);
-                foreach (string line in lines)
-                {
-                    string[] parts = line.Split(',');
-                    if (parts.Length == 2 && decimal.TryParse(parts[1], out decimal price))
-                    {
-                        products.Add(new Product { Name = parts[0].Trim(), Price = price });
-                    }
-                }
-            }
-            else
-            {
-                // Товары по умолчанию
-                products.Add(new Product { Name = "Молоко", Price = 60 });
-                products.Add(new Product { Name = "Хлеб", Price = 30 });
-                products.Add(new Product { Name = "Масло", Price = 120 });
-                products.Add(new Product { Name = "Сыр", Price = 250 });
-            }
-        }
-
-        // При выборе товара из ComboBox показываем его цену
-        private void cbProducts_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (cbProducts.SelectedItem is Product prod)
-                txtPrice.Text = prod.Price.ToString("F2");
-            else
-                txtPrice.Clear();
-        }
-
-        // Добавление товара в корзину
-        private void btnAdd_Click(object sender, EventArgs e)
-        {
-            if (cbProducts.SelectedItem == null)
-            {
-                MessageBox.Show("Выберите товар!", "Внимание");
-                return;
-            }
-
-            Product prod = (Product)cbProducts.SelectedItem;
-            int quantity = (int)numQuantity.Value;
-
-            // Если такой товар уже есть в корзине – увеличиваем количество
-            CartItem existing = cart.Find(item => item.Product == prod);
-            if (existing != null)
-                existing.Quantity += quantity;
-            else
-                cart.Add(new CartItem { Product = prod, Quantity = quantity });
-
-            UpdateCartDisplay();
-        }
-
-        // Удаление выбранной позиции из корзины
-        private void btnRemove_Click(object sender, EventArgs e)
-        {
-            if (lbCart.SelectedIndex != -1)
-            {
-                cart.RemoveAt(lbCart.SelectedIndex);
-                UpdateCartDisplay();
-            }
-            else
-            {
-                MessageBox.Show("Выберите позицию для удаления!", "Внимание");
-            }
-        }
-
-        // Переключение режима множественного выбора в ListBox
-        private void chkMultiSelect_CheckedChanged(object sender, EventArgs e)
-        {
-            lbCart.SelectionMode = chkMultiSelect.Checked ? SelectionMode.MultiExtended : SelectionMode.One;
-        }
-
-        // Обновить отображение корзины и итоговую сумму
-        private void UpdateCartDisplay()
-        {
-            lbCart.Items.Clear();
-            foreach (var item in cart)
-                lbCart.Items.Add(item);
-            UpdateTotal();
-        }
-
-        // Пересчитать общую сумму
-        private void UpdateTotal()
-        {
-            decimal total = 0;
-            foreach (var item in cart)
-                total += item.Total;
-            txtTotal.Text = total.ToString("F2");
-        }
-    }
-}
+ 
+Сообщения об этой ошибке в форуме  
+ 
+Поиск сообщений о данной ошибке в форумах MSDN   
+ 
+ 
+ 
