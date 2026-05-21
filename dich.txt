@@ -1,128 +1,55 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Windows.Forms;
+Collecting playsound
+  Using cached playsound-1.3.0.tar.gz (7.7 kB)
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'error'
 
-namespace Lab14_ShoppingList_Designer
-{
-    public partial class Form1 : Form
-    {
-        // Списки
-        private List<Product> products = new List<Product>();
-        private List<CartItem> cart = new List<CartItem>();
+  error: subprocess-exited-with-error
+  
+  Getting requirements to build wheel did not run successfully.
+  exit code: 1
+  
+  [28 lines of output]
+  Traceback (most recent call last):
+    File "C:\Users\Student_49_10\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\pip\_vendor\pyproject_hooks\_in_process\_in_process.py", line 389, in <module>
+      main()
+    File "C:\Users\Student_49_10\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\pip\_vendor\pyproject_hooks\_in_process\_in_process.py", line 373, in main
+      json_out["return_val"] = hook(**hook_input["kwargs"])
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\Users\Student_49_10\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\pip\_vendor\pyproject_hooks\_in_process\_in_process.py", line 143, in get_requires_for_build_wheel
+      return hook(config_settings)
+             ^^^^^^^^^^^^^^^^^^^^^
+    File "C:\Windows\Temp\pip-build-env-7he64jds\overlay\Lib\site-packages\setuptools\build_meta.py", line 333, in get_requires_for_build_wheel
+      return self._get_build_requires(config_settings, requirements=[])
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\Windows\Temp\pip-build-env-7he64jds\overlay\Lib\site-packages\setuptools\build_meta.py", line 301, in _get_build_requires
+      self.run_setup()
+    File "C:\Windows\Temp\pip-build-env-7he64jds\overlay\Lib\site-packages\setuptools\build_meta.py", line 520, in run_setup
+      super().run_setup(setup_script=setup_script)
+    File "C:\Windows\Temp\pip-build-env-7he64jds\overlay\Lib\site-packages\setuptools\build_meta.py", line 317, in run_setup
+      exec(code, locals())
+    File "<string>", line 6, in <module>
+    File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\inspect.py", line 1258, in getsource
+      lines, lnum = getsourcelines(object)
+                    ^^^^^^^^^^^^^^^^^^^^^^
+    File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\inspect.py", line 1240, in getsourcelines
+      lines, lnum = findsource(object)
+                    ^^^^^^^^^^^^^^^^^^
+    File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\inspect.py", line 1077, in findsource
+      raise OSError('could not get source code')
+  OSError: could not get source code
+  [end of output]
+  
+  note: This error originates from a subprocess, and is likely not a problem with pip.
 
-        public Form1()
-        {
-            InitializeComponent();
-            LoadProducts();
-            cbProducts.DataSource = products;
-            cbProducts.DisplayMember = "Name";
-            cbProducts.SelectedIndex = -1;
-            UpdateTotal();
-        }
+[notice] A new release of pip is available: 25.1.1 -> 26.1.1
+[notice] To update, run: C:\Users\Student_49_10\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\python.exe -m pip install --upgrade pip
+error: subprocess-exited-with-error
 
-        // Загрузка товаров из файла products.txt
-        private void LoadProducts()
-        {
-            string file = "products.txt";
-            if (File.Exists(file))
-            {
-                string[] lines = File.ReadAllLines(file);
-                foreach (string line in lines)
-                {
-                    string[] parts = line.Split(',');
-                    if (parts.Length == 2 && decimal.TryParse(parts[1], out decimal price))
-                    {
-                        products.Add(new Product { Name = parts[0].Trim(), Price = price });
-                    }
-                }
-            }
-            else
-            {
-                // Товары по умолчанию
-                products.Add(new Product { Name = "Молоко", Price = 60 });
-                products.Add(new Product { Name = "Хлеб", Price = 30 });
-                products.Add(new Product { Name = "Масло", Price = 120 });
-                products.Add(new Product { Name = "Сыр", Price = 250 });
-            }
-        }
+Getting requirements to build wheel did not run successfully.
+exit code: 1
 
-        private void cbProducts_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (cbProducts.SelectedItem is Product prod)
-                txtPrice.Text = prod.Price.ToString("F2");
-            else
-                txtPrice.Clear();
-        }
+See above for output.
 
-        private void btnAdd_Click(object sender, EventArgs e)
-        {
-            if (cbProducts.SelectedItem == null)
-            {
-                MessageBox.Show("Выберите товар!", "Внимание");
-                return;
-            }
-
-            Product prod = (Product)cbProducts.SelectedItem;
-            int quantity = (int)numQuantity.Value;
-
-            CartItem existing = cart.Find(item => item.Product == prod);
-            if (existing != null)
-                existing.Quantity += quantity;
-            else
-                cart.Add(new CartItem { Product = prod, Quantity = quantity });
-
-            UpdateCartDisplay();
-        }
-
-        private void btnRemove_Click(object sender, EventArgs e)
-        {
-            if (lbCart.SelectedIndex != -1)
-            {
-                cart.RemoveAt(lbCart.SelectedIndex);
-                UpdateCartDisplay();
-            }
-            else
-            {
-                MessageBox.Show("Выберите позицию для удаления!", "Внимание");
-            }
-        }
-
-        private void chkMultiSelect_CheckedChanged(object sender, EventArgs e)
-        {
-            lbCart.SelectionMode = chkMultiSelect.Checked ? SelectionMode.MultiExtended : SelectionMode.One;
-        }
-
-        private void UpdateCartDisplay()
-        {
-            lbCart.Items.Clear();
-            foreach (var item in cart)
-                lbCart.Items.Add(item);
-            UpdateTotal();
-        }
-
-        private void UpdateTotal()
-        {
-            decimal total = 0;
-            foreach (var item in cart)
-                total += item.Total;
-            txtTotal.Text = total.ToString("F2");
-        }
-    }
-
-    // --- Вспомогательные классы (теперь после Form1) ---
-    public class Product
-    {
-        public string Name { get; set; }
-        public decimal Price { get; set; }
-        public override string ToString() => Name;
-    }
-
-    public class CartItem
-    {
-        public Product Product { get; set; }
-        public int Quantity { get; set; }
-        public decimal Total => Product.Price * Quantity;
-        public override string ToString() => $"{Product.Name} x {Quantity} = {Total:F2} руб.";
-    }
-}
+note: This error originates from a subprocess, and is likely not a problem with pip.
