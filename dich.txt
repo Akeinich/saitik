@@ -1,8 +1,88 @@
-Серьезность	Код	Описание	Проект	Файл	Строка	Состояние подавления
-Ошибка	CS1061	"Panel" не содержит определения "Image", и не удалось найти доступный метод расширения "Image", принимающий тип "Panel" в качестве первого аргумента (возможно, пропущена директива using или ссылка на сборку).	Lab20	D:\Душин,Горшенин,Будкин\Lab20\Lab20\Form1.cs	24	Активные
-Сообщение	IDE0044	Сделать поле доступным только для чтения	Lab20	D:\Душин,Горшенин,Будкин\Lab20\Lab20\Form1.cs	15	Активные
-Сообщение	IDE1006	Нарушение правила именования: Эти слова должны начинаться с прописных символов: btnClear_Click	Lab20	D:\Душин,Горшенин,Будкин\Lab20\Lab20\Form1.cs	64	Активные
-Сообщение	IDE1006	Нарушение правила именования: Эти слова должны начинаться с прописных символов: drawingPanel_MouseDown	Lab20	D:\Душин,Горшенин,Будкин\Lab20\Lab20\Form1.cs	74	Активные
-Сообщение	IDE1006	Нарушение правила именования: Эти слова должны начинаться с прописных символов: drawingPanel_MouseMove	Lab20	D:\Душин,Горшенин,Будкин\Lab20\Lab20\Form1.cs	84	Активные
-Сообщение	IDE1006	Нарушение правила именования: Эти слова должны начинаться с прописных символов: drawingPanel_MouseUp	Lab20	D:\Душин,Горшенин,Будкин\Lab20\Lab20\Form1.cs	101	Активные
-Сообщение	IDE1006	Нарушение правила именования: Эти слова должны начинаться с прописных символов: drawingPanel_Resize	Lab20	D:\Душин,Горшенин,Будкин\Lab20\Lab20\Form1.cs	108	Активные
+using System;
+using System.Drawing;
+using System.Windows.Forms;
+
+namespace Lab20_Graphics
+{
+    public partial class Form1 : Form
+    {
+        private Bitmap canvasBitmap;   // рисунок
+        private bool isDrawing = false;
+        private Point lastPoint;
+
+        public Form1()
+        {
+            InitializeComponent();
+            // Создаём пустое изображение нужного размера
+            canvasBitmap = new Bitmap(drawingPictureBox.Width, drawingPictureBox.Height);
+            drawingPictureBox.Image = canvasBitmap;
+            DrawExampleShapes();
+        }
+
+        private void DrawExampleShapes()
+        {
+            using (Graphics g = Graphics.FromImage(canvasBitmap))
+            {
+                g.Clear(Color.White);
+
+                using (Pen redPen = new Pen(Color.Red, 2))
+                    g.DrawLine(redPen, 50, 50, 200, 50);
+
+                using (Pen bluePen = new Pen(Color.Blue, 2))
+                    g.DrawRectangle(bluePen, 50, 80, 150, 100);
+
+                using (SolidBrush greenBrush = new SolidBrush(Color.Green))
+                    g.FillEllipse(greenBrush, 250, 50, 150, 100);
+
+                using (Font font = new Font("Arial", 12))
+                using (SolidBrush blackBrush = new SolidBrush(Color.Black))
+                    g.DrawString("Рисование мышью", font, blackBrush, 250, 200);
+            }
+            drawingPictureBox.Invalidate();
+        }
+
+        private void btnClear_Click(object sender, EventArgs e)
+        {
+            using (Graphics g = Graphics.FromImage(canvasBitmap))
+            {
+                g.Clear(Color.White);
+            }
+            drawingPictureBox.Invalidate();
+        }
+
+        private void drawingPictureBox_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                isDrawing = true;
+                lastPoint = e.Location;
+            }
+        }
+
+        private void drawingPictureBox_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (isDrawing)
+            {
+                using (Graphics g = Graphics.FromImage(canvasBitmap))
+                using (Pen pen = new Pen(Color.Black, 2))
+                {
+                    g.DrawLine(pen, lastPoint, e.Location);
+                }
+                lastPoint = e.Location;
+                drawingPictureBox.Invalidate();
+            }
+        }
+
+        private void drawingPictureBox_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+                isDrawing = false;
+        }
+
+        // Необязательно, но оставим
+        private void drawingPictureBox_Resize(object sender, EventArgs e)
+        {
+            // При изменении размера можно пересоздать Bitmap, но для простоты не будем
+        }
+    }
+}
