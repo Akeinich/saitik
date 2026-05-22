@@ -2,26 +2,73 @@ using System;
 
 namespace Lab18_Arrays
 {
-    // Класс комплексного числа (из 16-й работы)
+    // Класс комплексного числа
     public class MyComplex
     {
         public double Re { get; set; }
         public double Im { get; set; }
-
         public MyComplex() : this(0, 0) { }
         public MyComplex(double re, double im) { Re = re; Im = im; }
         public double Abs => Math.Sqrt(Re * Re + Im * Im);
         public override string ToString() => $"{Re}+{Im}i";
-
-        // Для возможности сортировки по мнимой части
         public double Imaginary => Im;
+    }
+
+    // Компаратор для сравнения людей по весу
+    public class PersonWeightComparer : System.Collections.IComparer
+    {
+        public int Compare(object x, object y)
+        {
+            Person p1 = (Person)x;
+            Person p2 = (Person)y;
+            return p1.Weight.CompareTo(p2.Weight);
+        }
+    }
+
+    // Компаратор для сравнения людей по росту
+    public class PersonHeightComparer : System.Collections.IComparer
+    {
+        public int Compare(object x, object y)
+        {
+            Person p1 = (Person)x;
+            Person p2 = (Person)y;
+            return p1.Height.CompareTo(p2.Height);
+        }
+    }
+
+    // Компаратор для сравнения людей по фамилии (для BinarySearch)
+    public class PersonLastNameComparer : System.Collections.IComparer
+    {
+        public int Compare(object x, object y)
+        {
+            Person p1 = (Person)x;
+            Person p2 = (Person)y;
+            return p1.LastName.CompareTo(p2.LastName);
+        }
+    }
+
+    // Класс "Человек"
+    public class Person
+    {
+        public string LastName { get; set; }
+        public int Weight { get; set; }
+        public int Height { get; set; }
+
+        public Person(string lastName, int weight, int height)
+        {
+            LastName = lastName;
+            Weight = weight;
+            Height = height;
+        }
+
+        public override string ToString() => $"{LastName}: вес {Weight} кг, рост {Height} см";
     }
 
     class Program
     {
         static void Main(string[] args)
         {
-            // a) Создаём массив из 6 комплексных чисел со случайными Re и Im от -10 до 10
+            // Часть 1. Комплексные числа
             Random rnd = new Random();
             MyComplex[] complexArray = new MyComplex[6];
             for (int i = 0; i < complexArray.Length; i++)
@@ -34,7 +81,6 @@ namespace Lab18_Arrays
             Console.WriteLine("Исходный массив комплексных чисел:");
             PrintArray(complexArray);
 
-            // b) Заносим мнимые части в отдельный массив double[]
             double[] imArray = new double[complexArray.Length];
             for (int i = 0; i < complexArray.Length; i++)
                 imArray[i] = complexArray[i].Im;
@@ -42,27 +88,22 @@ namespace Lab18_Arrays
             Console.WriteLine("\nМассив мнимых частей:");
             PrintArray(imArray);
 
-            // c) Сортируем исходный массив по возрастанию мнимых частей
-            // Для сортировки по мнимой части используем вспомогательный массив и Array.Sort
-            Array.Sort(imArray, complexArray); // сортировка complexArray по imArray
+            // Сортировка комплексных чисел по мнимым частям
+            Array.Sort(imArray, complexArray);
 
             Console.WriteLine("\nМассив комплексных чисел, отсортированный по мнимой части:");
             PrintArray(complexArray);
-
             Console.WriteLine("\nСоответствующий массив мнимых частей:");
             PrintArray(imArray);
 
-            // d) Поиск числа по его мнимой части с использованием BinarySearch
-            // (для демонстрации возьмём мнимую часть из первого элемента отсортированного массива)
             double searchIm = complexArray[0].Im;
             int index = Array.BinarySearch(imArray, searchIm);
-            Console.WriteLine($"\nИщем мнимую часть {searchIm} – найдена на позиции {index} (индекс с 0)");
+            Console.WriteLine($"\nИщем мнимую часть {searchIm} – найдена на позиции {index}");
 
-            Console.WriteLine("\nНажмите любую клавишу для продолжения ко 2-й части...");
+            Console.WriteLine("\nНажмите любую клавишу для продолжения...");
             Console.ReadKey();
 
-            // ===== Часть 2. Класс "Человек" =====
-            // Создаём массив объектов Person (в данном случае вручную, но можно и из файла)
+            // Часть 2. Класс Person
             Person[] people = new Person[]
             {
                 new Person("Иванов", 70, 180),
@@ -88,28 +129,27 @@ namespace Lab18_Arrays
             };
 
             Console.WriteLine("\n\n=== Часть 2. Класс Человек ===");
-            Console.WriteLine("Исходный массив (фамилия, вес, рост):");
+            Console.WriteLine("Исходный массив:");
             PrintPeople(people);
 
             // Сортировка по весу
-            Array.Sort(people, (p1, p2) => p1.Weight.CompareTo(p2.Weight));
+            Array.Sort(people, new PersonWeightComparer());
             Console.WriteLine("\nПосле сортировки по весу:");
             PrintPeople(people);
 
             // Сортировка по росту
-            Array.Sort(people, (p1, p2) => p1.Height.CompareTo(p2.Height));
+            Array.Sort(people, new PersonHeightComparer());
             Console.WriteLine("\nПосле сортировки по росту:");
             PrintPeople(people);
 
-            // Поиск по фамилии (требует предварительной сортировки по фамилии)
-            Array.Sort(people, (p1, p2) => p1.LastName.CompareTo(p2.LastName));
-            Console.WriteLine("\nМассив, отсортированный по фамилии (для двоичного поиска):");
+            // Сортировка по фамилии для двоичного поиска
+            Array.Sort(people, new PersonLastNameComparer());
+            Console.WriteLine("\nМассив, отсортированный по фамилии:");
             PrintPeople(people);
 
             Console.Write("\nВведите фамилию для поиска: ");
             string searchName = Console.ReadLine();
-            int pos = Array.BinarySearch(people, new Person(searchName, 0, 0),
-                (p1, p2) => p1.LastName.CompareTo(p2.LastName));
+            int pos = Array.BinarySearch(people, new Person(searchName, 0, 0), new PersonLastNameComparer());
             if (pos >= 0)
                 Console.WriteLine($"Найден: {people[pos]}");
             else
@@ -134,35 +174,6 @@ namespace Lab18_Arrays
         static void PrintPeople(Person[] arr)
         {
             foreach (var p in arr) Console.WriteLine(p);
-        }
-    }
-
-    // Класс "Человек"
-    public class Person
-    {
-        public string LastName { get; set; }
-        public int Weight { get; set; } // в кг
-        public int Height { get; set; } // в см
-
-        public Person(string lastName, int weight, int height)
-        {
-            LastName = lastName;
-            Weight = weight;
-            Height = height;
-        }
-
-        public override string ToString()
-        {
-            return $"{LastName}: вес {Weight} кг, рост {Height} см";
-        }
-    }
-
-    // Вспомогательный компаратор для BinarySearch (через делегат)
-    public static class PersonComparer
-    {
-        public static int CompareByLastName(Person p1, Person p2)
-        {
-            return p1.LastName.CompareTo(p2.LastName);
         }
     }
 }
