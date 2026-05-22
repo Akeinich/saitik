@@ -1,132 +1,107 @@
 using System;
-using System.Collections.Generic;
-using System.Linq; // для удобной фильтрации
+using System.Drawing;
+using System.Windows.Forms;
 
-namespace Lab19_Inheritance
+namespace Lab20_Graphics
 {
-    // Базовый класс "Человек"
-    public class Person
+    public partial class Form1 : Form
     {
-        // Свойства
-        public string LastName { get; set; }      // фамилия
-        public int Weight { get; set; }           // вес (кг)
-        public int Height { get; set; }           // рост (см)
-        public string Gender { get; set; }        // пол ("Мужской" / "Женский")
-        public int Age { get; set; }              // возраст
+        private Bitmap canvasBitmap;   // для сохранения рисунка
+        private bool isDrawing = false;
+        private Point lastPoint;
 
-        // Вычисляемое свойство: право на пенсию (для мужчин с 60, для женщин с 55)
-        public bool IsPensioner
+        public Form1()
         {
-            get
+            InitializeComponent();
+            // Создаём пустое изображение размером с панель
+            canvasBitmap = new Bitmap(drawingPanel.Width, drawingPanel.Height);
+            drawingPanel.Image = canvasBitmap;
+            DrawExampleShapes();       // рисуем примеры фигур
+        }
+
+        // Метод для рисования примера фигур
+        private void DrawExampleShapes()
+        {
+            using (Graphics g = Graphics.FromImage(canvasBitmap))
             {
-                if (Gender == "Мужской" && Age >= 60) return true;
-                if (Gender == "Женский" && Age >= 55) return true;
-                return false;
+                g.Clear(Color.White);  // очищаем
+
+                // Линия красного цвета толщиной 2
+                using (Pen redPen = new Pen(Color.Red, 2))
+                {
+                    g.DrawLine(redPen, 50, 50, 200, 50);
+                }
+
+                // Прямоугольник синим цветом (только контур)
+                using (Pen bluePen = new Pen(Color.Blue, 2))
+                {
+                    g.DrawRectangle(bluePen, 50, 80, 150, 100);
+                }
+
+                // Закрашенный эллипс зелёным
+                using (SolidBrush greenBrush = new SolidBrush(Color.Green))
+                {
+                    g.FillEllipse(greenBrush, 250, 50, 150, 100);
+                }
+
+                // Текст
+                using (Font font = new Font("Arial", 12))
+                using (SolidBrush blackBrush = new SolidBrush(Color.Black))
+                {
+                    g.DrawString("Рисование мышью", font, blackBrush, 250, 200);
+                }
+            }
+            drawingPanel.Invalidate(); // обновляем отображение
+        }
+
+        // Очистка панели
+        private void btnClear_Click(object sender, EventArgs e)
+        {
+            using (Graphics g = Graphics.FromImage(canvasBitmap))
+            {
+                g.Clear(Color.White);
+            }
+            drawingPanel.Invalidate();
+        }
+
+        // Начало рисования
+        private void drawingPanel_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                isDrawing = true;
+                lastPoint = e.Location;
             }
         }
 
-        // Конструктор
-        public Person(string lastName, int weight, int height, string gender, int age)
+        // Рисование при движении мыши
+        private void drawingPanel_MouseMove(object sender, MouseEventArgs e)
         {
-            LastName = lastName;
-            Weight = weight;
-            Height = height;
-            Gender = gender;
-            Age = age;
-        }
-
-        // Виртуальный метод для вывода информации (будет переопределён в наследнике)
-        public virtual string GetInfo()
-        {
-            return $"{LastName}, {Gender}, {Age} лет, вес {Weight} кг, рост {Height} см";
-        }
-    }
-
-    // Производный класс "Работник"
-    public class Employee : Person
-    {
-        public string Position { get; set; }   // должность
-        public int Salary { get; set; }        // зарплата (руб.)
-
-        public Employee(string lastName, int weight, int height, string gender, int age,
-                        string position, int salary)
-            : base(lastName, weight, height, gender, age)
-        {
-            Position = position;
-            Salary = salary;
-        }
-
-        // Переопределение метода вывода
-        public override string GetInfo()
-        {
-            return base.GetInfo() + $", должность: {Position}, зарплата: {Salary} руб.";
-        }
-    }
-
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            Console.OutputEncoding = System.Text.Encoding.UTF8;
-
-            // Создаём массив сотрудников
-            Employee[] employees = new Employee[]
+            if (isDrawing)
             {
-                new Employee("Иванов", 80, 180, "Мужской", 45, "инженер", 60000),
-                new Employee("Петрова", 65, 165, "Женский", 58, "бухгалтер", 55000),
-                new Employee("Сидоров", 90, 175, "Мужской", 62, "директор", 120000),
-                new Employee("Кузнецова", 70, 170, "Женский", 35, "программист", 80000),
-                new Employee("Смирнова", 60, 160, "Женский", 56, "секретарь", 40000),
-                new Employee("Васильев", 85, 182, "Мужской", 30, "водитель", 50000),
-                new Employee("Фёдорова", 55, 158, "Женский", 60, "учитель", 45000),
-                new Employee("Михайлов", 78, 178, "Мужской", 67, "охранник", 35000),
-                new Employee("Егорова", 68, 165, "Женский", 52, "медсестра", 48000),
-                new Employee("Николаев", 95, 188, "Мужской", 40, "строитель", 70000)
-            };
-
-            Console.WriteLine("=== Исходный список сотрудников ===");
-            foreach (var emp in employees)
-                Console.WriteLine(emp.GetInfo());
-
-            // 1. Сортировка по зарплате (по возрастанию)
-            Array.Sort(employees, (x, y) => x.Salary.CompareTo(y.Salary));
-            Console.WriteLine("\n=== Список, отсортированный по зарплате (возрастание) ===");
-            foreach (var emp in employees)
-                Console.WriteLine($"{emp.GetInfo()}");
-
-            // 2. Поиск сотрудников по должности (например, "инженер")
-            Console.Write("\nВведите должность для поиска: ");
-            string searchPosition = Console.ReadLine();
-            var found = Array.FindAll(employees, e => e.Position.Equals(searchPosition, StringComparison.OrdinalIgnoreCase));
-            if (found.Length > 0)
-            {
-                Console.WriteLine($"Найдено {found.Length} сотрудников с должностью '{searchPosition}':");
-                foreach (var e in found)
-                    Console.WriteLine(e.GetInfo());
+                using (Graphics g = Graphics.FromImage(canvasBitmap))
+                {
+                    using (Pen pen = new Pen(Color.Black, 2))
+                    {
+                        g.DrawLine(pen, lastPoint, e.Location);
+                    }
+                }
+                lastPoint = e.Location;
+                drawingPanel.Invalidate(); // обновляем
             }
-            else
-                Console.WriteLine("Сотрудников с такой должностью не найдено.");
+        }
 
-            // 3. Выборка женщин-пенсионерок
-            var pensionerWomen = Array.FindAll(employees, e => e.Gender == "Женский" && e.IsPensioner);
-            Console.WriteLine("\n=== Женщины-пенсионерки ===");
-            if (pensionerWomen.Length > 0)
-                foreach (var w in pensionerWomen)
-                    Console.WriteLine(w.GetInfo());
-            else
-                Console.WriteLine("Нет женщин-пенсионерок.");
+        // Окончание рисования
+        private void drawingPanel_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+                isDrawing = false;
+        }
 
-            // 4. (Дополнительно) Выборка мужчин-пенсионеров
-            var pensionerMen = Array.FindAll(employees, e => e.Gender == "Мужской" && e.IsPensioner);
-            Console.WriteLine("\n=== Мужчины-пенсионеры ===");
-            if (pensionerMen.Length > 0)
-                foreach (var m in pensionerMen)
-                    Console.WriteLine(m.GetInfo());
-            else
-                Console.WriteLine("Нет мужчин-пенсионеров.");
-
-            Console.WriteLine("\nНажмите любую клавишу для выхода...");
-            Console.ReadKey();
+        // Если панель изменяет размер, нужно пересоздать Bitmap (необязательно для этой работы)
+        private void drawingPanel_Resize(object sender, EventArgs e)
+        {
+            // Для простоты не обрабатываем, так как размер фиксирован
         }
     }
 }
