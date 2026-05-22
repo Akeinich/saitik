@@ -1,75 +1,168 @@
 using System;
-using System.Windows.Forms;
-using ComplexNumbersLib; // наша библиотека
 
-namespace ComplexCalculator
+namespace Lab18_Arrays
 {
-    public partial class Form1 : Form
+    // Класс комплексного числа (из 16-й работы)
+    public class MyComplex
     {
-        public Form1()
-        {
-            InitializeComponent();
-        }
+        public double Re { get; set; }
+        public double Im { get; set; }
 
-        // Чтение комплексного числа из текстовых полей
-        private MyComplex ReadComplex(TextBox tbRe, TextBox tbIm)
-        {
-            double re = 0, im = 0;
-            try { re = Convert.ToDouble(tbRe.Text); } catch { re = 0; }
-            try { im = Convert.ToDouble(tbIm.Text); } catch { im = 0; }
-            return new MyComplex(re, im);
-        }
+        public MyComplex() : this(0, 0) { }
+        public MyComplex(double re, double im) { Re = re; Im = im; }
+        public double Abs => Math.Sqrt(Re * Re + Im * Im);
+        public override string ToString() => $"{Re}+{Im}i";
 
-        // Вывод результата
-        private void ShowResult(MyComplex z)
-        {
-            txtResult.Text = z.ToString();
-        }
+        // Для возможности сортировки по мнимой части
+        public double Imaginary => Im;
+    }
 
-        private void btnAdd_Click(object sender, EventArgs e)
+    class Program
+    {
+        static void Main(string[] args)
         {
-            MyComplex z1 = ReadComplex(txtZ1_Re, txtZ1_Im);
-            MyComplex z2 = ReadComplex(txtZ2_Re, txtZ2_Im);
-            MyComplex result = MyComplex.Sum(z1, z2);
-            ShowResult(result);
-        }
-
-        private void btnSub_Click(object sender, EventArgs e)
-        {
-            MyComplex z1 = ReadComplex(txtZ1_Re, txtZ1_Im);
-            MyComplex z2 = ReadComplex(txtZ2_Re, txtZ2_Im);
-            MyComplex result = MyComplex.Sub(z1, z2);
-            ShowResult(result);
-        }
-
-        private void btnMul_Click(object sender, EventArgs e)
-        {
-            MyComplex z1 = ReadComplex(txtZ1_Re, txtZ1_Im);
-            MyComplex z2 = ReadComplex(txtZ2_Re, txtZ2_Im);
-            MyComplex result = z1 * z2; // используем перегруженный оператор
-            ShowResult(result);
-        }
-
-        private void btnDiv_Click(object sender, EventArgs e)
-        {
-            try
+            // a) Создаём массив из 6 комплексных чисел со случайными Re и Im от -10 до 10
+            Random rnd = new Random();
+            MyComplex[] complexArray = new MyComplex[6];
+            for (int i = 0; i < complexArray.Length; i++)
             {
-                MyComplex z1 = ReadComplex(txtZ1_Re, txtZ1_Im);
-                MyComplex z2 = ReadComplex(txtZ2_Re, txtZ2_Im);
-                MyComplex result = z1 / z2;
-                ShowResult(result);
+                double re = rnd.Next(-10, 11);
+                double im = rnd.Next(-10, 11);
+                complexArray[i] = new MyComplex(re, im);
             }
-            catch (DivideByZeroException ex)
+
+            Console.WriteLine("Исходный массив комплексных чисел:");
+            PrintArray(complexArray);
+
+            // b) Заносим мнимые части в отдельный массив double[]
+            double[] imArray = new double[complexArray.Length];
+            for (int i = 0; i < complexArray.Length; i++)
+                imArray[i] = complexArray[i].Im;
+
+            Console.WriteLine("\nМассив мнимых частей:");
+            PrintArray(imArray);
+
+            // c) Сортируем исходный массив по возрастанию мнимых частей
+            // Для сортировки по мнимой части используем вспомогательный массив и Array.Sort
+            Array.Sort(imArray, complexArray); // сортировка complexArray по imArray
+
+            Console.WriteLine("\nМассив комплексных чисел, отсортированный по мнимой части:");
+            PrintArray(complexArray);
+
+            Console.WriteLine("\nСоответствующий массив мнимых частей:");
+            PrintArray(imArray);
+
+            // d) Поиск числа по его мнимой части с использованием BinarySearch
+            // (для демонстрации возьмём мнимую часть из первого элемента отсортированного массива)
+            double searchIm = complexArray[0].Im;
+            int index = Array.BinarySearch(imArray, searchIm);
+            Console.WriteLine($"\nИщем мнимую часть {searchIm} – найдена на позиции {index} (индекс с 0)");
+
+            Console.WriteLine("\nНажмите любую клавишу для продолжения ко 2-й части...");
+            Console.ReadKey();
+
+            // ===== Часть 2. Класс "Человек" =====
+            // Создаём массив объектов Person (в данном случае вручную, но можно и из файла)
+            Person[] people = new Person[]
             {
-                MessageBox.Show(ex.Message);
-            }
+                new Person("Иванов", 70, 180),
+                new Person("Петров", 85, 175),
+                new Person("Сидоров", 65, 170),
+                new Person("Кузнецов", 90, 185),
+                new Person("Смирнов", 75, 178),
+                new Person("Васильев", 68, 172),
+                new Person("Фёдоров", 82, 183),
+                new Person("Михайлов", 77, 176),
+                new Person("Егоров", 88, 182),
+                new Person("Николаев", 72, 174),
+                new Person("Алексеев", 80, 179),
+                new Person("Дмитриев", 95, 190),
+                new Person("Тимофеев", 62, 168),
+                new Person("Павлов", 78, 177),
+                new Person("Семёнов", 83, 184),
+                new Person("Георгиев", 73, 173),
+                new Person("Андреев", 86, 181),
+                new Person("Максимов", 69, 171),
+                new Person("Никитин", 92, 188),
+                new Person("Захаров", 79, 180)
+            };
+
+            Console.WriteLine("\n\n=== Часть 2. Класс Человек ===");
+            Console.WriteLine("Исходный массив (фамилия, вес, рост):");
+            PrintPeople(people);
+
+            // Сортировка по весу
+            Array.Sort(people, (p1, p2) => p1.Weight.CompareTo(p2.Weight));
+            Console.WriteLine("\nПосле сортировки по весу:");
+            PrintPeople(people);
+
+            // Сортировка по росту
+            Array.Sort(people, (p1, p2) => p1.Height.CompareTo(p2.Height));
+            Console.WriteLine("\nПосле сортировки по росту:");
+            PrintPeople(people);
+
+            // Поиск по фамилии (требует предварительной сортировки по фамилии)
+            Array.Sort(people, (p1, p2) => p1.LastName.CompareTo(p2.LastName));
+            Console.WriteLine("\nМассив, отсортированный по фамилии (для двоичного поиска):");
+            PrintPeople(people);
+
+            Console.Write("\nВведите фамилию для поиска: ");
+            string searchName = Console.ReadLine();
+            int pos = Array.BinarySearch(people, new Person(searchName, 0, 0),
+                (p1, p2) => p1.LastName.CompareTo(p2.LastName));
+            if (pos >= 0)
+                Console.WriteLine($"Найден: {people[pos]}");
+            else
+                Console.WriteLine("Фамилия не найдена.");
+
+            Console.WriteLine("\nНажмите любую клавишу для выхода.");
+            Console.ReadKey();
         }
 
-        private void btnAbs_Click(object sender, EventArgs e)
+        static void PrintArray(MyComplex[] arr)
         {
-            MyComplex z = ReadComplex(txtZ1_Re, txtZ1_Im);
-            double abs = z.Abs;
-            txtResult.Text = abs.ToString("F4");
+            foreach (var c in arr) Console.Write($"{c}  ");
+            Console.WriteLine();
+        }
+
+        static void PrintArray(double[] arr)
+        {
+            foreach (var d in arr) Console.Write($"{d}  ");
+            Console.WriteLine();
+        }
+
+        static void PrintPeople(Person[] arr)
+        {
+            foreach (var p in arr) Console.WriteLine(p);
+        }
+    }
+
+    // Класс "Человек"
+    public class Person
+    {
+        public string LastName { get; set; }
+        public int Weight { get; set; } // в кг
+        public int Height { get; set; } // в см
+
+        public Person(string lastName, int weight, int height)
+        {
+            LastName = lastName;
+            Weight = weight;
+            Height = height;
+        }
+
+        public override string ToString()
+        {
+            return $"{LastName}: вес {Weight} кг, рост {Height} см";
+        }
+    }
+
+    // Вспомогательный компаратор для BinarySearch (через делегат)
+    public static class PersonComparer
+    {
+        public static int CompareByLastName(Person p1, Person p2)
+        {
+            return p1.LastName.CompareTo(p2.LastName);
         }
     }
 }
