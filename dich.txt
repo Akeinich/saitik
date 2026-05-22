@@ -1,78 +1,176 @@
-# ascii_player.py
-import os
-import sys
-import time
-import glob
+using System;
+using System.Drawing;
+using System.Windows.Forms;
 
-# пробуем импортировать pygame для звука
-try:
-    import pygame
-    SOUND_AVAILABLE = True
-except ImportError:
-    SOUND_AVAILABLE = False
-    print("Предупреждение: pygame не установлен — звук не будет воспроизводиться.")
+namespace Lab15_Elevator_Designer
+{
+    public partial class Form1 : Form
+    {
+        private int floorCount = 5;
+        private int currentFloor = 1;
+        private bool isMoving = false;
+        private int targetFloor = 1;
+        private int direction = 0;
+        private Timer timer;
+        private Button[] floorCallButtons;
+        private Button[] cabinButtons;
 
-# настройки
-FRAME_INTERVAL = 1 / 30.75   # ~30.75 FPS
-FRAMES_DIR = "ascii_frames"   # папка с текстовыми кадрами
+        public Form1()
+        {
+            InitializeComponent();
+            // Настройка таймера
+            timer = new Timer();
+            timer.Interval = 300;
+            timer.Tick += Timer_Tick;
+            // Создаём кнопки для начального количества этажей
+            CreateButtonsForFloors(floorCount);
+            UpdateDisplay();
+        }
 
-def load_frames():
-    """Загружает все кадры в память (может быть много, но для школьного ПК ок)."""
-    frame_files = sorted(glob.glob(os.path.join(FRAMES_DIR, "frame_*.txt")))
-    if not frame_files:
-        print(f"Ошибка: не найдены файлы кадров в папке {FRAMES_DIR}")
-        sys.exit(1)
-    
-    frames = []
-    for fpath in frame_files:
-        with open(fpath, "r", encoding="utf-8") as f:
-            frames.append(f.read())
-    return frames
+        private void CreateButtonsForFloors(int count)
+        {
+            // Очищаем панели
+            panelCallButtons.Controls.Clear();
+            panelCabinButtons.Controls.Clear();
 
-def play_video(frames):
-    """Выводит кадры один за другим в stdout (для окна Run IDE)."""
-    timer = time.perf_counter
-    next_frame_time = timer()
-    
-    for frame in frames:
-        # очищаем экран (не через system, а просто перезаписываем)
-        # в IDLE/Run это не сработает красиво, но в консоли будет нормально
-        sys.stdout.write("\r" + frame)
-        sys.stdout.flush()
-        
-        next_frame_time += FRAME_INTERVAL
-        sleep_time = next_frame_time - timer()
-        if sleep_time > 0:
-            time.sleep(sleep_time)
+            floorCallButtons = new Button[count + 1];
+            cabinButtons = new Button[count + 1];
 
-def play_audio():
-    if not SOUND_AVAILABLE:
-        return
-    pygame.init()
-    pygame.mixer.init()
-    try:
-        pygame.mixer.music.load("audio.mp3")
-        pygame.mixer.music.play()
-    except Exception as e:
-        print(f"Не удалось загрузить/воспроизвести аудио: {e}")
+            // Кнопки вызова на этажах (справа)
+            for (int i = 1; i <= count; i++)
+            {
+                Button btn = new Button();
+                btn.Text = i.ToString();
+                btn.Size = new Size(80, 40);
+                btn.Tag = i;
+                btn.Click += FloorCallButton_Click;
+                floorCallButtons[i] = btn;
+                panelCallButtons.Controls.Add(btn);
+            }
 
-def main():
-    # проверяем наличие папки с кадрами
-    if not os.path.exists(FRAMES_DIR):
-        print(f"Папка '{FRAMES_DIR}' не найдена. Убедитесь, что вы скопировали её с флешки.")
-        return
-    
-    print("Загрузка кадров...")
-    frames = load_frames()
-    print(f"Загружено {len(frames)} кадров. Начинаем воспроизведение...")
-    
-    # запускаем звук (отдельным потоком, чтобы не блокировать видео)
-    if SOUND_AVAILABLE:
-        import threading
-        audio_thread = threading.Thread(target=play_audio, daemon=True)
-        audio_thread.start()
-    
-    play_video(frames)
+            // Кнопки в кабине
+            for (int i = 1; i <= count; i++)
+            {
+                Button btn = new Button();
+                btn.Text = i.ToString();
+                btn.Size = new Size(60, 60);
+                btn.Tag = i;
+                btn.Click += CabinButton_Click;
+                btn.Enabled = false; // пока лифт не активен? (можно true)
+                cabinButtons[i] = btn;
+                panelCabinButtons.Controls.Add(btn);
+            }
+        }
 
-if __name__ == "__main__":
-    main()
+        private void btnSetFloors_Click(object sender, EventArgs e)
+        {
+            // Запрос количества этажей
+            string input = Microsoft.VisualBasic.Interaction.InputBox(
+                "Введите количество этажей (1-15):", 
+                "Этажность", 
+                floorCount.ToString());
+            if (int.TryParse(input, out int newCount) && newCount >= 1 && newCount <= 15)
+            {
+                floorCount = newCount;
+                CreateButtonsForFloors(floorCount);
+                currentFloor = 1;
+                targetFloor = 1;
+                isMoving = false;
+                direction = 0;
+                if (timer.Enabled) timer.Stop();
+                UpdateDisplay();
+            }
+            else
+            {
+                MessageBox.Show("Некорректное число этажей (1-15)");
+            }
+        }
+
+        private void FloorCallButton_Click(object sender, EventArgs e)
+        {
+            Button btn = (Button)sender;
+            int floor = (int)btn.Tag;
+            if (floor == currentFloor && !isMoving)
+            {
+                MessageBox.Show($"Лифт уже на этаже {floor}");
+                return;
+            }
+            CallElevator(floor);
+        }
+
+        private void CabinButton_Click(object sender, EventArgs e)
+        {
+            Button btn = (Button)sender;
+            int floor = (int)btn.Tag;
+            if (floor == currentFloor && !isMoving)
+            {
+                MessageBox.Show($"Вы уже на этаже {floor}");
+                return;
+            }
+            CallElevator(floor);
+        }
+
+        private void CallElevator(int floor)
+        {
+            if (isMoving)
+            {
+                MessageBox.Show("Лифт уже движется, подождите.");
+                return;
+            }
+            targetFloor = floor;
+            if (targetFloor > currentFloor) direction = 1;
+            else if (targetFloor < currentFloor) direction = -1;
+            else direction = 0;
+
+            if (direction != 0)
+            {
+                isMoving = true;
+                timer.Start();
+                SetCabinButtonsEnabled(false);
+            }
+        }
+
+        private void Timer_Tick(object sender, EventArgs e)
+        {
+            if (!isMoving) return;
+
+            int newFloor = currentFloor + direction;
+            if (direction == 1 && newFloor <= floorCount)
+                currentFloor = newFloor;
+            else if (direction == -1 && newFloor >= 1)
+                currentFloor = newFloor;
+            else
+            {
+                StopElevator();
+                return;
+            }
+
+            UpdateDisplay();
+            if (currentFloor == targetFloor)
+                StopElevator();
+        }
+
+        private void StopElevator()
+        {
+            timer.Stop();
+            isMoving = false;
+            direction = 0;
+            UpdateDisplay();
+            SetCabinButtonsEnabled(true);
+            MessageBox.Show($"Лифт прибыл на этаж {currentFloor}");
+        }
+
+        private void SetCabinButtonsEnabled(bool enabled)
+        {
+            for (int i = 1; i <= floorCount; i++)
+                if (cabinButtons[i] != null)
+                    cabinButtons[i].Enabled = enabled;
+        }
+
+        private void UpdateDisplay()
+        {
+            lblCurrentFloor.Text = $"Этаж: {currentFloor}";
+            panelElevator.BackColor = isMoving ? Color.Yellow : Color.Gray;
+        }
+    }
+}
