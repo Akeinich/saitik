@@ -1,62 +1,75 @@
 using System;
+using System.Windows.Forms;
+using ComplexNumbersLib; // наша библиотека
 
-namespace ComplexNumbersLib
+namespace ComplexCalculator
 {
-    public class MyComplex
+    public partial class Form1 : Form
     {
-        // Действительная и мнимая части
-        public double Re { get; set; }
-        public double Im { get; set; }
-
-        // Конструкторы
-        public MyComplex() : this(0, 0) { }
-        public MyComplex(double re, double im) { Re = re; Im = im; }
-        public MyComplex(string re, string im)
+        public Form1()
         {
-            try { Re = Convert.ToDouble(re); } catch { Re = 0; }
-            try { Im = Convert.ToDouble(im); } catch { Im = 0; }
+            InitializeComponent();
         }
 
-        // Модуль комплексного числа
-        public double Abs => Math.Sqrt(Re * Re + Im * Im);
-
-        // Сложение
-        public static MyComplex Sum(MyComplex z1, MyComplex z2)
+        // Чтение комплексного числа из текстовых полей
+        private MyComplex ReadComplex(TextBox tbRe, TextBox tbIm)
         {
-            return new MyComplex(z1.Re + z2.Re, z1.Im + z2.Im);
-        }
-
-        // Вычитание
-        public static MyComplex Sub(MyComplex z1, MyComplex z2)
-        {
-            return new MyComplex(z1.Re - z2.Re, z1.Im - z2.Im);
-        }
-
-        // Умножение (перегрузка оператора *)
-        public static MyComplex operator *(MyComplex z1, MyComplex z2)
-        {
-            double re = z1.Re * z2.Re - z1.Im * z2.Im;
-            double im = z1.Re * z2.Im + z1.Im * z2.Re;
+            double re = 0, im = 0;
+            try { re = Convert.ToDouble(tbRe.Text); } catch { re = 0; }
+            try { im = Convert.ToDouble(tbIm.Text); } catch { im = 0; }
             return new MyComplex(re, im);
         }
 
-        // Деление (для дополнительного задания)
-        public static MyComplex operator /(MyComplex z1, MyComplex z2)
+        // Вывод результата
+        private void ShowResult(MyComplex z)
         {
-            double denom = z2.Re * z2.Re + z2.Im * z2.Im;
-            if (denom == 0) throw new DivideByZeroException("Деление на ноль");
-            double re = (z1.Re * z2.Re + z1.Im * z2.Im) / denom;
-            double im = (z1.Im * z2.Re - z1.Re * z2.Im) / denom;
-            return new MyComplex(re, im);
+            txtResult.Text = z.ToString();
         }
 
-        // Преобразование в строку (красивый вывод)
-        public override string ToString()
+        private void btnAdd_Click(object sender, EventArgs e)
         {
-            if (Im == 0) return Re.ToString();
-            if (Re == 0) return $"{Im}i";
-            string sign = Im > 0 ? "+" : "";
-            return $"{Re}{sign}{Im}i";
+            MyComplex z1 = ReadComplex(txtZ1_Re, txtZ1_Im);
+            MyComplex z2 = ReadComplex(txtZ2_Re, txtZ2_Im);
+            MyComplex result = MyComplex.Sum(z1, z2);
+            ShowResult(result);
+        }
+
+        private void btnSub_Click(object sender, EventArgs e)
+        {
+            MyComplex z1 = ReadComplex(txtZ1_Re, txtZ1_Im);
+            MyComplex z2 = ReadComplex(txtZ2_Re, txtZ2_Im);
+            MyComplex result = MyComplex.Sub(z1, z2);
+            ShowResult(result);
+        }
+
+        private void btnMul_Click(object sender, EventArgs e)
+        {
+            MyComplex z1 = ReadComplex(txtZ1_Re, txtZ1_Im);
+            MyComplex z2 = ReadComplex(txtZ2_Re, txtZ2_Im);
+            MyComplex result = z1 * z2; // используем перегруженный оператор
+            ShowResult(result);
+        }
+
+        private void btnDiv_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                MyComplex z1 = ReadComplex(txtZ1_Re, txtZ1_Im);
+                MyComplex z2 = ReadComplex(txtZ2_Re, txtZ2_Im);
+                MyComplex result = z1 / z2;
+                ShowResult(result);
+            }
+            catch (DivideByZeroException ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void btnAbs_Click(object sender, EventArgs e)
+        {
+            MyComplex z = ReadComplex(txtZ1_Re, txtZ1_Im);
+            double abs = z.Abs;
+            txtResult.Text = abs.ToString("F4");
         }
     }
 }
