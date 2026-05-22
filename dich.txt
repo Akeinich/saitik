@@ -1,179 +1,132 @@
 using System;
+using System.Collections.Generic;
+using System.Linq; // для удобной фильтрации
 
-namespace Lab18_Arrays
+namespace Lab19_Inheritance
 {
-    // Класс комплексного числа
-    public class MyComplex
-    {
-        public double Re { get; set; }
-        public double Im { get; set; }
-        public MyComplex() : this(0, 0) { }
-        public MyComplex(double re, double im) { Re = re; Im = im; }
-        public double Abs => Math.Sqrt(Re * Re + Im * Im);
-        public override string ToString() => $"{Re}+{Im}i";
-        public double Imaginary => Im;
-    }
-
-    // Компаратор для сравнения людей по весу
-    public class PersonWeightComparer : System.Collections.IComparer
-    {
-        public int Compare(object x, object y)
-        {
-            Person p1 = (Person)x;
-            Person p2 = (Person)y;
-            return p1.Weight.CompareTo(p2.Weight);
-        }
-    }
-
-    // Компаратор для сравнения людей по росту
-    public class PersonHeightComparer : System.Collections.IComparer
-    {
-        public int Compare(object x, object y)
-        {
-            Person p1 = (Person)x;
-            Person p2 = (Person)y;
-            return p1.Height.CompareTo(p2.Height);
-        }
-    }
-
-    // Компаратор для сравнения людей по фамилии (для BinarySearch)
-    public class PersonLastNameComparer : System.Collections.IComparer
-    {
-        public int Compare(object x, object y)
-        {
-            Person p1 = (Person)x;
-            Person p2 = (Person)y;
-            return p1.LastName.CompareTo(p2.LastName);
-        }
-    }
-
-    // Класс "Человек"
+    // Базовый класс "Человек"
     public class Person
     {
-        public string LastName { get; set; }
-        public int Weight { get; set; }
-        public int Height { get; set; }
+        // Свойства
+        public string LastName { get; set; }      // фамилия
+        public int Weight { get; set; }           // вес (кг)
+        public int Height { get; set; }           // рост (см)
+        public string Gender { get; set; }        // пол ("Мужской" / "Женский")
+        public int Age { get; set; }              // возраст
 
-        public Person(string lastName, int weight, int height)
+        // Вычисляемое свойство: право на пенсию (для мужчин с 60, для женщин с 55)
+        public bool IsPensioner
+        {
+            get
+            {
+                if (Gender == "Мужской" && Age >= 60) return true;
+                if (Gender == "Женский" && Age >= 55) return true;
+                return false;
+            }
+        }
+
+        // Конструктор
+        public Person(string lastName, int weight, int height, string gender, int age)
         {
             LastName = lastName;
             Weight = weight;
             Height = height;
+            Gender = gender;
+            Age = age;
         }
 
-        public override string ToString() => $"{LastName}: вес {Weight} кг, рост {Height} см";
+        // Виртуальный метод для вывода информации (будет переопределён в наследнике)
+        public virtual string GetInfo()
+        {
+            return $"{LastName}, {Gender}, {Age} лет, вес {Weight} кг, рост {Height} см";
+        }
+    }
+
+    // Производный класс "Работник"
+    public class Employee : Person
+    {
+        public string Position { get; set; }   // должность
+        public int Salary { get; set; }        // зарплата (руб.)
+
+        public Employee(string lastName, int weight, int height, string gender, int age,
+                        string position, int salary)
+            : base(lastName, weight, height, gender, age)
+        {
+            Position = position;
+            Salary = salary;
+        }
+
+        // Переопределение метода вывода
+        public override string GetInfo()
+        {
+            return base.GetInfo() + $", должность: {Position}, зарплата: {Salary} руб.";
+        }
     }
 
     class Program
     {
         static void Main(string[] args)
         {
-            // Часть 1. Комплексные числа
-            Random rnd = new Random();
-            MyComplex[] complexArray = new MyComplex[6];
-            for (int i = 0; i < complexArray.Length; i++)
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+            // Создаём массив сотрудников
+            Employee[] employees = new Employee[]
             {
-                double re = rnd.Next(-10, 11);
-                double im = rnd.Next(-10, 11);
-                complexArray[i] = new MyComplex(re, im);
-            }
-
-            Console.WriteLine("Исходный массив комплексных чисел:");
-            PrintArray(complexArray);
-
-            double[] imArray = new double[complexArray.Length];
-            for (int i = 0; i < complexArray.Length; i++)
-                imArray[i] = complexArray[i].Im;
-
-            Console.WriteLine("\nМассив мнимых частей:");
-            PrintArray(imArray);
-
-            // Сортировка комплексных чисел по мнимым частям
-            Array.Sort(imArray, complexArray);
-
-            Console.WriteLine("\nМассив комплексных чисел, отсортированный по мнимой части:");
-            PrintArray(complexArray);
-            Console.WriteLine("\nСоответствующий массив мнимых частей:");
-            PrintArray(imArray);
-
-            double searchIm = complexArray[0].Im;
-            int index = Array.BinarySearch(imArray, searchIm);
-            Console.WriteLine($"\nИщем мнимую часть {searchIm} – найдена на позиции {index}");
-
-            Console.WriteLine("\nНажмите любую клавишу для продолжения...");
-            Console.ReadKey();
-
-            // Часть 2. Класс Person
-            Person[] people = new Person[]
-            {
-                new Person("Иванов", 70, 180),
-                new Person("Петров", 85, 175),
-                new Person("Сидоров", 65, 170),
-                new Person("Кузнецов", 90, 185),
-                new Person("Смирнов", 75, 178),
-                new Person("Васильев", 68, 172),
-                new Person("Фёдоров", 82, 183),
-                new Person("Михайлов", 77, 176),
-                new Person("Егоров", 88, 182),
-                new Person("Николаев", 72, 174),
-                new Person("Алексеев", 80, 179),
-                new Person("Дмитриев", 95, 190),
-                new Person("Тимофеев", 62, 168),
-                new Person("Павлов", 78, 177),
-                new Person("Семёнов", 83, 184),
-                new Person("Георгиев", 73, 173),
-                new Person("Андреев", 86, 181),
-                new Person("Максимов", 69, 171),
-                new Person("Никитин", 92, 188),
-                new Person("Захаров", 79, 180)
+                new Employee("Иванов", 80, 180, "Мужской", 45, "инженер", 60000),
+                new Employee("Петрова", 65, 165, "Женский", 58, "бухгалтер", 55000),
+                new Employee("Сидоров", 90, 175, "Мужской", 62, "директор", 120000),
+                new Employee("Кузнецова", 70, 170, "Женский", 35, "программист", 80000),
+                new Employee("Смирнова", 60, 160, "Женский", 56, "секретарь", 40000),
+                new Employee("Васильев", 85, 182, "Мужской", 30, "водитель", 50000),
+                new Employee("Фёдорова", 55, 158, "Женский", 60, "учитель", 45000),
+                new Employee("Михайлов", 78, 178, "Мужской", 67, "охранник", 35000),
+                new Employee("Егорова", 68, 165, "Женский", 52, "медсестра", 48000),
+                new Employee("Николаев", 95, 188, "Мужской", 40, "строитель", 70000)
             };
 
-            Console.WriteLine("\n\n=== Часть 2. Класс Человек ===");
-            Console.WriteLine("Исходный массив:");
-            PrintPeople(people);
+            Console.WriteLine("=== Исходный список сотрудников ===");
+            foreach (var emp in employees)
+                Console.WriteLine(emp.GetInfo());
 
-            // Сортировка по весу
-            Array.Sort(people, new PersonWeightComparer());
-            Console.WriteLine("\nПосле сортировки по весу:");
-            PrintPeople(people);
+            // 1. Сортировка по зарплате (по возрастанию)
+            Array.Sort(employees, (x, y) => x.Salary.CompareTo(y.Salary));
+            Console.WriteLine("\n=== Список, отсортированный по зарплате (возрастание) ===");
+            foreach (var emp in employees)
+                Console.WriteLine($"{emp.GetInfo()}");
 
-            // Сортировка по росту
-            Array.Sort(people, new PersonHeightComparer());
-            Console.WriteLine("\nПосле сортировки по росту:");
-            PrintPeople(people);
-
-            // Сортировка по фамилии для двоичного поиска
-            Array.Sort(people, new PersonLastNameComparer());
-            Console.WriteLine("\nМассив, отсортированный по фамилии:");
-            PrintPeople(people);
-
-            Console.Write("\nВведите фамилию для поиска: ");
-            string searchName = Console.ReadLine();
-            int pos = Array.BinarySearch(people, new Person(searchName, 0, 0), new PersonLastNameComparer());
-            if (pos >= 0)
-                Console.WriteLine($"Найден: {people[pos]}");
+            // 2. Поиск сотрудников по должности (например, "инженер")
+            Console.Write("\nВведите должность для поиска: ");
+            string searchPosition = Console.ReadLine();
+            var found = Array.FindAll(employees, e => e.Position.Equals(searchPosition, StringComparison.OrdinalIgnoreCase));
+            if (found.Length > 0)
+            {
+                Console.WriteLine($"Найдено {found.Length} сотрудников с должностью '{searchPosition}':");
+                foreach (var e in found)
+                    Console.WriteLine(e.GetInfo());
+            }
             else
-                Console.WriteLine("Фамилия не найдена.");
+                Console.WriteLine("Сотрудников с такой должностью не найдено.");
 
-            Console.WriteLine("\nНажмите любую клавишу для выхода.");
+            // 3. Выборка женщин-пенсионерок
+            var pensionerWomen = Array.FindAll(employees, e => e.Gender == "Женский" && e.IsPensioner);
+            Console.WriteLine("\n=== Женщины-пенсионерки ===");
+            if (pensionerWomen.Length > 0)
+                foreach (var w in pensionerWomen)
+                    Console.WriteLine(w.GetInfo());
+            else
+                Console.WriteLine("Нет женщин-пенсионерок.");
+
+            // 4. (Дополнительно) Выборка мужчин-пенсионеров
+            var pensionerMen = Array.FindAll(employees, e => e.Gender == "Мужской" && e.IsPensioner);
+            Console.WriteLine("\n=== Мужчины-пенсионеры ===");
+            if (pensionerMen.Length > 0)
+                foreach (var m in pensionerMen)
+                    Console.WriteLine(m.GetInfo());
+            else
+                Console.WriteLine("Нет мужчин-пенсионеров.");
+
+            Console.WriteLine("\nНажмите любую клавишу для выхода...");
             Console.ReadKey();
-        }
-
-        static void PrintArray(MyComplex[] arr)
-        {
-            foreach (var c in arr) Console.Write($"{c}  ");
-            Console.WriteLine();
-        }
-
-        static void PrintArray(double[] arr)
-        {
-            foreach (var d in arr) Console.Write($"{d}  ");
-            Console.WriteLine();
-        }
-
-        static void PrintPeople(Person[] arr)
-        {
-            foreach (var p in arr) Console.WriteLine(p);
         }
     }
 }
