@@ -5,169 +5,361 @@ using System.Windows.Forms;
 
 public class MainForm : Form
 {
-    // Элементы управления
-    private Label lblBalance, lblBet, lblNumber, lblResult;
-    private TextBox txtBalance, txtBet, txtNumber;
-    private Button btnPlay, btnAddMoney;
-    private Label lblMessage;
+    // Общие элементы
+    private Label lblBalance;
+    private TextBox txtBalance;
+    private Button btnSlots, btnPlinko, btnRoulette;
+    private Panel gamePanel;
+    private int balance = 100;
+    private Random rand = new Random();
+    private string saveFile = "casino_balance.txt";
 
-    private int balance = 100;        // начальный баланс
-    private Random random = new Random();
-    private string saveFile = "balance.txt";
+    // Текущая игра (ссылки на элементы)
+    private Control currentGameUI;
 
     public MainForm()
     {
-        this.Text = "Казино: Угадай число (1-10)";
-        this.Size = new Size(400, 400);
+        this.Text = "Казино: Слоты | Плинко | Рулетка";
+        this.Size = new Size(700, 600);
         this.StartPosition = FormStartPosition.CenterScreen;
         CreateControls();
         LoadBalance();
         UpdateBalanceDisplay();
+        ShowSlots(); // по умолчанию
     }
 
     private void CreateControls()
     {
-        int x = 30, y = 20, labelW = 100, fieldW = 150;
-
-        // Баланс
-        lblBalance = new Label { Text = "Баланс:", Location = new Point(x, y), AutoSize = true };
-        txtBalance = new TextBox { Location = new Point(x + labelW, y), Width = fieldW, ReadOnly = true, BackColor = Color.LightGray };
-        y += 35;
-
-        // Ставка
-        lblBet = new Label { Text = "Ставка:", Location = new Point(x, y), AutoSize = true };
-        txtBet = new TextBox { Location = new Point(x + labelW, y), Width = fieldW, Text = "10" };
-        y += 35;
-
-        // Число (1-10)
-        lblNumber = new Label { Text = "Ваше число (1-10):", Location = new Point(x, y), AutoSize = true };
-        txtNumber = new TextBox { Location = new Point(x + labelW, y), Width = fieldW };
-        y += 40;
-
-        // Кнопка "Играть"
-        btnPlay = new Button { Text = "Играть", Location = new Point(x, y), Size = new Size(100, 40), BackColor = Color.LightGreen };
-        btnPlay.Click += BtnPlay_Click;
-        this.Controls.Add(btnPlay);
-
-        // Кнопка "Пополнить баланс"
-        btnAddMoney = new Button { Text = "Пополнить (+50)", Location = new Point(x + 120, y), Size = new Size(130, 40), BackColor = Color.LightBlue };
-        btnAddMoney.Click += BtnAddMoney_Click;
-        this.Controls.Add(btnAddMoney);
-        y += 60;
-
-        // Результат
-        lblResult = new Label { Text = "Результат:", Location = new Point(x, y), AutoSize = true };
-        lblMessage = new Label
-        {
-            Location = new Point(x + labelW, y),
-            Size = new Size(230, 60),
-            BorderStyle = BorderStyle.FixedSingle,
-            BackColor = Color.White,
-            Text = "Готов к игре"
-        };
-        y += 80;
-
-        // Добавляем все на форму
+        // Панель баланса
+        lblBalance = new Label { Text = "Баланс:", Location = new Point(20, 20), AutoSize = true };
+        txtBalance = new TextBox { Location = new Point(90, 18), Width = 100, ReadOnly = true, BackColor = Color.LightGray };
         this.Controls.Add(lblBalance);
         this.Controls.Add(txtBalance);
-        this.Controls.Add(lblBet);
-        this.Controls.Add(txtBet);
-        this.Controls.Add(lblNumber);
-        this.Controls.Add(txtNumber);
-        this.Controls.Add(lblResult);
-        this.Controls.Add(lblMessage);
+
+        // Кнопки выбора игры
+        btnSlots = new Button { Text = "Слоты", Location = new Point(20, 60), Size = new Size(80, 30), BackColor = Color.Gold };
+        btnPlinko = new Button { Text = "Плинко", Location = new Point(110, 60), Size = new Size(80, 30), BackColor = Color.Gold };
+        btnRoulette = new Button { Text = "Рулетка", Location = new Point(200, 60), Size = new Size(80, 30), BackColor = Color.Gold };
+        btnSlots.Click += (s, e) => ShowSlots();
+        btnPlinko.Click += (s, e) => ShowPlinko();
+        btnRoulette.Click += (s, e) => ShowRoulette();
+        this.Controls.Add(btnSlots);
+        this.Controls.Add(btnPlinko);
+        this.Controls.Add(btnRoulette);
+
+        // Панель для игрового поля
+        gamePanel = new Panel { Location = new Point(20, 110), Size = new Size(640, 420), BorderStyle = BorderStyle.FixedSingle };
+        this.Controls.Add(gamePanel);
     }
 
-    private void BtnPlay_Click(object sender, EventArgs e)
+    // ==================== СЛОТЫ ====================
+    private Label[] reels;
+    private Button btnSpin;
+    private NumericUpDown numBetSlots;
+    private Label lblSlotsResult;
+    private string[] symbols = { "🍒", "🍋", "🍊", "🍉", "🔔", "⭐", "7️⃣" };
+    private int slotWin = 0;
+
+    private void ShowSlots()
     {
-        // Проверка ставки
-        if (!int.TryParse(txtBet.Text, out int bet) || bet <= 0)
+        ClearGamePanel();
+        // Заголовок
+        Label title = new Label { Text = "СЛОТЫ (однорукий бандит)", Location = new Point(10, 10), AutoSize = true, Font = new Font("Arial", 14, FontStyle.Bold) };
+        gamePanel.Controls.Add(title);
+        // Барабаны
+        reels = new Label[3];
+        for (int i = 0; i < 3; i++)
         {
-            ShowMessage("Ставка должна быть положительным числом!", Color.Red);
-            return;
+            reels[i] = new Label
+            {
+                Text = "🍒",
+                Font = new Font("Segoe UI", 40, FontStyle.Bold),
+                Size = new Size(80, 80),
+                TextAlign = ContentAlignment.MiddleCenter,
+                BorderStyle = BorderStyle.Fixed3D,
+                Location = new Point(50 + i * 90, 60)
+            };
+            gamePanel.Controls.Add(reels[i]);
         }
-        if (bet > balance)
-        {
-            ShowMessage("Недостаточно средств! Пополните баланс.", Color.Red);
-            return;
-        }
+        // Ставка
+        Label lblBet = new Label { Text = "Ставка:", Location = new Point(20, 160), AutoSize = true };
+        numBetSlots = new NumericUpDown { Minimum = 5, Maximum = 100, Value = 10, Location = new Point(90, 158), Width = 60 };
+        gamePanel.Controls.Add(lblBet);
+        gamePanel.Controls.Add(numBetSlots);
+        // Кнопка Spin
+        btnSpin = new Button { Text = "SPIN", Location = new Point(170, 155), Size = new Size(100, 30), BackColor = Color.Lime };
+        btnSpin.Click += Slots_Spin;
+        gamePanel.Controls.Add(btnSpin);
+        // Результат
+        lblSlotsResult = new Label { Text = "Готов", Location = new Point(20, 200), Size = new Size(300, 30), Font = new Font("Arial", 10) };
+        gamePanel.Controls.Add(lblSlotsResult);
+        currentGameUI = gamePanel;
+    }
 
-        // Проверка введённого числа
-        if (!int.TryParse(txtNumber.Text, out int userNumber) || userNumber < 1 || userNumber > 10)
+    private void Slots_Spin(object sender, EventArgs e)
+    {
+        int bet = (int)numBetSlots.Value;
+        if (bet > balance) { ShowGameMessage(lblSlotsResult, "Недостаточно средств!", Color.Red); return; }
+        balance -= bet;
+        UpdateBalanceDisplay();
+        SaveBalance();
+        // Генерируем символы
+        int[] results = new int[3];
+        for (int i = 0; i < 3; i++) results[i] = rand.Next(symbols.Length);
+        for (int i = 0; i < 3; i++) reels[i].Text = symbols[results[i]];
+        // Выигрыш
+        int win = 0;
+        if (results[0] == results[1] && results[1] == results[2])
         {
-            ShowMessage("Введите число от 1 до 10!", Color.Red);
-            return;
+            // три одинаковых
+            win = bet * 10;
+            ShowGameMessage(lblSlotsResult, $"ДЖЕКПОТ! Выигрыш {win}", Color.Green);
         }
-
-        int luckyNumber = random.Next(1, 11); // 1..10
-        if (userNumber == luckyNumber)
+        else if (results[0] == results[1] || results[1] == results[2] || results[0] == results[2])
         {
-            // Выигрыш: ставка умножается на 5
-            int win = bet * 5;
-            balance += win;
-            ShowMessage($"🎉 ПОБЕДА! Вы угадали число {luckyNumber}! Выигрыш: {win}", Color.Green);
+            win = bet * 2;
+            ShowGameMessage(lblSlotsResult, $"Две одинаковых! Выигрыш {win}", Color.Orange);
         }
         else
         {
-            // Проигрыш
-            balance -= bet;
-            ShowMessage($"😞 Проигрыш. Загаданное число: {luckyNumber}. Вы потеряли {bet}", Color.Red);
+            ShowGameMessage(lblSlotsResult, "Ничего не выпало. Попробуйте ещё!", Color.Red);
         }
-
+        balance += win;
         UpdateBalanceDisplay();
         SaveBalance();
     }
 
-    private void BtnAddMoney_Click(object sender, EventArgs e)
+    // ==================== ПЛИНКО ====================
+    private Button btnDrop;
+    private NumericUpDown numBetPlinko;
+    private Label lblPlinkoResult;
+    private Panel plinkoBoard;
+    private int dropX = 0; // позиция мяча по горизонтали (0..14)
+    private Timer plinkoTimer;
+    private int[] multipliers = { 0, 1, 2, 3, 5, 10, 0 }; // для простоты 7 ячеек внизу
+
+    private void ShowPlinko()
     {
-        balance += 50;
+        ClearGamePanel();
+        Label title = new Label { Text = "ПЛИНКО (упрощённый)", Location = new Point(10, 10), AutoSize = true, Font = new Font("Arial", 14, FontStyle.Bold) };
+        gamePanel.Controls.Add(title);
+        // Игровое поле – панель для рисования
+        plinkoBoard = new Panel { Location = new Point(20, 50), Size = new Size(400, 250), BackColor = Color.LightGray };
+        plinkoBoard.Paint += PlinkoBoard_Paint;
+        gamePanel.Controls.Add(plinkoBoard);
+        // Ставка
+        Label lblBet = new Label { Text = "Ставка:", Location = new Point(20, 320), AutoSize = true };
+        numBetPlinko = new NumericUpDown { Minimum = 1, Maximum = 50, Value = 5, Location = new Point(80, 318), Width = 60 };
+        btnDrop = new Button { Text = "Бросить шарик", Location = new Point(160, 315), Size = new Size(120, 30), BackColor = Color.Lime };
+        btnDrop.Click += Plinko_Drop;
+        lblPlinkoResult = new Label { Text = "Нажмите 'Бросить шарик'", Location = new Point(20, 360), Size = new Size(360, 30) };
+        gamePanel.Controls.Add(lblBet);
+        gamePanel.Controls.Add(numBetPlinko);
+        gamePanel.Controls.Add(btnDrop);
+        gamePanel.Controls.Add(lblPlinkoResult);
+        currentGameUI = gamePanel;
+    }
+
+    private void PlinkoBoard_Paint(object sender, PaintEventArgs e)
+    {
+        Graphics g = e.Graphics;
+        // Рисуем колышки (сетка 7x7)
+        int startX = 20, startY = 20, stepX = 30, stepY = 30;
+        for (int row = 0; row < 6; row++)
+        {
+            int offsetX = (row % 2 == 0) ? 0 : stepX / 2;
+            for (int col = 0; col < 7; col++)
+            {
+                int x = startX + offsetX + col * stepX;
+                int y = startY + row * stepY;
+                e.Graphics.FillEllipse(Brushes.Brown, x - 3, y - 3, 6, 6);
+            }
+        }
+        // Рисуем ячейки внизу
+        for (int i = 0; i < 7; i++)
+        {
+            int x = startX + i * stepX;
+            int y = startY + 6 * stepY + 10;
+            e.Graphics.DrawRectangle(Pens.Black, x - 15, y, 30, 20);
+            e.Graphics.DrawString(multipliers[i].ToString(), SystemFonts.Default, Brushes.Black, x - 10, y + 2);
+        }
+    }
+
+    private void Plinko_Drop(object sender, EventArgs e)
+    {
+        int bet = (int)numBetPlinko.Value;
+        if (bet > balance) { ShowGameMessage(lblPlinkoResult, "Недостаточно средств!", Color.Red); return; }
+        balance -= bet;
         UpdateBalanceDisplay();
         SaveBalance();
-        ShowMessage("Баланс пополнен на 50", Color.Blue);
+        // Анимация падения: случайное блуждание влево-вправо
+        dropX = 3; // начальная позиция по горизонтали (0..6)
+        plinkoTimer = new Timer();
+        plinkoTimer.Interval = 100;
+        int steps = 0;
+        plinkoTimer.Tick += (ts, te) =>
+        {
+            if (steps >= 6) // прошли 6 рядов
+            {
+                plinkoTimer.Stop();
+                int finalSlot = dropX;
+                if (finalSlot < 0) finalSlot = 0;
+                if (finalSlot > 6) finalSlot = 6;
+                int multiplier = multipliers[finalSlot];
+                int win = bet * multiplier;
+                balance += win;
+                UpdateBalanceDisplay();
+                SaveBalance();
+                ShowGameMessage(lblPlinkoResult, $"Шарик упал в ячейку {finalSlot+1} (множитель x{multiplier}). Выигрыш: {win}", win>0?Color.Green:Color.Red);
+                plinkoBoard.Invalidate();
+                return;
+            }
+            // случайное отклонение
+            int dir = rand.Next(3) - 1; // -1,0,1
+            dropX += dir;
+            if (dropX < 0) dropX = 0;
+            if (dropX > 6) dropX = 6;
+            steps++;
+            // перерисовка с шариком
+            plinkoBoard.Paint -= PlinkoBoard_Paint;
+            plinkoBoard.Paint += PlinkoBoard_PaintWithBall;
+            plinkoBoard.Invalidate();
+            plinkoBoard.Paint -= PlinkoBoard_PaintWithBall;
+            plinkoBoard.Paint += PlinkoBoard_Paint;
+        };
+        plinkoTimer.Start();
+    }
+
+    private void PlinkoBoard_PaintWithBall(object sender, PaintEventArgs e)
+    {
+        PlinkoBoard_Paint(sender, e);
+        // Рисуем шарик в текущей позиции
+        int startX = 20, stepX = 30, stepY = 30;
+        int offset = (steps % 2 == 0) ? 0 : stepX / 2;
+        int x = startX + offset + dropX * stepX;
+        int y = 20 + steps * stepY;
+        e.Graphics.FillEllipse(Brushes.Red, x - 6, y - 6, 12, 12);
+    }
+    private int steps = 0; // для анимации
+
+    // (в Plinko_Drop нужно добавить steps=0 и использовать steps в таймере, я исправил в коде ниже)
+
+    // ==================== РУЛЕТКА ====================
+    private ComboBox cbBetType;
+    private TextBox txtBetValue;
+    private NumericUpDown numBetRoulette;
+    private Button btnSpinRoulette;
+    private Label lblRouletteResult, lblSpinNumber;
+    private Panel roulettePanel;
+
+    private void ShowRoulette()
+    {
+        ClearGamePanel();
+        Label title = new Label { Text = "РУЛЕТКА (европейская)", Location = new Point(10, 10), AutoSize = true, Font = new Font("Arial", 14, FontStyle.Bold) };
+        gamePanel.Controls.Add(title);
+        // Простое отображение номера
+        lblSpinNumber = new Label { Text = "??", Font = new Font("Arial", 48, FontStyle.Bold), Location = new Point(250, 50), Size = new Size(100, 80), TextAlign = ContentAlignment.MiddleCenter, BorderStyle = BorderStyle.FixedSingle };
+        gamePanel.Controls.Add(lblSpinNumber);
+        // Тип ставки
+        Label lblType = new Label { Text = "Тип ставки:", Location = new Point(20, 150), AutoSize = true };
+        cbBetType = new ComboBox { Location = new Point(120, 148), Width = 120, DropDownStyle = ComboBoxStyle.DropDownList };
+        cbBetType.Items.AddRange(new object[] { "Число (1-36)", "Красное", "Чёрное", "Чётное", "Нечётное", "1-18", "19-36" });
+        cbBetType.SelectedIndex = 0;
+        gamePanel.Controls.Add(lblType);
+        gamePanel.Controls.Add(cbBetType);
+        // Значение для ставки на число
+        Label lblVal = new Label { Text = "Номер/значение:", Location = new Point(20, 190), AutoSize = true };
+        txtBetValue = new TextBox { Location = new Point(150, 188), Width = 60, Text = "1" };
+        gamePanel.Controls.Add(lblVal);
+        gamePanel.Controls.Add(txtBetValue);
+        // Ставка в деньгах
+        Label lblBet = new Label { Text = "Ставка:", Location = new Point(20, 230), AutoSize = true };
+        numBetRoulette = new NumericUpDown { Minimum = 5, Maximum = 200, Value = 10, Location = new Point(80, 228), Width = 70 };
+        gamePanel.Controls.Add(lblBet);
+        gamePanel.Controls.Add(numBetRoulette);
+        // Кнопка
+        btnSpinRoulette = new Button { Text = "Крутить рулетку", Location = new Point(180, 225), Size = new Size(120, 30), BackColor = Color.Lime };
+        btnSpinRoulette.Click += Roulette_Spin;
+        gamePanel.Controls.Add(btnSpinRoulette);
+        // Результат
+        lblRouletteResult = new Label { Text = "Готов к игре", Location = new Point(20, 280), Size = new Size(500, 40) };
+        gamePanel.Controls.Add(lblRouletteResult);
+        currentGameUI = gamePanel;
+    }
+
+    private void Roulette_Spin(object sender, EventArgs e)
+    {
+        int bet = (int)numBetRoulette.Value;
+        if (bet > balance) { ShowGameMessage(lblRouletteResult, "Недостаточно средств!", Color.Red); return; }
+        int resultNumber = rand.Next(0, 37); // 0-36
+        lblSpinNumber.Text = resultNumber.ToString();
+        // цвет и прочее
+        bool isRed = (new[] { 1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36 }.Contains(resultNumber));
+        bool isBlack = (resultNumber != 0 && !isRed);
+        bool isEven = (resultNumber % 2 == 0 && resultNumber != 0);
+        bool isOdd = (resultNumber % 2 == 1);
+        bool win = false;
+        string betType = cbBetType.SelectedItem.ToString();
+        string detail = "";
+        if (betType == "Число (1-36)")
+        {
+            if (int.TryParse(txtBetValue.Text, out int num) && num >= 1 && num <= 36)
+                win = (resultNumber == num);
+            else win = false;
+            detail = $"на число {txtBetValue.Text}";
+        }
+        else if (betType == "Красное") { win = isRed; detail = "на красное"; }
+        else if (betType == "Чёрное") { win = isBlack; detail = "на чёрное"; }
+        else if (betType == "Чётное") { win = isEven; detail = "на чётное"; }
+        else if (betType == "Нечётное") { win = isOdd; detail = "на нечётное"; }
+        else if (betType == "1-18") { win = (resultNumber >= 1 && resultNumber <= 18); detail = "на 1-18"; }
+        else if (betType == "19-36") { win = (resultNumber >= 19 && resultNumber <= 36); detail = "на 19-36"; }
+        int winAmount = 0;
+        if (win)
+        {
+            int multiplier = (betType == "Число (1-36)") ? 35 : 2;
+            winAmount = bet * multiplier;
+            balance += winAmount;
+            ShowGameMessage(lblRouletteResult, $"Выигрыш! Ставка {detail} сыграла. +{winAmount}", Color.Green);
+        }
+        else
+        {
+            balance -= bet;
+            ShowGameMessage(lblRouletteResult, $"Проигрыш. Ставка {detail} не сыграла. Выпало {resultNumber}.", Color.Red);
+        }
+        UpdateBalanceDisplay();
+        SaveBalance();
+    }
+
+    // ==================== ВСПОМОГАТЕЛЬНЫЕ ====================
+    private void ClearGamePanel()
+    {
+        gamePanel.Controls.Clear();
+    }
+
+    private void ShowGameMessage(Label lbl, string text, Color color)
+    {
+        lbl.Text = text;
+        lbl.ForeColor = color;
     }
 
     private void UpdateBalanceDisplay()
     {
         txtBalance.Text = balance.ToString();
-        if (balance <= 0)
-        {
-            btnPlay.Enabled = false;
-            ShowMessage("Баланс закончился! Пополните счёт.", Color.Red);
-        }
-        else
-        {
-            btnPlay.Enabled = true;
-        }
-    }
-
-    private void ShowMessage(string text, Color color)
-    {
-        lblMessage.Text = text;
-        lblMessage.ForeColor = color;
+        if (balance <= 0) { /* можно заблокировать игры */ }
     }
 
     private void SaveBalance()
     {
-        try
-        {
-            File.WriteAllText(saveFile, balance.ToString());
-        }
-        catch { /* не критично */ }
+        try { File.WriteAllText(saveFile, balance.ToString()); } catch { }
     }
 
     private void LoadBalance()
     {
         if (File.Exists(saveFile))
         {
-            try
-            {
-                string content = File.ReadAllText(saveFile);
-                if (int.TryParse(content, out int saved))
-                    balance = saved;
-            }
-            catch { }
+            try { balance = int.Parse(File.ReadAllText(saveFile)); } catch { }
         }
         if (balance <= 0) balance = 100;
-        UpdateBalanceDisplay();
     }
 }
