@@ -1,260 +1,173 @@
 using System;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 
 public class MainForm : Form
 {
-    // Параметры лифта
-    private int floorCount = 5;          // количество этажей (можно изменить)
-    private int currentFloor = 1;        // текущий этаж
-    private bool isMoving = false;       // движется ли лифт
-    private int targetFloor = 1;         // целевой этаж
-    private int direction = 0;           // 1 - вверх, -1 - вниз, 0 - стоит
-    private Timer timer;                 // таймер для движения
-
     // Элементы управления
-    private Panel panelElevator;         // панель, изображающая кабину
-    private Label lblCurrentFloor;       // отображение текущего этажа
-    private FlowLayoutPanel panelCallButtons;   // кнопки вызова на этажах
-    private FlowLayoutPanel panelCabinButtons;  // кнопки в кабине
-    private Button btnSetFloors;         // кнопка для изменения этажности
+    private Label lblBalance, lblBet, lblNumber, lblResult;
+    private TextBox txtBalance, txtBet, txtNumber;
+    private Button btnPlay, btnAddMoney;
+    private Label lblMessage;
 
-    // Массивы кнопок
-    private Button[] floorCallButtons;
-    private Button[] cabinButtons;
+    private int balance = 100;        // начальный баланс
+    private Random random = new Random();
+    private string saveFile = "balance.txt";
 
     public MainForm()
     {
-        this.Text = "Моделирование лифта";
-        this.Size = new Size(500, 600);
+        this.Text = "Казино: Угадай число (1-10)";
+        this.Size = new Size(400, 400);
         this.StartPosition = FormStartPosition.CenterScreen;
         CreateControls();
-        InitializeElevator(floorCount);
+        LoadBalance();
+        UpdateBalanceDisplay();
     }
 
     private void CreateControls()
     {
-        // Панель для отображения лифта
-        panelElevator = new Panel
-        {
-            Location = new Point(20, 20),
-            Size = new Size(150, 150),
-            BackColor = Color.Gray,
-            BorderStyle = BorderStyle.FixedSingle
-        };
-        this.Controls.Add(panelElevator);
+        int x = 30, y = 20, labelW = 100, fieldW = 150;
 
-        // Метка текущего этажа
-        lblCurrentFloor = new Label
-        {
-            Location = new Point(30, 180),
-            Size = new Size(130, 30),
-            Text = "Этаж: 1",
-            Font = new Font("Arial", 12, FontStyle.Bold)
-        };
-        this.Controls.Add(lblCurrentFloor);
+        // Баланс
+        lblBalance = new Label { Text = "Баланс:", Location = new Point(x, y), AutoSize = true };
+        txtBalance = new TextBox { Location = new Point(x + labelW, y), Width = fieldW, ReadOnly = true, BackColor = Color.LightGray };
+        y += 35;
 
-        // Кнопка для изменения этажности
-        btnSetFloors = new Button
-        {
-            Location = new Point(20, 220),
-            Size = new Size(120, 30),
-            Text = "Задать этажи"
-        };
-        btnSetFloors.Click += BtnSetFloors_Click;
-        this.Controls.Add(btnSetFloors);
+        // Ставка
+        lblBet = new Label { Text = "Ставка:", Location = new Point(x, y), AutoSize = true };
+        txtBet = new TextBox { Location = new Point(x + labelW, y), Width = fieldW, Text = "10" };
+        y += 35;
 
-        // Панель для кнопок вызова (справа)
-        panelCallButtons = new FlowLayoutPanel
-        {
-            Location = new Point(200, 20),
-            Size = new Size(120, 400),
-            FlowDirection = FlowDirection.TopDown,
-            AutoScroll = true,
-            BorderStyle = BorderStyle.FixedSingle
-        };
-        this.Controls.Add(panelCallButtons);
+        // Число (1-10)
+        lblNumber = new Label { Text = "Ваше число (1-10):", Location = new Point(x, y), AutoSize = true };
+        txtNumber = new TextBox { Location = new Point(x + labelW, y), Width = fieldW };
+        y += 40;
 
-        // Панель для кнопок в кабине (снизу)
-        panelCabinButtons = new FlowLayoutPanel
-        {
-            Location = new Point(20, 270),
-            Size = new Size(400, 200),
-            FlowDirection = FlowDirection.LeftToRight,
-            WrapContents = true,
-            BorderStyle = BorderStyle.FixedSingle
-        };
-        this.Controls.Add(panelCabinButtons);
+        // Кнопка "Играть"
+        btnPlay = new Button { Text = "Играть", Location = new Point(x, y), Size = new Size(100, 40), BackColor = Color.LightGreen };
+        btnPlay.Click += BtnPlay_Click;
+        this.Controls.Add(btnPlay);
 
-        // Таймер
-        timer = new Timer();
-        timer.Interval = 300; // 0.3 сек на этаж
-        timer.Tick += Timer_Tick;
+        // Кнопка "Пополнить баланс"
+        btnAddMoney = new Button { Text = "Пополнить (+50)", Location = new Point(x + 120, y), Size = new Size(130, 40), BackColor = Color.LightBlue };
+        btnAddMoney.Click += BtnAddMoney_Click;
+        this.Controls.Add(btnAddMoney);
+        y += 60;
+
+        // Результат
+        lblResult = new Label { Text = "Результат:", Location = new Point(x, y), AutoSize = true };
+        lblMessage = new Label
+        {
+            Location = new Point(x + labelW, y),
+            Size = new Size(230, 60),
+            BorderStyle = BorderStyle.FixedSingle,
+            BackColor = Color.White,
+            Text = "Готов к игре"
+        };
+        y += 80;
+
+        // Добавляем все на форму
+        this.Controls.Add(lblBalance);
+        this.Controls.Add(txtBalance);
+        this.Controls.Add(lblBet);
+        this.Controls.Add(txtBet);
+        this.Controls.Add(lblNumber);
+        this.Controls.Add(txtNumber);
+        this.Controls.Add(lblResult);
+        this.Controls.Add(lblMessage);
     }
 
-    private void InitializeElevator(int floors)
+    private void BtnPlay_Click(object sender, EventArgs e)
     {
-        floorCount = floors;
-        currentFloor = 1;
-        targetFloor = 1;
-        isMoving = false;
-        direction = 0;
-        if (timer.Enabled) timer.Stop();
-
-        // Создаём кнопки вызова на этажах
-        floorCallButtons = new Button[floorCount + 1];
-        panelCallButtons.Controls.Clear();
-        for (int i = 1; i <= floorCount; i++)
+        // Проверка ставки
+        if (!int.TryParse(txtBet.Text, out int bet) || bet <= 0)
         {
-            Button btn = new Button
-            {
-                Text = i.ToString(),
-                Size = new Size(80, 40),
-                Tag = i,
-                BackColor = Color.LightGray
-            };
-            btn.Click += FloorCallButton_Click;
-            floorCallButtons[i] = btn;
-            panelCallButtons.Controls.Add(btn);
+            ShowMessage("Ставка должна быть положительным числом!", Color.Red);
+            return;
+        }
+        if (bet > balance)
+        {
+            ShowMessage("Недостаточно средств! Пополните баланс.", Color.Red);
+            return;
         }
 
-        // Создаём кнопки в кабине
-        cabinButtons = new Button[floorCount + 1];
-        panelCabinButtons.Controls.Clear();
-        for (int i = 1; i <= floorCount; i++)
+        // Проверка введённого числа
+        if (!int.TryParse(txtNumber.Text, out int userNumber) || userNumber < 1 || userNumber > 10)
         {
-            Button btn = new Button
-            {
-                Text = i.ToString(),
-                Size = new Size(60, 60),
-                Tag = i,
-                Enabled = true,
-                BackColor = Color.LightBlue
-            };
-            btn.Click += CabinButton_Click;
-            cabinButtons[i] = btn;
-            panelCabinButtons.Controls.Add(btn);
+            ShowMessage("Введите число от 1 до 10!", Color.Red);
+            return;
         }
 
-        UpdateDisplay();
-    }
-
-    private void BtnSetFloors_Click(object sender, EventArgs e)
-    {
-        string input = Microsoft.VisualBasic.Interaction.InputBox(
-            "Введите количество этажей (1-15):", "Этажность", floorCount.ToString());
-        if (int.TryParse(input, out int newCount) && newCount >= 1 && newCount <= 15)
+        int luckyNumber = random.Next(1, 11); // 1..10
+        if (userNumber == luckyNumber)
         {
-            InitializeElevator(newCount);
+            // Выигрыш: ставка умножается на 5
+            int win = bet * 5;
+            balance += win;
+            ShowMessage($"🎉 ПОБЕДА! Вы угадали число {luckyNumber}! Выигрыш: {win}", Color.Green);
         }
         else
         {
-            MessageBox.Show("Некорректное число этажей (1-15)");
+            // Проигрыш
+            balance -= bet;
+            ShowMessage($"😞 Проигрыш. Загаданное число: {luckyNumber}. Вы потеряли {bet}", Color.Red);
         }
+
+        UpdateBalanceDisplay();
+        SaveBalance();
     }
 
-    private void FloorCallButton_Click(object sender, EventArgs e)
+    private void BtnAddMoney_Click(object sender, EventArgs e)
     {
-        Button btn = (Button)sender;
-        int floor = (int)btn.Tag;
-        if (floor == currentFloor && !isMoving)
-        {
-            MessageBox.Show($"Лифт уже на этаже {floor}");
-            return;
-        }
-        CallElevator(floor);
+        balance += 50;
+        UpdateBalanceDisplay();
+        SaveBalance();
+        ShowMessage("Баланс пополнен на 50", Color.Blue);
     }
 
-    private void CabinButton_Click(object sender, EventArgs e)
+    private void UpdateBalanceDisplay()
     {
-        Button btn = (Button)sender;
-        int floor = (int)btn.Tag;
-        if (floor == currentFloor && !isMoving)
+        txtBalance.Text = balance.ToString();
+        if (balance <= 0)
         {
-            MessageBox.Show($"Вы уже на этаже {floor}");
-            return;
-        }
-        CallElevator(floor);
-    }
-
-    private void CallElevator(int floor)
-    {
-        if (isMoving)
-        {
-            MessageBox.Show("Лифт уже движется, подождите.");
-            return;
-        }
-        targetFloor = floor;
-        if (targetFloor > currentFloor) direction = 1;
-        else if (targetFloor < currentFloor) direction = -1;
-        else direction = 0;
-
-        if (direction != 0)
-        {
-            isMoving = true;
-            timer.Start();
-            SetCabinButtonsEnabled(false);
-            UpdateDisplay();
-        }
-    }
-
-    private void Timer_Tick(object sender, EventArgs e)
-    {
-        if (!isMoving) return;
-
-        int newFloor = currentFloor + direction;
-        if (direction == 1 && newFloor <= floorCount)
-        {
-            currentFloor = newFloor;
-        }
-        else if (direction == -1 && newFloor >= 1)
-        {
-            currentFloor = newFloor;
+            btnPlay.Enabled = false;
+            ShowMessage("Баланс закончился! Пополните счёт.", Color.Red);
         }
         else
         {
-            StopElevator();
-            return;
-        }
-
-        UpdateDisplay();
-
-        if (currentFloor == targetFloor)
-        {
-            StopElevator();
+            btnPlay.Enabled = true;
         }
     }
 
-    private void StopElevator()
+    private void ShowMessage(string text, Color color)
     {
-        timer.Stop();
-        isMoving = false;
-        direction = 0;
-        SetCabinButtonsEnabled(true);
-        UpdateDisplay();
-        MessageBox.Show($"Лифт прибыл на этаж {currentFloor}");
+        lblMessage.Text = text;
+        lblMessage.ForeColor = color;
     }
 
-    private void SetCabinButtonsEnabled(bool enabled)
+    private void SaveBalance()
     {
-        for (int i = 1; i <= floorCount; i++)
+        try
         {
-            if (cabinButtons[i] != null)
-                cabinButtons[i].Enabled = enabled;
+            File.WriteAllText(saveFile, balance.ToString());
         }
+        catch { /* не критично */ }
     }
 
-    private void UpdateDisplay()
+    private void LoadBalance()
     {
-        lblCurrentFloor.Text = $"Этаж: {currentFloor}";
-        panelElevator.BackColor = isMoving ? Color.Yellow : Color.Gray;
-        // Подсветка кнопки текущего этажа (необязательно)
-        for (int i = 1; i <= floorCount; i++)
+        if (File.Exists(saveFile))
         {
-            if (floorCallButtons[i] != null)
-                floorCallButtons[i].BackColor = (i == currentFloor) ? Color.Green : Color.LightGray;
-            if (cabinButtons[i] != null)
-                cabinButtons[i].BackColor = (i == currentFloor) ? Color.Green : Color.LightBlue;
+            try
+            {
+                string content = File.ReadAllText(saveFile);
+                if (int.TryParse(content, out int saved))
+                    balance = saved;
+            }
+            catch { }
         }
+        if (balance <= 0) balance = 100;
+        UpdateBalanceDisplay();
     }
 }
