@@ -1,128 +1,13 @@
 using System;
-using System.Drawing;
 using System.Windows.Forms;
 
-public class MainForm : Form
+static class Program
 {
-    private TextBox display;
-    private double firstOperand = 0;
-    private string selectedOperator = "";
-    private bool clearDisplay = false;
-
-    public MainForm()
+    [STAThread]
+    static void Main()
     {
-        this.Text = "Калькулятор";
-        this.Size = new Size(300, 400);
-        this.StartPosition = FormStartPosition.CenterScreen;
-        CreateControls();
-    }
-
-    private void CreateControls()
-    {
-        // Поле вывода
-        display = new TextBox
-        {
-            Location = new Point(20, 20),
-            Size = new Size(240, 40),
-            Font = new Font("Consolas", 16, FontStyle.Bold),
-            TextAlign = HorizontalAlignment.Right,
-            ReadOnly = true,
-            BackColor = Color.White,
-            Text = "0"
-        };
-        this.Controls.Add(display);
-
-        // Кнопки (расположение в таблице 4x4)
-        string[] buttonLabels = { "7", "8", "9", "/", "4", "5", "6", "*", "1", "2", "3", "-", "0", ".", "=", "+" };
-        int index = 0;
-        for (int row = 0; row < 4; row++)
-        {
-            for (int col = 0; col < 4; col++)
-            {
-                Button btn = new Button
-                {
-                    Text = buttonLabels[index],
-                    Location = new Point(20 + col * 60, 80 + row * 60),
-                    Size = new Size(55, 55),
-                    Font = new Font("Arial", 12, FontStyle.Bold),
-                    Tag = buttonLabels[index]
-                };
-                btn.Click += Button_Click;
-                this.Controls.Add(btn);
-                index++;
-            }
-        }
-
-        // Кнопка C (очистка) – дополнительная
-        Button btnClear = new Button
-        {
-            Text = "C",
-            Location = new Point(20, 320),
-            Size = new Size(55, 55),
-            Font = new Font("Arial", 12, FontStyle.Bold),
-            BackColor = Color.LightCoral
-        };
-        btnClear.Click += (s, e) =>
-        {
-            display.Text = "0";
-            firstOperand = 0;
-            selectedOperator = "";
-            clearDisplay = false;
-        };
-        this.Controls.Add(btnClear);
-    }
-
-    private void Button_Click(object sender, EventArgs e)
-    {
-        Button btn = (Button)sender;
-        string text = btn.Text;
-
-        if (text == "=")
-        {
-            Calculate();
-            selectedOperator = "";
-            clearDisplay = true;
-        }
-        else if (text == "+" || text == "-" || text == "*" || text == "/")
-        {
-            if (!string.IsNullOrEmpty(selectedOperator))
-                Calculate();
-            firstOperand = Convert.ToDouble(display.Text);
-            selectedOperator = text;
-            clearDisplay = true;
-        }
-        else // цифры и точка
-        {
-            if (clearDisplay)
-            {
-                display.Text = "";
-                clearDisplay = false;
-            }
-            if (text == "." && display.Text.Contains(".")) return;
-            display.Text += text;
-        }
-    }
-
-    private void Calculate()
-    {
-        double secondOperand = Convert.ToDouble(display.Text);
-        double result = 0;
-        switch (selectedOperator)
-        {
-            case "+": result = firstOperand + secondOperand; break;
-            case "-": result = firstOperand - secondOperand; break;
-            case "*": result = firstOperand * secondOperand; break;
-            case "/":
-                if (secondOperand == 0)
-                {
-                    MessageBox.Show("Деление на ноль!");
-                    return;
-                }
-                result = firstOperand / secondOperand;
-                break;
-            default: return;
-        }
-        display.Text = result.ToString();
-        firstOperand = result;
+        Application.EnableVisualStyles();
+        Application.SetCompatibleTextRenderingDefault(false);
+        Application.Run(new MainForm());
     }
 }
