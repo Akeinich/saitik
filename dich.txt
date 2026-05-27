@@ -1,13 +1,62 @@
 using System;
-using System.Windows.Forms;
 
-static class Program
+namespace ComplexNumbersLib
 {
-    [STAThread]
-    static void Main()
+    public class MyComplex
     {
-        Application.EnableVisualStyles();
-        Application.SetCompatibleTextRenderingDefault(false);
-        Application.Run(new MainForm());
+        // Действительная и мнимая части
+        public double Re { get; set; }
+        public double Im { get; set; }
+
+        // Конструкторы
+        public MyComplex() : this(0, 0) { }
+        public MyComplex(double re, double im) { Re = re; Im = im; }
+        public MyComplex(string re, string im)
+        {
+            try { Re = Convert.ToDouble(re); } catch { Re = 0; }
+            try { Im = Convert.ToDouble(im); } catch { Im = 0; }
+        }
+
+        // Модуль комплексного числа
+        public double Abs => Math.Sqrt(Re * Re + Im * Im);
+
+        // Сложение
+        public static MyComplex Sum(MyComplex z1, MyComplex z2)
+        {
+            return new MyComplex(z1.Re + z2.Re, z1.Im + z2.Im);
+        }
+
+        // Вычитание
+        public static MyComplex Sub(MyComplex z1, MyComplex z2)
+        {
+            return new MyComplex(z1.Re - z2.Re, z1.Im - z2.Im);
+        }
+
+        // Умножение (перегрузка оператора)
+        public static MyComplex operator *(MyComplex z1, MyComplex z2)
+        {
+            double re = z1.Re * z2.Re - z1.Im * z2.Im;
+            double im = z1.Re * z2.Im + z1.Im * z2.Re;
+            return new MyComplex(re, im);
+        }
+
+        // Деление (перегрузка оператора)
+        public static MyComplex operator /(MyComplex z1, MyComplex z2)
+        {
+            double denom = z2.Re * z2.Re + z2.Im * z2.Im;
+            if (denom == 0) throw new DivideByZeroException("Деление на ноль в комплексных числах");
+            double re = (z1.Re * z2.Re + z1.Im * z2.Im) / denom;
+            double im = (z1.Im * z2.Re - z1.Re * z2.Im) / denom;
+            return new MyComplex(re, im);
+        }
+
+        // Красивый вывод
+        public override string ToString()
+        {
+            if (Im == 0) return Re.ToString();
+            if (Re == 0) return $"{Im}i";
+            string sign = Im > 0 ? "+" : "";
+            return $"{Re}{sign}{Im}i";
+        }
     }
 }
