@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 
 public class MainForm : Form
@@ -149,7 +150,7 @@ public class MainForm : Form
             int x = startX + i * stepX;
             int y = startY + 6 * stepY + 10;
             e.Graphics.DrawRectangle(Pens.Black, x - 15, y, 30, 20);
-            e.Graphics.DrawString(mults[i].ToString(), SystemFonts.Default, Brushes.Black, x - 10, y + 2);
+            e.Graphics.DrawString(mults[i].ToString(), SystemFonts.DefaultFont, Brushes.Black, x - 10, y + 2);
         }
     }
 
