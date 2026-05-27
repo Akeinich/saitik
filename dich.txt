@@ -46,7 +46,7 @@ public class MainForm : Form
         this.Controls.Add(gamePanel);
     }
 
-    // ---------- Лотерейка (три барабана) ----------
+    // ------------------ Лотерейка ------------------
     private Label[] reels;
     private Button btnSpin;
     private NumericUpDown numBetLoteika;
@@ -102,28 +102,45 @@ public class MainForm : Form
         SaveScore();
     }
 
-    // ---------- Шарики (упрощённый плинко) ----------
-    private Button btnDrop;
+    // ------------------ Шарики (упрощённый, без анимации) ------------------
     private NumericUpDown numBetBalls;
+    private Button btnDrop;
     private Label lblBallsResult;
-    private Panel ballsBoard;
-    private int ballX = 0;
-    private Timer ballsTimer;
-    private int[] mults = { 0, 1, 2, 3, 5, 10, 0 };
-    private int dropSteps = 0;
+    private int[] multipliers = { 0, 1, 2, 3, 5, 10, 0 };
 
     private void ShowBalls()
     {
         ClearGamePanel();
         Label title = new Label { Text = "ШАРИКИ", Location = new Point(10, 10), AutoSize = true, Font = new Font("Arial", 14, FontStyle.Bold) };
         gamePanel.Controls.Add(title);
-        ballsBoard = new Panel { Location = new Point(20, 50), Size = new Size(400, 250), BackColor = Color.LightGray };
-        ballsBoard.Paint += BallsBoard_Paint;
-        gamePanel.Controls.Add(ballsBoard);
+
+        // Рисуем статичное поле
+        Panel field = new Panel { Location = new Point(20, 50), Size = new Size(400, 250), BackColor = Color.LightGray };
+        field.Paint += (s, e) => DrawField(e.Graphics);
+        gamePanel.Controls.Add(field);
+
         Label lblBet = new Label { Text = "Очки:", Location = new Point(20, 320), AutoSize = true };
         numBetBalls = new NumericUpDown { Minimum = 1, Maximum = 50, Value = 5, Location = new Point(80, 318), Width = 60 };
         btnDrop = new Button { Text = "Бросить", Location = new Point(160, 315), Size = new Size(100, 30), BackColor = Color.Lime };
-        btnDrop.Click += Balls_Drop;
+        btnDrop.Click += (s, e) =>
+        {
+            int bet = (int)numBetBalls.Value;
+            if (bet > score) { ShowMessage(lblBallsResult, "Не хватает очков!", Color.Red); return; }
+            score -= bet;
+            UpdateScoreDisplay();
+            SaveScore();
+
+            // Симуляция падения: случайные отклонения влево/вправо
+            int pos = 3; // стартовая позиция (0..6)
+            for (int i = 0; i < 6; i++) pos += rand.Next(3) - 1; // -1,0,+1
+            pos = Math.Max(0, Math.Min(6, pos));
+            int mult = multipliers[pos];
+            int bonus = bet * mult;
+            score += bonus;
+            UpdateScoreDisplay();
+            SaveScore();
+            ShowMessage(lblBallsResult, $"Шарик упал в ячейку {pos+1} (множитель x{mult}). Бонус: {bonus}", bonus>0 ? Color.Green : Color.Red);
+        };
         lblBallsResult = new Label { Text = "Нажмите 'Бросить'", Location = new Point(20, 360), Size = new Size(360, 30) };
         gamePanel.Controls.Add(lblBet);
         gamePanel.Controls.Add(numBetBalls);
@@ -131,9 +148,8 @@ public class MainForm : Form
         gamePanel.Controls.Add(lblBallsResult);
     }
 
-    private void BallsBoard_Paint(object sender, PaintEventArgs e)
+    private void DrawField(Graphics g)
     {
-        Graphics g = e.Graphics;
         int startX = 20, startY = 20, stepX = 30, stepY = 30;
         for (int row = 0; row < 6; row++)
         {
@@ -142,67 +158,19 @@ public class MainForm : Form
             {
                 int x = startX + off + col * stepX;
                 int y = startY + row * stepY;
-                e.Graphics.FillEllipse(Brushes.Brown, x - 3, y - 3, 6, 6);
+                g.FillEllipse(Brushes.Brown, x - 3, y - 3, 6, 6);
             }
         }
         for (int i = 0; i < 7; i++)
         {
             int x = startX + i * stepX;
             int y = startY + 6 * stepY + 10;
-            e.Graphics.DrawRectangle(Pens.Black, x - 15, y, 30, 20);
-            e.Graphics.DrawString(mults[i].ToString(), SystemFonts.DefaultFont, Brushes.Black, x - 10, y + 2);
+            g.DrawRectangle(Pens.Black, x - 15, y, 30, 20);
+            g.DrawString(multipliers[i].ToString(), SystemFonts.DefaultFont, Brushes.Black, x - 10, y + 2);
         }
     }
 
-    private void Balls_Drop(object sender, EventArgs e)
-    {
-        int bet = (int)numBetBalls.Value;
-        if (bet > score) { ShowMessage(lblBallsResult, "Не хватает очков!", Color.Red); return; }
-        score -= bet;
-        UpdateScoreDisplay();
-        SaveScore();
-        ballX = 3;
-        dropSteps = 0;
-        ballsTimer = new Timer();
-        ballsTimer.Interval = 100;
-        ballsTimer.Tick += (ts, te) =>
-        {
-            if (dropSteps >= 6)
-            {
-                ballsTimer.Stop();
-                int slot = Math.Max(0, Math.Min(6, ballX));
-                int mult = mults[slot];
-                int bonus = bet * mult;
-                score += bonus;
-                UpdateScoreDisplay();
-                SaveScore();
-                ShowMessage(lblBallsResult, $"Шарик упал в ячейку {slot+1} (множитель x{mult}). Бонус: {bonus}", bonus>0?Color.Green:Color.Red);
-                ballsBoard.Invalidate();
-                return;
-            }
-            int dir = rand.Next(3) - 1;
-            ballX += dir;
-            ballX = Math.Max(0, Math.Min(6, ballX));
-            dropSteps++;
-            ballsBoard.Paint -= BallsBoard_Paint;
-            ballsBoard.Paint += (sdr, pea) => { BallsBoard_Paint(sdr, pea); DrawBall(pea, dropSteps, ballX); };
-            ballsBoard.Invalidate();
-            ballsBoard.Paint -= (sdr, pea) => { BallsBoard_Paint(sdr, pea); DrawBall(pea, dropSteps, ballX); };
-            ballsBoard.Paint += BallsBoard_Paint;
-        };
-        ballsTimer.Start();
-    }
-
-    private void DrawBall(PaintEventArgs e, int step, int xPos)
-    {
-        int startX = 20, stepX = 30, stepY = 30;
-        int off = (step % 2 == 0) ? 0 : stepX / 2;
-        int x = startX + off + xPos * stepX;
-        int y = 20 + step * stepY;
-        e.Graphics.FillEllipse(Brushes.Red, x - 6, y - 6, 12, 12);
-    }
-
-    // ---------- Колесо (упрощённая рулетка) ----------
+    // ------------------ Колесо (рулетка) ------------------
     private ComboBox cbBetType;
     private TextBox txtBetValue;
     private NumericUpDown numBetWheel;
@@ -216,17 +184,23 @@ public class MainForm : Form
         gamePanel.Controls.Add(title);
         lblSpinNumber = new Label { Text = "??", Font = new Font("Arial", 48, FontStyle.Bold), Location = new Point(250, 50), Size = new Size(100, 80), TextAlign = ContentAlignment.MiddleCenter, BorderStyle = BorderStyle.FixedSingle };
         gamePanel.Controls.Add(lblSpinNumber);
+
         Label lblType = new Label { Text = "Тип:", Location = new Point(20, 150), AutoSize = true };
         cbBetType = new ComboBox { Location = new Point(80, 148), Width = 120, DropDownStyle = ComboBoxStyle.DropDownList };
         cbBetType.Items.AddRange(new object[] { "Число (1-36)", "Красное", "Чёрное", "Чётное", "Нечётное", "1-18", "19-36" });
         cbBetType.SelectedIndex = 0;
+
         Label lblVal = new Label { Text = "Значение:", Location = new Point(20, 190), AutoSize = true };
         txtBetValue = new TextBox { Location = new Point(100, 188), Width = 60, Text = "1" };
+
         Label lblBet = new Label { Text = "Очки:", Location = new Point(20, 230), AutoSize = true };
         numBetWheel = new NumericUpDown { Minimum = 5, Maximum = 200, Value = 10, Location = new Point(80, 228), Width = 70 };
+
         btnSpinWheel = new Button { Text = "Крутить", Location = new Point(180, 225), Size = new Size(100, 30), BackColor = Color.Lime };
         btnSpinWheel.Click += Wheel_Spin;
+
         lblWheelResult = new Label { Text = "Готово", Location = new Point(20, 280), Size = new Size(500, 40) };
+
         gamePanel.Controls.Add(lblType);
         gamePanel.Controls.Add(cbBetType);
         gamePanel.Controls.Add(lblVal);
@@ -244,19 +218,22 @@ public class MainForm : Form
         int result = rand.Next(0, 37);
         lblSpinNumber.Text = result.ToString();
         bool isRed = (new[] { 1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36 }.Contains(result));
-        bool isBlack = (result != 0 && !isRed);
-        bool isEven = (result % 2 == 0 && result != 0);
-        bool isOdd = (result % 2 == 1);
         bool win = false;
         string betType = cbBetType.SelectedItem.ToString();
         string detail = "";
-        if (betType == "Число (1-36)") { win = (int.TryParse(txtBetValue.Text, out int num) && num >=1 && num<=36 && result==num); detail = $"число {txtBetValue.Text}"; }
+        if (betType == "Число (1-36)")
+        {
+            int num = int.TryParse(txtBetValue.Text, out int n) ? n : 0;
+            win = (num >= 1 && num <= 36 && result == num);
+            detail = $"число {num}";
+        }
         else if (betType == "Красное") { win = isRed; detail = "красное"; }
-        else if (betType == "Чёрное") { win = isBlack; detail = "чёрное"; }
-        else if (betType == "Чётное") { win = isEven; detail = "чётное"; }
-        else if (betType == "Нечётное") { win = isOdd; detail = "нечётное"; }
-        else if (betType == "1-18") { win = (result>=1 && result<=18); detail = "1-18"; }
-        else if (betType == "19-36") { win = (result>=19 && result<=36); detail = "19-36"; }
+        else if (betType == "Чёрное") { win = (result != 0 && !isRed); detail = "чёрное"; }
+        else if (betType == "Чётное") { win = (result % 2 == 0 && result != 0); detail = "чётное"; }
+        else if (betType == "Нечётное") { win = (result % 2 == 1); detail = "нечётное"; }
+        else if (betType == "1-18") { win = (result >= 1 && result <= 18); detail = "1-18"; }
+        else if (betType == "19-36") { win = (result >= 19 && result <= 36); detail = "19-36"; }
+
         int bonus = 0;
         if (win)
         {
@@ -274,7 +251,7 @@ public class MainForm : Form
         SaveScore();
     }
 
-    // ---------- Общие методы ----------
+    // ------------------ Общие методы ------------------
     private void ClearGamePanel() { gamePanel.Controls.Clear(); }
     private void ShowMessage(Label lbl, string text, Color color) { lbl.Text = text; lbl.ForeColor = color; }
     private void UpdateScoreDisplay() { txtScore.Text = score.ToString(); }
