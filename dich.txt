@@ -1,5 +1,6 @@
 [
-  { "Id": 1, "NameRole": "Директор" },
-  { "Id": 2, "NameRole": "Бухгалтер" },
-  { "Id": 3, "NameRole": "Менеджер" }
+  { "Id": 1, "RoleId": 1, "FirstName": "Иван", "LastName": "Иванов", "Birthday": "1980-02-28T00:00:00" },
+  { "Id": 2, "RoleId": 2, "FirstName": "Петр", "LastName": "Петров", "Birthday": "1981-03-20T00:00:00" },
+  { "Id": 3, "RoleId": 3, "FirstName": "Виктор", "LastName": "Викторов", "Birthday": "1982-04-15T00:00:00" },
+  { "Id": 4, "RoleId": 3, "FirstName": "Сидор", "LastName": "Сидоров", "Birthday": "1983-05-10T00:00:00" }
 ]
