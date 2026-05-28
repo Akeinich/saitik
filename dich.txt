@@ -1,3 +1,24 @@
-Исключение не обработано
+private void LoadRole()
+{
+    string dir = Path.GetDirectoryName(_path);
+    if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+    if (File.Exists(_path))
+    {
+        string json = File.ReadAllText(_path, Encoding.UTF8);
+        var list = JsonConvert.DeserializeObject<ObservableCollection<Role>>(json);
+        if (list != null) ListRole = list;
+    }
+    else
+    {
+        ListRole.Add(new Role { Id = 1, NameRole = "Директор" });
+        ListRole.Add(new Role { Id = 2, NameRole = "Бухгалтер" });
+        ListRole.Add(new Role { Id = 3, NameRole = "Менеджер" });
+        SaveRole();
+    }
+}
 
-System.IO.DirectoryNotFoundException: "Не удалось найти часть пути "C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\bin\Debug\DataModels\RoleData.json"."
+private void SaveRole()
+{
+    string json = JsonConvert.SerializeObject(ListRole, Formatting.Indented);
+    File.WriteAllText(_path, json, Encoding.UTF8);
+}
