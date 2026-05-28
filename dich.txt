@@ -1,3 +1,40 @@
+✅ Полные исправленные коды для всех файлов
+
+Ниже представлены окончательные версии всех необходимых файлов. Скопируйте их в соответствующие папки вашего проекта WpfApp1Demo2018. После замены выполните Clean Solution и Rebuild.
+
+🔹 Корневые файлы
+
+App.xaml
+
+```xml
+<Application x:Class="WpfApp1Demo2018.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="DictionaryApp.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
+```
+
+App.xaml.cs
+
+```csharp
+using System.Windows;
+
+namespace WpfApp1Demo2018
+{
+    public partial class App : Application { }
+}
+```
+
+DictionaryApp.xaml
+
+```xml
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <Style x:Key="ButtonMenu" TargetType="Button">
@@ -5,8 +42,596 @@
         <Setter Property="Margin" Value="10,10,5,10"/>
         <Setter Property="Padding" Value="5,0,5,0"/>
         <Setter Property="BorderThickness" Value="1"/>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="LightGray"/>
+            </Trigger>
+        </Style.Triggers>
     </Style>
     <Style x:Key="ListViewStyle" TargetType="ListView">
         <Setter Property="Background" Value="#FFD3CDCD"/>
+        <Setter Property="BorderBrush" Value="Gray"/>
+        <Setter Property="BorderThickness" Value="1"/>
     </Style>
 </ResourceDictionary>
+```
+
+MainWindow.xaml
+
+```xml
+<Window x:Class="WpfApp1Demo2018.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Главное окно" Height="350" Width="525">
+    <Grid>
+        <Menu>
+            <MenuItem Header="Сотрудники" Click="Employee_OnClick"/>
+            <MenuItem Header="Должности" Click="Role_OnClick"/>
+        </Menu>
+    </Grid>
+</Window>
+```
+
+MainWindow.xaml.cs
+
+```csharp
+using System.Windows;
+using WpfApp1Demo2018.View;
+
+namespace WpfApp1Demo2018
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow() => InitializeComponent();
+        private void Employee_OnClick(object sender, RoutedEventArgs e) => new WindowEmployee().Show();
+        private void Role_OnClick(object sender, RoutedEventArgs e) => new WindowRole().Show();
+    }
+}
+```
+
+🔹 Папка Model
+
+Model/Person.cs
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace WpfApp1Demo2018.Model
+{
+    public class Person
+    {
+        public int Id { get; set; }
+        public int RoleId { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public DateTime Birthday { get; set; }
+        public Person() { }
+        public Person(int id, int roleId, string firstName, string lastName, DateTime birthday)
+        {
+            Id = id; RoleId = roleId; FirstName = firstName; LastName = lastName; Birthday = birthday;
+        }
+        public Person CopyFromPersonDPO(PersonDPO personDPO, List<Role> roles)
+        {
+            Id = personDPO.Id;
+            var role = roles.FirstOrDefault(r => r.NameRole == personDPO.Role);
+            RoleId = role?.Id ?? 0;
+            FirstName = personDPO.FirstName;
+            LastName = personDPO.LastName;
+            Birthday = personDPO.Birthday;
+            return this;
+        }
+    }
+}
+```
+
+Model/Role.cs
+
+```csharp
+namespace WpfApp1Demo2018.Model
+{
+    public class Role
+    {
+        public int Id { get; set; }
+        public string NameRole { get; set; }
+        public Role() { }
+        public Role(int id, string nameRole) { Id = id; NameRole = nameRole; }
+        public Role ShallowCopy() => (Role)MemberwiseClone();
+    }
+}
+```
+
+Model/PersonDPO.cs
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace WpfApp1Demo2018.Model
+{
+    public class PersonDPO
+    {
+        public int Id { get; set; }
+        public string Role { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public DateTime Birthday { get; set; }
+        public PersonDPO() { }
+        public PersonDPO(int id, string role, string firstName, string lastName, DateTime birthday)
+        {
+            Id = id; Role = role; FirstName = firstName; LastName = lastName; Birthday = birthday;
+        }
+        public PersonDPO ShallowCopy() => (PersonDPO)MemberwiseClone();
+        public PersonDPO CopyFromPerson(Person person, List<Role> roles)
+        {
+            Id = person.Id;
+            var role = roles.FirstOrDefault(r => r.Id == person.RoleId);
+            Role = role?.NameRole ?? "Не задано";
+            FirstName = person.FirstName;
+            LastName = person.LastName;
+            Birthday = person.Birthday;
+            return this;
+        }
+    }
+}
+```
+
+🔹 Папка ViewModel
+
+ViewModel/RoleViewModel.cs
+
+```csharp
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Windows;
+using WpfApp1Demo2018.Helper;
+using WpfApp1Demo2018.Model;
+using WpfApp1Demo2018.View;
+
+namespace WpfApp1Demo2018.ViewModel
+{
+    public class RoleViewModel : INotifyPropertyChanged
+    {
+        public ObservableCollection<Role> ListRole { get; set; } = new ObservableCollection<Role>();
+        private Role _selectedRole;
+        public Role SelectedRole { get => _selectedRole; set { _selectedRole = value; OnPropertyChanged(); } }
+        public RoleViewModel()
+        {
+            ListRole.Add(new Role { Id = 1, NameRole = "Директор" });
+            ListRole.Add(new Role { Id = 2, NameRole = "Бухгалтер" });
+            ListRole.Add(new Role { Id = 3, NameRole = "Менеджер" });
+        }
+        public int MaxId() => ListRole.Count > 0 ? ListRole.Max(r => r.Id) : 0;
+
+        private RelayCommand _addRole;
+        public RelayCommand AddRole => _addRole ?? (_addRole = new RelayCommand(obj =>
+        {
+            var win = new WindowNewRole { Title = "Новая должность", Owner = Application.Current.Windows[0] };
+            int newId = MaxId() + 1;
+            win.tbId.Text = newId.ToString();
+            win.tbRole.Text = "";
+            if (win.ShowDialog() == true)
+            {
+                string name = win.tbRole.Text.Trim();
+                if (!string.IsNullOrEmpty(name))
+                {
+                    ListRole.Add(new Role { Id = newId, NameRole = name });
+                    SelectedRole = ListRole.Last();
+                }
+                else MessageBox.Show("Наименование должности не может быть пустым!");
+            }
+        }));
+
+        private RelayCommand _editRole;
+        public RelayCommand EditRole => _editRole ?? (_editRole = new RelayCommand(obj =>
+        {
+            if (SelectedRole == null) { MessageBox.Show("Выберите должность."); return; }
+            var win = new WindowNewRole { Title = "Редактирование должности", Owner = Application.Current.Windows[0] };
+            win.tbId.Text = SelectedRole.Id.ToString();
+            win.tbRole.Text = SelectedRole.NameRole;
+            if (win.ShowDialog() == true)
+            {
+                string newName = win.tbRole.Text.Trim();
+                if (!string.IsNullOrEmpty(newName)) SelectedRole.NameRole = newName;
+                else MessageBox.Show("Наименование должности не может быть пустым!");
+            }
+        }, obj => SelectedRole != null));
+
+        private RelayCommand _deleteRole;
+        public RelayCommand DeleteRole => _deleteRole ?? (_deleteRole = new RelayCommand(obj =>
+        {
+            if (SelectedRole == null) { MessageBox.Show("Выберите должность."); return; }
+            if (MessageBox.Show($"Удалить должность «{SelectedRole.NameRole}»?", "Подтверждение", MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.OK)
+            {
+                ListRole.Remove(SelectedRole);
+                SelectedRole = null;
+            }
+        }, obj => SelectedRole != null));
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+}
+```
+
+ViewModel/PersonViewModel.cs
+
+```csharp
+using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Windows;
+using WpfApp1Demo2018.Helper;
+using WpfApp1Demo2018.Model;
+using WpfApp1Demo2018.View;
+
+namespace WpfApp1Demo2018.ViewModel
+{
+    public class PersonViewModel : INotifyPropertyChanged
+    {
+        private RoleViewModel _roleVm;
+        public ObservableCollection<Person> ListPerson { get; set; } = new ObservableCollection<Person>();
+        public ObservableCollection<PersonDPO> ListPersonDpo { get; set; } = new ObservableCollection<PersonDPO>();
+        private PersonDPO _selectedPersonDpo;
+        public PersonDPO SelectedPersonDpo { get => _selectedPersonDpo; set { _selectedPersonDpo = value; OnPropertyChanged(); } }
+
+        public PersonViewModel()
+        {
+            _roleVm = new RoleViewModel();
+            ListPerson.Add(new Person { Id = 1, RoleId = 1, FirstName = "Иван", LastName = "Иванов", Birthday = new DateTime(1980, 2, 28) });
+            ListPerson.Add(new Person { Id = 2, RoleId = 2, FirstName = "Петр", LastName = "Петров", Birthday = new DateTime(1981, 3, 20) });
+            ListPerson.Add(new Person { Id = 3, RoleId = 3, FirstName = "Виктор", LastName = "Викторов", Birthday = new DateTime(1982, 4, 15) });
+            ListPerson.Add(new Person { Id = 4, RoleId = 3, FirstName = "Сидор", LastName = "Сидоров", Birthday = new DateTime(1983, 5, 10) });
+            RefreshDpoList();
+        }
+
+        private void RefreshDpoList()
+        {
+            ListPersonDpo.Clear();
+            var roles = _roleVm.ListRole.ToList();
+            foreach (var p in ListPerson)
+            {
+                var role = roles.FirstOrDefault(r => r.Id == p.RoleId);
+                ListPersonDpo.Add(new PersonDPO
+                {
+                    Id = p.Id,
+                    Role = role?.NameRole ?? "Не задано",
+                    FirstName = p.FirstName,
+                    LastName = p.LastName,
+                    Birthday = p.Birthday
+                });
+            }
+        }
+
+        private void SyncFromDpoToPerson(PersonDPO dpo, Person person)
+        {
+            var roles = _roleVm.ListRole.ToList();
+            var role = roles.FirstOrDefault(r => r.NameRole == dpo.Role);
+            if (role != null) person.RoleId = role.Id;
+            person.FirstName = dpo.FirstName;
+            person.LastName = dpo.LastName;
+            person.Birthday = dpo.Birthday;
+        }
+
+        public int MaxId() => ListPerson.Count > 0 ? ListPerson.Max(p => p.Id) : 0;
+
+        private RelayCommand _addPerson;
+        public RelayCommand AddPerson => _addPerson ?? (_addPerson = new RelayCommand(obj =>
+        {
+            var win = new WindowNewEmployee { Title = "Новый сотрудник", Owner = Application.Current.Windows[0] };
+            int newId = MaxId() + 1;
+            win.tbId.Text = newId.ToString();
+            win.cbRole.ItemsSource = _roleVm.ListRole;
+            win.cbRole.SelectedValuePath = "Id";
+            win.cbRole.DisplayMemberPath = "NameRole";
+            win.tbLastName.Text = "";
+            win.tbFirstName.Text = "";
+            win.dpBirthday.SelectedDate = DateTime.Now;
+            if (win.ShowDialog() == true)
+            {
+                var selectedRole = win.cbRole.SelectedItem as Role;
+                if (selectedRole == null) { MessageBox.Show("Выберите должность!"); return; }
+                var newPerson = new Person
+                {
+                    Id = newId,
+                    RoleId = selectedRole.Id,
+                    FirstName = win.tbFirstName.Text.Trim(),
+                    LastName = win.tbLastName.Text.Trim(),
+                    Birthday = win.dpBirthday.SelectedDate ?? DateTime.Now
+                };
+                ListPerson.Add(newPerson);
+                RefreshDpoList();
+            }
+        }));
+
+        private RelayCommand _editPerson;
+        public RelayCommand EditPerson => _editPerson ?? (_editPerson = new RelayCommand(obj =>
+        {
+            if (SelectedPersonDpo == null) { MessageBox.Show("Выберите сотрудника."); return; }
+            var win = new WindowNewEmployee { Title = "Редактирование сотрудника", Owner = Application.Current.Windows[0] };
+            var temp = SelectedPersonDpo.ShallowCopy();
+            win.tbId.Text = temp.Id.ToString();
+            win.cbRole.ItemsSource = _roleVm.ListRole;
+            win.cbRole.SelectedValuePath = "Id";
+            win.cbRole.DisplayMemberPath = "NameRole";
+            var role = _roleVm.ListRole.FirstOrDefault(r => r.NameRole == temp.Role);
+            if (role != null) win.cbRole.SelectedValue = role.Id;
+            win.tbLastName.Text = temp.LastName;
+            win.tbFirstName.Text = temp.FirstName;
+            win.dpBirthday.SelectedDate = temp.Birthday;
+            if (win.ShowDialog() == true)
+            {
+                var selectedRole = win.cbRole.SelectedItem as Role;
+                if (selectedRole == null) { MessageBox.Show("Выберите должность!"); return; }
+                SelectedPersonDpo.Role = selectedRole.NameRole;
+                SelectedPersonDpo.FirstName = win.tbFirstName.Text.Trim();
+                SelectedPersonDpo.LastName = win.tbLastName.Text.Trim();
+                SelectedPersonDpo.Birthday = win.dpBirthday.SelectedDate ?? temp.Birthday;
+                var person = ListPerson.FirstOrDefault(p => p.Id == SelectedPersonDpo.Id);
+                if (person != null) SyncFromDpoToPerson(SelectedPersonDpo, person);
+                RefreshDpoList();
+            }
+        }, obj => SelectedPersonDpo != null));
+
+        private RelayCommand _deletePerson;
+        public RelayCommand DeletePerson => _deletePerson ?? (_deletePerson = new RelayCommand(obj =>
+        {
+            if (SelectedPersonDpo == null) { MessageBox.Show("Выберите сотрудника."); return; }
+            var res = MessageBox.Show($"Удалить сотрудника: {SelectedPersonDpo.LastName} {SelectedPersonDpo.FirstName}?", "Подтверждение", MessageBoxButton.OKCancel, MessageBoxImage.Question);
+            if (res == MessageBoxResult.OK)
+            {
+                var person = ListPerson.FirstOrDefault(p => p.Id == SelectedPersonDpo.Id);
+                if (person != null) ListPerson.Remove(person);
+                RefreshDpoList();
+                SelectedPersonDpo = null;
+            }
+        }, obj => SelectedPersonDpo != null));
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+}
+```
+
+🔹 Папка View
+
+View/WindowRole.xaml
+
+```xml
+<Window x:Class="WpfApp1Demo2018.View.WindowRole"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Должности" Height="300" Width="400">
+    <StackPanel Background="#FFD8D8D8">
+        <StackPanel Orientation="Horizontal" Background="#FFE4E0E0" Margin="5">
+            <Button Style="{StaticResource ButtonMenu}" Content="Добавить" Command="{Binding AddRole}"/>
+            <Button Style="{StaticResource ButtonMenu}" Content="Редактировать" Command="{Binding EditRole}"/>
+            <Button Style="{StaticResource ButtonMenu}" Content="Удалить" Command="{Binding DeleteRole}"/>
+        </StackPanel>
+        <Label Margin="5" HorizontalAlignment="Center">Список должностей сотрудников</Label>
+        <ListView x:Name="lvRole" Style="{StaticResource ListViewStyle}" ItemsSource="{Binding ListRole}" SelectedItem="{Binding SelectedRole, Mode=TwoWay}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Код" Width="50" DisplayMemberBinding="{Binding Id}"/>
+                    <GridViewColumn Header="Наименование должности" Width="200" DisplayMemberBinding="{Binding NameRole}"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </StackPanel>
+</Window>
+```
+
+View/WindowRole.xaml.cs
+
+```csharp
+using System.Windows;
+using WpfApp1Demo2018.ViewModel;
+
+namespace WpfApp1Demo2018.View
+{
+    public partial class WindowRole : Window
+    {
+        public WindowRole() { InitializeComponent(); DataContext = new RoleViewModel(); }
+    }
+}
+```
+
+View/WindowEmployee.xaml
+
+```xml
+<Window x:Class="WpfApp1Demo2018.View.WindowEmployee"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Сотрудники" Height="350" Width="600">
+    <StackPanel>
+        <StackPanel Orientation="Horizontal" Background="#FFE4E0E0" Margin="5">
+            <Button Style="{StaticResource ButtonMenu}" Content="Добавить" Command="{Binding AddPerson}"/>
+            <Button Style="{StaticResource ButtonMenu}" Content="Редактировать" Command="{Binding EditPerson}"/>
+            <Button Style="{StaticResource ButtonMenu}" Content="Удалить" Command="{Binding DeletePerson}"/>
+        </StackPanel>
+        <ListView x:Name="lvEmployee" Style="{StaticResource ListViewStyle}"
+                  ItemsSource="{Binding ListPersonDpo}" SelectedItem="{Binding SelectedPersonDpo, Mode=TwoWay}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Код" Width="50" DisplayMemberBinding="{Binding Id}"/>
+                    <GridViewColumn Header="Фамилия" Width="100" DisplayMemberBinding="{Binding LastName}"/>
+                    <GridViewColumn Header="Имя" Width="100" DisplayMemberBinding="{Binding FirstName}"/>
+                    <GridViewColumn Header="Должность" Width="120" DisplayMemberBinding="{Binding Role}"/>
+                    <GridViewColumn Header="Дата рождения" Width="100" DisplayMemberBinding="{Binding Birthday, StringFormat='dd.MM.yyyy'}"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </StackPanel>
+</Window>
+```
+
+View/WindowEmployee.xaml.cs
+
+```csharp
+using System.Windows;
+using WpfApp1Demo2018.ViewModel;
+
+namespace WpfApp1Demo2018.View
+{
+    public partial class WindowEmployee : Window
+    {
+        public WindowEmployee() { InitializeComponent(); DataContext = new PersonViewModel(); }
+    }
+}
+```
+
+View/WindowNewRole.xaml
+
+```xml
+<Window x:Class="WpfApp1Demo2018.View.WindowNewRole"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Новая должность" Height="170" Width="260" WindowStartupLocation="CenterOwner">
+    <Grid>
+        <Grid.RowDefinitions><RowDefinition Height="40*"/><RowDefinition Height="40*"/><RowDefinition Height="40*"/></Grid.RowDefinitions>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="40*"/><ColumnDefinition Width="75*"/></Grid.ColumnDefinitions>
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Код:" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Должность:" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
+        <TextBox x:Name="tbId" Grid.Row="0" Grid.Column="1" Height="20" Width="50" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5" IsEnabled="False"/>
+        <TextBox x:Name="tbRole" Grid.Row="1" Grid.Column="1" Height="20" Width="130" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
+        <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button x:Name="btSave" Content="Сохранить" Height="25" Margin="5,10,10,5" IsDefault="True" Click="btSave_Click"/>
+            <Button x:Name="btCancel" Content="Отменить" Height="25" Margin="5,10,10,5" IsCancel="True" Click="btCancel_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
+```
+
+View/WindowNewRole.xaml.cs
+
+```csharp
+using System.Windows;
+
+namespace WpfApp1Demo2018.View
+{
+    public partial class WindowNewRole : Window
+    {
+        public WindowNewRole() => InitializeComponent();
+        private void btSave_Click(object sender, RoutedEventArgs e) => DialogResult = true;
+        private void btCancel_Click(object sender, RoutedEventArgs e) => DialogResult = false;
+    }
+}
+```
+
+View/WindowNewEmployee.xaml
+
+```xml
+<Window x:Class="WpfApp1Demo2018.View.WindowNewEmployee"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Новый сотрудник" Height="300" Width="400" WindowStartupLocation="CenterOwner">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="80"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Код:" VerticalAlignment="Center" Margin="5"/>
+        <TextBox x:Name="tbId" Grid.Row="0" Grid.Column="1" Width="50" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5" IsEnabled="False"/>
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Должность:" VerticalAlignment="Center" Margin="5"/>
+        <ComboBox x:Name="cbRole" Grid.Row="1" Grid.Column="1" Width="150" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5" DisplayMemberPath="NameRole" SelectedValuePath="Id"/>
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="Фамилия:" VerticalAlignment="Center" Margin="5"/>
+        <TextBox x:Name="tbLastName" Grid.Row="2" Grid.Column="1" Width="150" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="Имя:" VerticalAlignment="Center" Margin="5"/>
+        <TextBox x:Name="tbFirstName" Grid.Row="3" Grid.Column="1" Width="150" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
+        <TextBlock Grid.Row="4" Grid.Column="0" Text="Дата рождения:" VerticalAlignment="Center" Margin="5"/>
+        <DatePicker x:Name="dpBirthday" Grid.Row="4" Grid.Column="1" Width="150" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
+        <StackPanel Grid.Row="5" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="5">
+            <Button x:Name="btSave" Content="Сохранить" Width="80" Margin="5" IsDefault="True" Click="btSave_Click"/>
+            <Button x:Name="btCancel" Content="Отменить" Width="80" Margin="5" IsCancel="True" Click="btCancel_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
+```
+
+View/WindowNewEmployee.xaml.cs
+
+```csharp
+using System.Windows;
+
+namespace WpfApp1Demo2018.View
+{
+    public partial class WindowNewEmployee : Window
+    {
+        public WindowNewEmployee() => InitializeComponent();
+        private void btSave_Click(object sender, RoutedEventArgs e) => DialogResult = true;
+        private void btCancel_Click(object sender, RoutedEventArgs e) => DialogResult = false;
+    }
+}
+```
+
+🔹 Папка Helper
+
+Helper/RelayCommand.cs
+
+```csharp
+using System;
+using System.Windows.Input;
+
+namespace WpfApp1Demo2018.Helper
+{
+    public class RelayCommand : ICommand
+    {
+        private readonly Action<object> _execute;
+        private readonly Func<object, bool> _canExecute;
+        public RelayCommand(Action<object> execute, Func<object, bool> canExecute = null)
+        {
+            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            _canExecute = canExecute;
+        }
+        public bool CanExecute(object parameter) => _canExecute == null || _canExecute(parameter);
+        public void Execute(object parameter) => _execute(parameter);
+        public event EventHandler CanExecuteChanged
+        {
+            add { CommandManager.RequerySuggested += value; }
+            remove { CommandManager.RequerySuggested -= value; }
+        }
+    }
+}
+```
+
+Helper/FindRole.cs
+
+```csharp
+using WpfApp1Demo2018.Model;
+
+namespace WpfApp1Demo2018.Helper
+{
+    public class FindRole
+    {
+        private int id;
+        public FindRole(int id) => this.id = id;
+        public bool RolePredicate(Role role) => role.Id == id;
+    }
+}
+```
+
+Helper/FindPerson.cs
+
+```csharp
+using WpfApp1Demo2018.Model;
+
+namespace WpfApp1Demo2018.Helper
+{
+    public class FindPerson
+    {
+        private int id;
+        public FindPerson(int id) => this.id = id;
+        public bool PersonPredicate(Person person) => person.Id == id;
+    }
+}
+```
+
