@@ -1,31 +1,14 @@
-Серьезность	Код	Описание	Проект	Файл	Строка	Состояние подавления
-Ошибка	CS0111	Тип "MainWindow" уже определяет член "Employee_OnClick" с такими же типами параметров.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\MainWindow.xaml.cs	35	Активные
-Ошибка	CS0111	Тип "MainWindow" уже определяет член "Role_OnClick" с такими же типами параметров.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\MainWindow.xaml.cs	41	Активные
-Ошибка	CS0103	Имя "Application" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	66	Активные
-Ошибка	CS0103	Имя "MessageBox" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	78	Активные
-Ошибка	CS0103	Имя "MessageBox" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	95	Активные
-Ошибка	CS0103	Имя "Application" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	96	Активные
-Ошибка	CS0103	Имя "MessageBox" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	110	Активные
-Ошибка	CS0103	Имя "MessageBox" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	124	Активные
-Ошибка	CS0103	Имя "MessageBox" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	125	Активные
-Ошибка	CS0103	Имя "MessageBoxButton" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	125	Активные
-Ошибка	CS0103	Имя "MessageBoxImage" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	125	Активные
-Ошибка	CS0103	Имя "MessageBoxResult" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	126	Активные
-Ошибка	CS0103	Имя "Application" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	31	Активные
-Ошибка	CS0103	Имя "MessageBox" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	43	Активные
-Ошибка	CS0103	Имя "MessageBox" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	50	Активные
-Ошибка	CS0103	Имя "Application" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	51	Активные
-Ошибка	CS0103	Имя "MessageBox" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	58	Активные
-Ошибка	CS0103	Имя "MessageBox" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	65	Активные
-Ошибка	CS0103	Имя "MessageBox" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	66	Активные
-Ошибка	CS0103	Имя "MessageBoxButton" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	66	Активные
-Ошибка	CS0103	Имя "MessageBoxImage" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	66	Активные
-Ошибка	CS0103	Имя "MessageBoxResult" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	66	Активные
-Ошибка	XDG0062	Ресурс "ButtonMenu" не найден.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\View\WindowEmployee.xaml	7	
-Ошибка	XDG0062	Ресурс "ButtonMenu" не найден.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\View\WindowEmployee.xaml	8	
-Ошибка	XDG0062	Ресурс "ButtonMenu" не найден.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\View\WindowEmployee.xaml	9	
-Ошибка	XDG0062	Ресурс "ListViewStyle" не найден.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\View\WindowEmployee.xaml	11	
-Ошибка	XDG0062	Ресурс "ButtonMenu" не найден.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\View\WindowRole.xaml	7	
-Ошибка	XDG0062	Ресурс "ButtonMenu" не найден.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\View\WindowRole.xaml	8	
-Ошибка	XDG0062	Ресурс "ButtonMenu" не найден.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\View\WindowRole.xaml	9	
-Ошибка	XDG0062	Ресурс "ListViewStyle" не найден.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\View\WindowRole.xaml	12	
+using System.Windows;
+using WpfApp1Demo2018.View;
+
+namespace WpfApp1Demo2018
+{
+    public partial class MainWindow : Window
+    {
+        public MainWindow() => InitializeComponent();
+
+        private void Employee_OnClick(object sender, RoutedEventArgs e) => new WindowEmployee().Show();
+
+        private void Role_OnClick(object sender, RoutedEventArgs e) => new WindowRole().Show();
+    }
+}
