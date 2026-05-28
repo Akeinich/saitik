@@ -1,14 +1,3 @@
-using System.Windows;
-using WpfApp1Demo2018.ViewModel;
+Исключение не обработано
 
-namespace WpfApp1Demo2018.View
-{
-    public partial class WindowRole : Window
-    {
-        public WindowRole()
-        {
-            InitializeComponent();
-            DataContext = new RoleViewModel();
-        }
-    }
-}
+System.IO.DirectoryNotFoundException: "Не удалось найти часть пути "C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\bin\Debug\DataModels\RoleData.json"."
