@@ -1,24 +1,25 @@
-private void LoadRole()
+private void LoadPerson()
 {
     string dir = Path.GetDirectoryName(_path);
     if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
     if (File.Exists(_path))
     {
         string json = File.ReadAllText(_path, Encoding.UTF8);
-        var list = JsonConvert.DeserializeObject<ObservableCollection<Role>>(json);
-        if (list != null) ListRole = list;
+        var list = JsonConvert.DeserializeObject<ObservableCollection<Person>>(json);
+        if (list != null) ListPerson = list;
     }
     else
     {
-        ListRole.Add(new Role { Id = 1, NameRole = "Директор" });
-        ListRole.Add(new Role { Id = 2, NameRole = "Бухгалтер" });
-        ListRole.Add(new Role { Id = 3, NameRole = "Менеджер" });
-        SaveRole();
+        ListPerson.Add(new Person { Id = 1, RoleId = 1, FirstName = "Иван", LastName = "Иванов", Birthday = new DateTime(1980, 2, 28) });
+        ListPerson.Add(new Person { Id = 2, RoleId = 2, FirstName = "Петр", LastName = "Петров", Birthday = new DateTime(1981, 3, 20) });
+        ListPerson.Add(new Person { Id = 3, RoleId = 3, FirstName = "Виктор", LastName = "Викторов", Birthday = new DateTime(1982, 4, 15) });
+        ListPerson.Add(new Person { Id = 4, RoleId = 3, FirstName = "Сидор", LastName = "Сидоров", Birthday = new DateTime(1983, 5, 10) });
+        SavePerson();
     }
 }
 
-private void SaveRole()
+private void SavePerson()
 {
-    string json = JsonConvert.SerializeObject(ListRole, Formatting.Indented);
+    string json = JsonConvert.SerializeObject(ListPerson, Formatting.Indented);
     File.WriteAllText(_path, json, Encoding.UTF8);
 }
