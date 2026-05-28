@@ -11,24 +11,44 @@ using WpfApp1Demo2018.View;
 
 namespace WpfApp1Demo2018.ViewModel
 {
-    public class RoleViewModel : INotifyPropertyChanged
+    public class PersonViewModel : INotifyPropertyChanged
     {
-        public ObservableCollection<Role> ListRole { get; set; } = new ObservableCollection<Role>();
-        private Role _selectedRole;
-        public Role SelectedRole { get => _selectedRole; set { _selectedRole = value; OnPropertyChanged(); } }
+        private RoleViewModel _roleVm;
+        public ObservableCollection<Person> ListPerson { get; set; } = new ObservableCollection<Person>();
+        public ObservableCollection<PersonDPO> ListPersonDpo { get; set; } = new ObservableCollection<PersonDPO>();
+        private PersonDPO _selectedPersonDpo;
+        public PersonDPO SelectedPersonDpo { get => _selectedPersonDpo; set { _selectedPersonDpo = value; OnPropertyChanged(); } }
 
-        public RoleViewModel()
+        public PersonViewModel()
         {
-            LoadRoles();
+            _roleVm = new RoleViewModel();
+            LoadPersons();
         }
 
-        private void LoadRoles()
+        private void LoadPersons()
         {
             using (var context = new CompanyEntities())
             {
-                var list = context.Roles.OrderBy(r => r.Id).ToList();
-                ListRole.Clear();
-                foreach (var r in list) ListRole.Add(r);
+                var list = context.Persons.Include(p => p.Role).OrderBy(p => p.Id).ToList();
+                ListPerson.Clear();
+                foreach (var p in list) ListPerson.Add(p);
+                RefreshDpoList();
+            }
+        }
+
+        private void RefreshDpoList()
+        {
+            ListPersonDpo.Clear();
+            foreach (var p in ListPerson)
+            {
+                ListPersonDpo.Add(new PersonDPO
+                {
+                    Id = p.Id,
+                    Role = p.Role?.NameRole ?? "Не задано",
+                    FirstName = p.FirstName,
+                    LastName = p.LastName,
+                    Birthday = p.Birthday
+                });
             }
         }
 
@@ -36,68 +56,93 @@ namespace WpfApp1Demo2018.ViewModel
         {
             using (var context = new CompanyEntities())
             {
-                return context.Roles.Any() ? context.Roles.Max(r => r.Id) : 0;
+                return context.Persons.Any() ? context.Persons.Max(p => p.Id) : 0;
             }
         }
 
-        private RelayCommand _addRole;
-        public RelayCommand AddRole => _addRole ?? (_addRole = new RelayCommand(obj =>
+        private RelayCommand _addPerson;
+        public RelayCommand AddPerson => _addPerson ?? (_addPerson = new RelayCommand(obj =>
         {
-            var win = new WindowNewRole { Title = "Новая должность", Owner = Application.Current.Windows[0] };
+            var win = new WindowNewEmployee { Title = "Новый сотрудник", Owner = Application.Current.Windows[0] };
             int newId = MaxId() + 1;
             win.tbId.Text = newId.ToString();
-            win.tbRole.Text = "";
+            win.cbRole.ItemsSource = _roleVm.ListRole;
+            win.cbRole.SelectedValuePath = "Id";
+            win.cbRole.DisplayMemberPath = "NameRole";
+            win.tbLastName.Text = "";
+            win.tbFirstName.Text = "";
+            win.dpBirthday.SelectedDate = DateTime.Now;
             if (win.ShowDialog() == true)
             {
-                string name = win.tbRole.Text.Trim();
-                if (string.IsNullOrEmpty(name)) { MessageBox.Show("Введите название!"); return; }
-                var newRole = new Role { Id = newId, NameRole = name };
+                var selectedRole = win.cbRole.SelectedItem as Role;
+                if (selectedRole == null) { MessageBox.Show("Выберите должность!"); return; }
+                var newPerson = new Person
+                {
+                    Id = newId,
+                    RoleId = selectedRole.Id,
+                    FirstName = win.tbFirstName.Text.Trim(),
+                    LastName = win.tbLastName.Text.Trim(),
+                    Birthday = win.dpBirthday.SelectedDate ?? DateTime.Now
+                };
                 using (var context = new CompanyEntities())
                 {
-                    context.Roles.Add(newRole);
+                    context.Persons.Add(newPerson);
                     context.SaveChanges();
                 }
-                LoadRoles(); // обновить список
-                SelectedRole = ListRole.LastOrDefault();
+                LoadPersons();
             }
         }));
 
-        private RelayCommand _editRole;
-        public RelayCommand EditRole => _editRole ?? (_editRole = new RelayCommand(obj =>
+        private RelayCommand _editPerson;
+        public RelayCommand EditPerson => _editPerson ?? (_editPerson = new RelayCommand(obj =>
         {
-            if (SelectedRole == null) { MessageBox.Show("Выберите должность."); return; }
-            var win = new WindowNewRole { Title = "Редактирование должности", Owner = Application.Current.Windows[0] };
-            win.tbId.Text = SelectedRole.Id.ToString();
-            win.tbRole.Text = SelectedRole.NameRole;
+            if (SelectedPersonDpo == null) { MessageBox.Show("Выберите сотрудника."); return; }
+            var win = new WindowNewEmployee { Title = "Редактирование сотрудника", Owner = Application.Current.Windows[0] };
+            var temp = SelectedPersonDpo.ShallowCopy();
+            win.tbId.Text = temp.Id.ToString();
+            win.cbRole.ItemsSource = _roleVm.ListRole;
+            win.cbRole.SelectedValuePath = "Id";
+            win.cbRole.DisplayMemberPath = "NameRole";
+            var role = _roleVm.ListRole.FirstOrDefault(r => r.NameRole == temp.Role);
+            if (role != null) win.cbRole.SelectedValue = role.Id;
+            win.tbLastName.Text = temp.LastName;
+            win.tbFirstName.Text = temp.FirstName;
+            win.dpBirthday.SelectedDate = temp.Birthday;
             if (win.ShowDialog() == true)
             {
-                string newName = win.tbRole.Text.Trim();
-                if (string.IsNullOrEmpty(newName)) { MessageBox.Show("Введите название!"); return; }
+                var selectedRole = win.cbRole.SelectedItem as Role;
+                if (selectedRole == null) { MessageBox.Show("Выберите должность!"); return; }
                 using (var context = new CompanyEntities())
                 {
-                    var role = context.Roles.Find(SelectedRole.Id);
-                    if (role != null) role.NameRole = newName;
-                    context.SaveChanges();
+                    var person = context.Persons.Find(SelectedPersonDpo.Id);
+                    if (person != null)
+                    {
+                        person.RoleId = selectedRole.Id;
+                        person.FirstName = win.tbFirstName.Text.Trim();
+                        person.LastName = win.tbLastName.Text.Trim();
+                        person.Birthday = win.dpBirthday.SelectedDate ?? temp.Birthday;
+                        context.SaveChanges();
+                    }
                 }
-                LoadRoles();
+                LoadPersons();
             }
-        }, obj => SelectedRole != null));
+        }, obj => SelectedPersonDpo != null));
 
-        private RelayCommand _deleteRole;
-        public RelayCommand DeleteRole => _deleteRole ?? (_deleteRole = new RelayCommand(obj =>
+        private RelayCommand _deletePerson;
+        public RelayCommand DeletePerson => _deletePerson ?? (_deletePerson = new RelayCommand(obj =>
         {
-            if (SelectedRole == null) { MessageBox.Show("Выберите должность."); return; }
-            if (MessageBox.Show($"Удалить должность «{SelectedRole.NameRole}»?", "Подтверждение", MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.OK)
+            if (SelectedPersonDpo == null) { MessageBox.Show("Выберите сотрудника."); return; }
+            if (MessageBox.Show($"Удалить сотрудника: {SelectedPersonDpo.LastName} {SelectedPersonDpo.FirstName}?", "Подтверждение", MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.OK)
             {
                 using (var context = new CompanyEntities())
                 {
-                    var role = context.Roles.Find(SelectedRole.Id);
-                    if (role != null) context.Roles.Remove(role);
+                    var person = context.Persons.Find(SelectedPersonDpo.Id);
+                    if (person != null) context.Persons.Remove(person);
                     context.SaveChanges();
                 }
-                LoadRoles();
+                LoadPersons();
             }
-        }, obj => SelectedRole != null));
+        }, obj => SelectedPersonDpo != null));
 
         public event PropertyChangedEventHandler PropertyChanged;
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) =>
