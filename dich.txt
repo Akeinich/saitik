@@ -1,21 +1,27 @@
-Серьезность	Код	Описание	Проект	Файл	Строка	Состояние подавления
-Ошибка	CS0111	Тип "MainWindow" уже определяет член "Employee_OnClick" с такими же типами параметров.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\MainWindow.xaml.cs	35	Активные
-Ошибка	CS0111	Тип "MainWindow" уже определяет член "Role_OnClick" с такими же типами параметров.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\MainWindow.xaml.cs	41	Активные
-Ошибка	CS0246	Не удалось найти тип или имя пространства имен "RelayCommand" (возможно, отсутствует директива using или ссылка на сборку).	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	69	Активные
-Ошибка	CS0246	Не удалось найти тип или имя пространства имен "RelayCommand" (возможно, отсутствует директива using или ссылка на сборку).	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	70	Активные
-Ошибка	CS0246	Не удалось найти тип или имя пространства имен "RelayCommand" (возможно, отсутствует директива using или ссылка на сборку).	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	102	Активные
-Ошибка	CS0246	Не удалось найти тип или имя пространства имен "RelayCommand" (возможно, отсутствует директива using или ссылка на сборку).	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	103	Активные
-Ошибка	CS0246	Не удалось найти тип или имя пространства имен "RelayCommand" (возможно, отсутствует директива using или ссылка на сборку).	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	141	Активные
-Ошибка	CS0246	Не удалось найти тип или имя пространства имен "RelayCommand" (возможно, отсутствует директива using или ссылка на сборку).	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	142	Активные
-Ошибка	XDG0003	Документ XML не может содержать несколько корневых элементов.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\DictionaryApp.xaml	5	
-Ошибка	CS0246	Не удалось найти тип или имя пространства имен "RelayCommand" (возможно, отсутствует директива using или ссылка на сборку).	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	70	Активные
-Ошибка	CS0246	Не удалось найти тип или имя пространства имен "RelayCommand" (возможно, отсутствует директива using или ссылка на сборку).	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	103	Активные
-Ошибка	CS0246	Не удалось найти тип или имя пространства имен "RelayCommand" (возможно, отсутствует директива using или ссылка на сборку).	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	142	Активные
-Ошибка	CS0103	Имя "InitializeComponent" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\View\WindowEmployee.xaml.cs	18	Активные
-Ошибка	CS0103	Имя "InitializeComponent" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\View\WindowRole.xaml.cs	24	Активные
-Ошибка	CS0103	Имя "lvRole" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\View\WindowRole.xaml.cs	26	Активные
-Ошибка	CS0103	Имя "lvRole" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\View\WindowRole.xaml.cs	50	Активные
-Ошибка	CS0103	Имя "lvRole" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\View\WindowRole.xaml.cs	73	Активные
-Ошибка	CS0103	Имя "lvRole" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\View\WindowRole.xaml.cs	89	Активные
-Ошибка	CS0103	Имя "lvRole" не существует в текущем контексте.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\View\WindowRole.xaml.cs	90	Активные
-Предупреждение		недопустимый код XML "Существует несколько корневых элементов., строка 5, позиция 2.".	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\DictionaryApp.xaml	5	
+using System;
+using System.Windows.Input;
+
+namespace WpfApp1Demo2018.Helper
+{
+    public class RelayCommand : ICommand
+    {
+        private readonly Action<object> _execute;
+        private readonly Func<object, bool> _canExecute;
+
+        public RelayCommand(Action<object> execute, Func<object, bool> canExecute = null)
+        {
+            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            _canExecute = canExecute;
+        }
+
+        public bool CanExecute(object parameter) => _canExecute == null || _canExecute(parameter);
+
+        public void Execute(object parameter) => _execute(parameter);
+
+        public event EventHandler CanExecuteChanged
+        {
+            add { CommandManager.RequerySuggested += value; }
+            remove { CommandManager.RequerySuggested -= value; }
+        }
+    }
+}
