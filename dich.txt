@@ -1,14 +1,168 @@
+using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Windows;
-using WpfApp1Demo2018.ViewModel;
+using Newtonsoft.Json;
+using WpfApp1Demo2018.Helper;
+using WpfApp1Demo2018.Model;
+using WpfApp1Demo2018.View;
 
-namespace WpfApp1Demo2018.View
+namespace WpfApp1Demo2018.ViewModel
 {
-    public partial class WindowEmployee : Window
+    public class PersonViewModel : INotifyPropertyChanged
     {
-        public WindowEmployee()
+        private readonly string _path = @"DataModels\PersonData.json";
+        private RoleViewModel _roleVm;
+        public ObservableCollection<Person> ListPerson { get; set; } = new ObservableCollection<Person>();
+        public ObservableCollection<PersonDPO> ListPersonDpo { get; set; } = new ObservableCollection<PersonDPO>();
+        private PersonDPO _selectedPersonDpo;
+        public PersonDPO SelectedPersonDpo
         {
-            InitializeComponent();
-            DataContext = new PersonViewModel();
+            get => _selectedPersonDpo;
+            set { _selectedPersonDpo = value; OnPropertyChanged(); }
         }
+
+        public PersonViewModel()
+        {
+            _roleVm = new RoleViewModel();
+            LoadPerson();
+            RefreshDpoList();
+        }
+
+        private void LoadPerson()
+        {
+            if (File.Exists(_path))
+            {
+                string json = File.ReadAllText(_path);
+                var list = JsonConvert.DeserializeObject<ObservableCollection<Person>>(json);
+                if (list != null) ListPerson = list;
+            }
+            else
+            {
+                ListPerson.Add(new Person { Id = 1, RoleId = 1, FirstName = "Иван", LastName = "Иванов", Birthday = new DateTime(1980, 2, 28) });
+                ListPerson.Add(new Person { Id = 2, RoleId = 2, FirstName = "Петр", LastName = "Петров", Birthday = new DateTime(1981, 3, 20) });
+                ListPerson.Add(new Person { Id = 3, RoleId = 3, FirstName = "Виктор", LastName = "Викторов", Birthday = new DateTime(1982, 4, 15) });
+                ListPerson.Add(new Person { Id = 4, RoleId = 3, FirstName = "Сидор", LastName = "Сидоров", Birthday = new DateTime(1983, 5, 10) });
+                SavePerson();
+            }
+        }
+
+        private void SavePerson()
+        {
+            string json = JsonConvert.SerializeObject(ListPerson, Formatting.Indented);
+            File.WriteAllText(_path, json);
+        }
+
+        private void RefreshDpoList()
+        {
+            ListPersonDpo.Clear();
+            var roles = _roleVm.ListRole.ToList();
+            foreach (var p in ListPerson)
+            {
+                var role = roles.FirstOrDefault(r => r.Id == p.RoleId);
+                ListPersonDpo.Add(new PersonDPO
+                {
+                    Id = p.Id,
+                    Role = role?.NameRole ?? "Не задано",
+                    FirstName = p.FirstName,
+                    LastName = p.LastName,
+                    Birthday = p.Birthday
+                });
+            }
+        }
+
+        private void SyncFromDpoToPerson(PersonDPO dpo, Person person)
+        {
+            var roles = _roleVm.ListRole.ToList();
+            var role = roles.FirstOrDefault(r => r.NameRole == dpo.Role);
+            if (role != null) person.RoleId = role.Id;
+            person.FirstName = dpo.FirstName;
+            person.LastName = dpo.LastName;
+            person.Birthday = dpo.Birthday;
+        }
+
+        public int MaxId() => ListPerson.Count > 0 ? ListPerson.Max(p => p.Id) : 0;
+
+        private RelayCommand _addPerson;
+        public RelayCommand AddPerson => _addPerson ?? (_addPerson = new RelayCommand(obj =>
+        {
+            var win = new WindowNewEmployee { Title = "Новый сотрудник", Owner = Application.Current.Windows[0] };
+            int newId = MaxId() + 1;
+            win.tbId.Text = newId.ToString();
+            win.cbRole.ItemsSource = _roleVm.ListRole;
+            win.cbRole.SelectedValuePath = "Id";
+            win.cbRole.DisplayMemberPath = "NameRole";
+            win.tbLastName.Text = "";
+            win.tbFirstName.Text = "";
+            win.dpBirthday.SelectedDate = DateTime.Now;
+            if (win.ShowDialog() == true)
+            {
+                var selectedRole = win.cbRole.SelectedItem as Role;
+                if (selectedRole == null) { MessageBox.Show("Выберите должность!"); return; }
+                var newPerson = new Person
+                {
+                    Id = newId,
+                    RoleId = selectedRole.Id,
+                    FirstName = win.tbFirstName.Text.Trim(),
+                    LastName = win.tbLastName.Text.Trim(),
+                    Birthday = win.dpBirthday.SelectedDate ?? DateTime.Now
+                };
+                ListPerson.Add(newPerson);
+                SavePerson();
+                RefreshDpoList();
+            }
+        }));
+
+        private RelayCommand _editPerson;
+        public RelayCommand EditPerson => _editPerson ?? (_editPerson = new RelayCommand(obj =>
+        {
+            if (SelectedPersonDpo == null) { MessageBox.Show("Выберите сотрудника."); return; }
+            var win = new WindowNewEmployee { Title = "Редактирование сотрудника", Owner = Application.Current.Windows[0] };
+            var temp = SelectedPersonDpo.ShallowCopy();
+            win.tbId.Text = temp.Id.ToString();
+            win.cbRole.ItemsSource = _roleVm.ListRole;
+            win.cbRole.SelectedValuePath = "Id";
+            win.cbRole.DisplayMemberPath = "NameRole";
+            var role = _roleVm.ListRole.FirstOrDefault(r => r.NameRole == temp.Role);
+            if (role != null) win.cbRole.SelectedValue = role.Id;
+            win.tbLastName.Text = temp.LastName;
+            win.tbFirstName.Text = temp.FirstName;
+            win.dpBirthday.SelectedDate = temp.Birthday;
+            if (win.ShowDialog() == true)
+            {
+                var selectedRole = win.cbRole.SelectedItem as Role;
+                if (selectedRole == null) { MessageBox.Show("Выберите должность!"); return; }
+                SelectedPersonDpo.Role = selectedRole.NameRole;
+                SelectedPersonDpo.FirstName = win.tbFirstName.Text.Trim();
+                SelectedPersonDpo.LastName = win.tbLastName.Text.Trim();
+                SelectedPersonDpo.Birthday = win.dpBirthday.SelectedDate ?? temp.Birthday;
+                var person = ListPerson.FirstOrDefault(p => p.Id == SelectedPersonDpo.Id);
+                if (person != null) SyncFromDpoToPerson(SelectedPersonDpo, person);
+                SavePerson();
+                RefreshDpoList();
+            }
+        }, obj => SelectedPersonDpo != null));
+
+        private RelayCommand _deletePerson;
+        public RelayCommand DeletePerson => _deletePerson ?? (_deletePerson = new RelayCommand(obj =>
+        {
+            if (SelectedPersonDpo == null) { MessageBox.Show("Выберите сотрудника."); return; }
+            var res = MessageBox.Show($"Удалить сотрудника: {SelectedPersonDpo.LastName} {SelectedPersonDpo.FirstName}?", "Подтверждение", MessageBoxButton.OKCancel, MessageBoxImage.Question);
+            if (res == MessageBoxResult.OK)
+            {
+                var person = ListPerson.FirstOrDefault(p => p.Id == SelectedPersonDpo.Id);
+                if (person != null) ListPerson.Remove(person);
+                SavePerson();
+                RefreshDpoList();
+                SelectedPersonDpo = null;
+            }
+        }, obj => SelectedPersonDpo != null));
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
