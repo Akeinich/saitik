@@ -1,20 +1,81 @@
 using System.Windows;
+using WpfApp1Demo2018.Model;
+using WpfApp1Demo2018.ViewModel;
 
 namespace WpfApp1Demo2018.View
 {
-    public partial class WindowNewRole : Window
+    public partial class WindowRole : Window
     {
-        public WindowNewRole()
+        private RoleViewModel vmRole;
+        public WindowRole()
         {
             InitializeComponent();
+            vmRole = new RoleViewModel();
+            lvRole.ItemsSource = vmRole.ListRole;
         }
-        private void btSave_Click(object sender, RoutedEventArgs e)
+        // Добавление
+        private void btnAdd_Click(object sender, RoutedEventArgs e)
         {
-            DialogResult = true;
+            WindowNewRole wnRole = new WindowNewRole { Title = "Новая должность", Owner = this };
+            int maxId = vmRole.MaxId() + 1;
+            Role role = new Role { Id = maxId };
+            wnRole.tbId.Text = role.Id.ToString();
+            wnRole.tbRole.Text = "";
+            if (wnRole.ShowDialog() == true)
+            {
+                role.NameRole = wnRole.tbRole.Text.Trim();
+                if (!string.IsNullOrEmpty(role.NameRole))
+                {
+                    vmRole.ListRole.Add(role);
+                    RefreshList();
+                }
+                else MessageBox.Show("Наименование должности не может быть пустым!");
+            }
         }
-        private void btCancel_Click(object sender, RoutedEventArgs e)
+        // Редактирование
+        private void btnEdit_Click(object sender, RoutedEventArgs e)
         {
-            DialogResult = false;
+            Role role = lvRole.SelectedItem as Role;
+            if (role == null)
+            {
+                MessageBox.Show("Выберите должность для редактирования.", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            WindowNewRole wnRole = new WindowNewRole { Title = "Редактирование должности", Owner = this };
+            wnRole.tbId.Text = role.Id.ToString();
+            wnRole.tbRole.Text = role.NameRole;
+            if (wnRole.ShowDialog() == true)
+            {
+                string newName = wnRole.tbRole.Text.Trim();
+                if (!string.IsNullOrEmpty(newName))
+                {
+                    role.NameRole = newName;
+                    RefreshList();
+                }
+                else MessageBox.Show("Наименование должности не может быть пустым!");
+            }
+        }
+        // Удаление
+        private void btnDelete_Click(object sender, RoutedEventArgs e)
+        {
+            Role role = lvRole.SelectedItem as Role;
+            if (role == null)
+            {
+                MessageBox.Show("Выберите должность для удаления.", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            MessageBoxResult result = MessageBox.Show($"Удалить должность «{role.NameRole}»?", "Подтверждение", MessageBoxButton.OKCancel, MessageBoxImage.Question);
+            if (result == MessageBoxResult.OK)
+            {
+                vmRole.ListRole.Remove(role);
+                RefreshList();
+            }
+        }
+        // Обновление списка
+        private void RefreshList()
+        {
+            lvRole.ItemsSource = null;
+            lvRole.ItemsSource = vmRole.ListRole;
         }
     }
 }
