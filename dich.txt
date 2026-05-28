@@ -1,23 +1,17 @@
-using System.Windows;
-using WpfApp1Demo2018.View;
+using WpfApp1Demo2018.ViewModel;
 
-namespace WpfApp1Demo2018
+namespace WpfApp1Demo2018.Helper
 {
-    public partial class MainWindow : Window
+    public class FindRole
     {
-        public MainWindow()
+        private int id;
+        public FindRole(int id)
         {
-            InitializeComponent();
+            this.id = id;
         }
-        private void Employee_OnClick(object sender, RoutedEventArgs e)
+        public bool RolePredicate(Role role)
         {
-            WindowEmployee wEmployee = new WindowEmployee();
-            wEmployee.Show();
-        }
-        private void Role_OnClick(object sender, RoutedEventArgs e)
-        {
-            WindowRole wRole = new WindowRole();
-            wRole.Show();
+            return role.Id == id;
         }
     }
 }
