@@ -1,14 +1,5 @@
-using System.Windows;
-using WpfApp1Demo2018.View;
-
-namespace WpfApp1Demo2018
-{
-    public partial class MainWindow : Window
-    {
-        public MainWindow() => InitializeComponent();
-
-        private void Employee_OnClick(object sender, RoutedEventArgs e) => new WindowEmployee().Show();
-
-        private void Role_OnClick(object sender, RoutedEventArgs e) => new WindowRole().Show();
-    }
-}
+[
+  { "Id": 1, "NameRole": "Директор" },
+  { "Id": 2, "NameRole": "Бухгалтер" },
+  { "Id": 3, "NameRole": "Менеджер" }
+]
