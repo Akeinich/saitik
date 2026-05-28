@@ -1,21 +1,15 @@
 using System.Collections.Generic;
 using System.Linq;
-using WpfApp1Demo2018.ViewModel; // для доступа к RoleViewModel
 
-// внутри класса PersonDPO:
+// внутри класса Person:
 
-public PersonDPO ShallowCopy()
+public Person CopyFromPersonDPO(PersonDPO personDPO, List<Role> roles)
 {
-    return (PersonDPO)this.MemberwiseClone();
-}
-
-public PersonDPO CopyFromPerson(Person person, List<Role> roles)
-{
-    this.Id = person.Id;
-    var role = roles.FirstOrDefault(r => r.Id == person.RoleId);
-    this.Role = role?.NameRole ?? "Не задано";
-    this.FirstName = person.FirstName;
-    this.LastName = person.LastName;
-    this.Birthday = person.Birthday;
+    this.Id = personDPO.Id;
+    var role = roles.FirstOrDefault(r => r.NameRole == personDPO.Role);
+    this.RoleId = role?.Id ?? 0;
+    this.FirstName = personDPO.FirstName;
+    this.LastName = personDPO.LastName;
+    this.Birthday = personDPO.Birthday;
     return this;
 }
