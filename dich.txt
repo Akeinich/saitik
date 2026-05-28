@@ -1,25 +1,20 @@
-<Window x:Class="WpfApp1Demo2018.View.WindowNewRole"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Новая должность" Height="170" Width="260"
-        WindowStartupLocation="CenterOwner">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="40*"/>
-            <RowDefinition Height="40*"/>
-            <RowDefinition Height="40*"/>
-        </Grid.RowDefinitions>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="40*"/>
-            <ColumnDefinition Width="75*"/>
-        </Grid.ColumnDefinitions>
-        <TextBlock Grid.Row="0" Grid.Column="0" Text="Код:" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
-        <TextBlock Grid.Row="1" Grid.Column="0" Text="Должность:" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="5"/>
-        <TextBox x:Name="tbId" Grid.Row="0" Grid.Column="1" Height="20" Width="50" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5" IsEnabled="False"/>
-        <TextBox x:Name="tbRole" Grid.Row="1" Grid.Column="1" Height="20" Width="130" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5"/>
-        <StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button x:Name="btSave" Content="Сохранить" Height="25" Margin="5,10,10,5" IsDefault="True" Click="btSave_Click"/>
-            <Button x:Name="btCancel" Content="Отменить" Height="25" Margin="5,10,10,5" IsCancel="True" Click="btCancel_Click"/>
-        </StackPanel>
-    </Grid>
-</Window>
+using System.Windows;
+
+namespace WpfApp1Demo2018.View
+{
+    public partial class WindowNewRole : Window
+    {
+        public WindowNewRole()
+        {
+            InitializeComponent();
+        }
+        private void btSave_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = true;
+        }
+        private void btCancel_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = false;
+        }
+    }
+}
