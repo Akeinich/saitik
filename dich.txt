@@ -1,14 +1,12 @@
-using System.Windows;
-using WpfApp1Demo2018.ViewModel;
-
-namespace WpfApp1Demo2018.View
+private void Employee_OnClick(object sender, RoutedEventArgs e)
 {
-    public partial class WindowEmployee : Window
-    {
-        public WindowEmployee()
-        {
-            InitializeComponent();
-            DataContext = new PersonViewModel();
-        }
-    }
+    var win = new WindowEmployee();
+    win.Owner = this;
+    win.Show();
+}
+private void Role_OnClick(object sender, RoutedEventArgs e)
+{
+    var win = new WindowRole();
+    win.Owner = this;
+    win.Show();
 }
