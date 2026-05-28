@@ -1,97 +1,111 @@
-Серьезность	Код	Описание	Проект	Файл	Строка	Состояние подавления
-Ошибка	CS0111	Тип "RoleViewModel" уже определяет член "SaveRole" с такими же типами параметров.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	45	Активные
-Ошибка	CS0111	Тип "RoleViewModel" уже определяет член "RoleViewModel" с такими же типами параметров.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	22	Активные
-Ошибка	CS0111	Тип "RoleViewModel" уже определяет член "OnPropertyChanged" с такими же типами параметров.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	105	Активные
-Ошибка	CS0111	Тип "RoleViewModel" уже определяет член "MaxId" с такими же типами параметров.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	51	Активные
-Ошибка	CS0111	Тип "RoleViewModel" уже определяет член "LoadRole" с такими же типами параметров.	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	27	Активные
-Сообщение	IDE0044	Сделать поле доступным только для чтения	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	19	Активные
-Сообщение	IDE0044	Сделать поле доступным только для чтения	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	53	Активные
-Сообщение	IDE0044	Сделать поле доступным только для чтения	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	73	Активные
-Сообщение	IDE0044	Сделать поле доступным только для чтения	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	92	Активные
-Сообщение	IDE0044	Сделать поле доступным только для чтения	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	19	Активные
-Сообщение	IDE0044	Сделать поле доступным только для чтения	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	53	Активные
-Сообщение	IDE0044	Сделать поле доступным только для чтения	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	73	Активные
-Сообщение	IDE0044	Сделать поле доступным только для чтения	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	92	Активные
-Ошибка	CS0101	Пространство имен "WpfApp1Demo2018.ViewModel" уже содержит определение для "RoleViewModel".	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	15	Активные
-Ошибка	CS0121	Неоднозначный вызов следующих методов или свойств: "RoleViewModel.SaveRole()" и "RoleViewModel.SaveRole()"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	41	Активные
-Ошибка	CS0121	Неоднозначный вызов следующих методов или свойств: "RoleViewModel.SaveRole()" и "RoleViewModel.SaveRole()"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	67	Активные
-Ошибка	CS0121	Неоднозначный вызов следующих методов или свойств: "RoleViewModel.SaveRole()" и "RoleViewModel.SaveRole()"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	86	Активные
-Ошибка	CS0121	Неоднозначный вызов следующих методов или свойств: "RoleViewModel.SaveRole()" и "RoleViewModel.SaveRole()"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	100	Активные
-Ошибка	CS0121	Неоднозначный вызов следующих методов или свойств: "RoleViewModel.SaveRole()" и "RoleViewModel.SaveRole()"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	41	Активные
-Ошибка	CS0121	Неоднозначный вызов следующих методов или свойств: "RoleViewModel.SaveRole()" и "RoleViewModel.SaveRole()"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	67	Активные
-Ошибка	CS0121	Неоднозначный вызов следующих методов или свойств: "RoleViewModel.SaveRole()" и "RoleViewModel.SaveRole()"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	86	Активные
-Ошибка	CS0121	Неоднозначный вызов следующих методов или свойств: "RoleViewModel.SaveRole()" и "RoleViewModel.SaveRole()"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	100	Активные
-Ошибка	CS0121	Неоднозначный вызов следующих методов или свойств: "RoleViewModel.RoleViewModel()" и "RoleViewModel.RoleViewModel()"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\View\WindowRole.xaml.cs	21	Активные
-Ошибка	CS0121	Неоднозначный вызов следующих методов или свойств: "RoleViewModel.OnPropertyChanged(string)" и "RoleViewModel.OnPropertyChanged(string)"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	20	Активные
-Ошибка	CS0121	Неоднозначный вызов следующих методов или свойств: "RoleViewModel.OnPropertyChanged(string)" и "RoleViewModel.OnPropertyChanged(string)"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	20	Активные
-Ошибка	CS0121	Неоднозначный вызов следующих методов или свойств: "RoleViewModel.MaxId()" и "RoleViewModel.MaxId()"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	57	Активные
-Ошибка	CS0121	Неоднозначный вызов следующих методов или свойств: "RoleViewModel.MaxId()" и "RoleViewModel.MaxId()"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	57	Активные
-Ошибка	CS0121	Неоднозначный вызов следующих методов или свойств: "RoleViewModel.LoadRole()" и "RoleViewModel.LoadRole()"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	24	Активные
-Ошибка	CS0121	Неоднозначный вызов следующих методов или свойств: "RoleViewModel.LoadRole()" и "RoleViewModel.LoadRole()"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	24	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel._selectedRole" и "RoleViewModel._selectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	20	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel._selectedRole" и "RoleViewModel._selectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	20	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel._selectedRole" и "RoleViewModel._selectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	20	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel._selectedRole" и "RoleViewModel._selectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	20	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel._path" и "RoleViewModel._path"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	29	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel._path" и "RoleViewModel._path"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	31	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel._path" и "RoleViewModel._path"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	48	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel._path" и "RoleViewModel._path"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	29	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel._path" и "RoleViewModel._path"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	31	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel._path" и "RoleViewModel._path"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	48	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel._editRole" и "RoleViewModel._editRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	74	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel._editRole" и "RoleViewModel._editRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	74	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel._editRole" и "RoleViewModel._editRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	74	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel._editRole" и "RoleViewModel._editRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	74	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel._deleteRole" и "RoleViewModel._deleteRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	93	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel._deleteRole" и "RoleViewModel._deleteRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	93	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel._deleteRole" и "RoleViewModel._deleteRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	93	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel._deleteRole" и "RoleViewModel._deleteRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	93	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel._addRole" и "RoleViewModel._addRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	54	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel._addRole" и "RoleViewModel._addRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	54	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel._addRole" и "RoleViewModel._addRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	54	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel._addRole" и "RoleViewModel._addRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	54	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.SelectedRole" и "RoleViewModel.SelectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	66	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.SelectedRole" и "RoleViewModel.SelectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	76	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.SelectedRole" и "RoleViewModel.SelectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	78	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.SelectedRole" и "RoleViewModel.SelectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	79	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.SelectedRole" и "RoleViewModel.SelectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	85	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.SelectedRole" и "RoleViewModel.SelectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	90	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.SelectedRole" и "RoleViewModel.SelectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	95	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.SelectedRole" и "RoleViewModel.SelectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	96	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.SelectedRole" и "RoleViewModel.SelectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	98	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.SelectedRole" и "RoleViewModel.SelectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	99	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.SelectedRole" и "RoleViewModel.SelectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	102	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.SelectedRole" и "RoleViewModel.SelectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	66	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.SelectedRole" и "RoleViewModel.SelectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	76	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.SelectedRole" и "RoleViewModel.SelectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	78	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.SelectedRole" и "RoleViewModel.SelectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	79	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.SelectedRole" и "RoleViewModel.SelectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	85	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.SelectedRole" и "RoleViewModel.SelectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	90	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.SelectedRole" и "RoleViewModel.SelectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	95	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.SelectedRole" и "RoleViewModel.SelectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	96	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.SelectedRole" и "RoleViewModel.SelectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	98	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.SelectedRole" и "RoleViewModel.SelectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	99	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.SelectedRole" и "RoleViewModel.SelectedRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	102	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.PropertyChanged" и "RoleViewModel.PropertyChanged"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	106	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.PropertyChanged" и "RoleViewModel.PropertyChanged"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	106	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.ListRole" и "RoleViewModel.ListRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	33	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.ListRole" и "RoleViewModel.ListRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	38	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.ListRole" и "RoleViewModel.ListRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	39	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.ListRole" и "RoleViewModel.ListRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	40	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.ListRole" и "RoleViewModel.ListRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	47	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.ListRole" и "RoleViewModel.ListRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	51	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.ListRole" и "RoleViewModel.ListRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	51	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.ListRole" и "RoleViewModel.ListRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	65	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.ListRole" и "RoleViewModel.ListRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	66	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.ListRole" и "RoleViewModel.ListRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\PersonViewModel.cs	98	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.ListRole" и "RoleViewModel.ListRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	33	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.ListRole" и "RoleViewModel.ListRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	38	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.ListRole" и "RoleViewModel.ListRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	39	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.ListRole" и "RoleViewModel.ListRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	40	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.ListRole" и "RoleViewModel.ListRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	47	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.ListRole" и "RoleViewModel.ListRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	51	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.ListRole" и "RoleViewModel.ListRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	51	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.ListRole" и "RoleViewModel.ListRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	65	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.ListRole" и "RoleViewModel.ListRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	66	Активные
-Ошибка	CS0229	Неоднозначность между "RoleViewModel.ListRole" и "RoleViewModel.ListRole"	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\ViewModel\RoleViewModel.cs	98	Активные
-Ошибка	CS0246	Не удалось найти тип или имя пространства имен "PersonViewModel" (возможно, отсутствует директива using или ссылка на сборку).	WpfApp1Demo2018	C:\Users\Student_49_10\source\repos\WpfApp1Demo2018\WpfApp1Demo2018\View\WindowEmployee.xaml.cs	16	Активные
+using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Windows;
+using Newtonsoft.Json;
+using WpfApp1Demo2018.Helper;
+using WpfApp1Demo2018.Model;
+using WpfApp1Demo2018.View;
+
+namespace WpfApp1Demo2018.ViewModel
+{
+    public class RoleViewModel : INotifyPropertyChanged
+    {
+        private readonly string _path = @"DataModels\RoleData.json";
+        public ObservableCollection<Role> ListRole { get; set; } = new ObservableCollection<Role>();
+        private Role _selectedRole;
+        public Role SelectedRole
+        {
+            get => _selectedRole;
+            set { _selectedRole = value; OnPropertyChanged(); }
+        }
+
+        public RoleViewModel()
+        {
+            LoadRole();
+        }
+
+        private void LoadRole()
+        {
+            if (File.Exists(_path))
+            {
+                string json = File.ReadAllText(_path);
+                var list = JsonConvert.DeserializeObject<ObservableCollection<Role>>(json);
+                if (list != null) ListRole = list;
+            }
+            else
+            {
+                ListRole.Add(new Role { Id = 1, NameRole = "Директор" });
+                ListRole.Add(new Role { Id = 2, NameRole = "Бухгалтер" });
+                ListRole.Add(new Role { Id = 3, NameRole = "Менеджер" });
+                SaveRole();
+            }
+        }
+
+        private void SaveRole()
+        {
+            string json = JsonConvert.SerializeObject(ListRole, Formatting.Indented);
+            File.WriteAllText(_path, json);
+        }
+
+        public int MaxId() => ListRole.Count > 0 ? ListRole.Max(r => r.Id) : 0;
+
+        private RelayCommand _addRole;
+        public RelayCommand AddRole => _addRole ?? (_addRole = new RelayCommand(obj =>
+        {
+            var win = new WindowNewRole { Title = "Новая должность", Owner = Application.Current.Windows[0] };
+            int newId = MaxId() + 1;
+            win.tbId.Text = newId.ToString();
+            win.tbRole.Text = "";
+            if (win.ShowDialog() == true)
+            {
+                string name = win.tbRole.Text.Trim();
+                if (!string.IsNullOrEmpty(name))
+                {
+                    ListRole.Add(new Role { Id = newId, NameRole = name });
+                    SelectedRole = ListRole.Last();
+                    SaveRole();
+                }
+                else MessageBox.Show("Наименование должности не может быть пустым!");
+            }
+        }));
+
+        private RelayCommand _editRole;
+        public RelayCommand EditRole => _editRole ?? (_editRole = new RelayCommand(obj =>
+        {
+            if (SelectedRole == null) { MessageBox.Show("Выберите должность."); return; }
+            var win = new WindowNewRole { Title = "Редактирование должности", Owner = Application.Current.Windows[0] };
+            win.tbId.Text = SelectedRole.Id.ToString();
+            win.tbRole.Text = SelectedRole.NameRole;
+            if (win.ShowDialog() == true)
+            {
+                string newName = win.tbRole.Text.Trim();
+                if (!string.IsNullOrEmpty(newName))
+                {
+                    SelectedRole.NameRole = newName;
+                    SaveRole();
+                }
+                else MessageBox.Show("Наименование должности не может быть пустым!");
+            }
+        }, obj => SelectedRole != null));
+
+        private RelayCommand _deleteRole;
+        public RelayCommand DeleteRole => _deleteRole ?? (_deleteRole = new RelayCommand(obj =>
+        {
+            if (SelectedRole == null) { MessageBox.Show("Выберите должность."); return; }
+            if (MessageBox.Show($"Удалить должность «{SelectedRole.NameRole}»?", "Подтверждение", MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.OK)
+            {
+                ListRole.Remove(SelectedRole);
+                SelectedRole = null;
+                SaveRole();
+            }
+        }, obj => SelectedRole != null));
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+}
