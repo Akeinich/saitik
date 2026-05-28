@@ -1,152 +1,21 @@
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using System.Windows;
-using WpfApp1Demo2018.Helper;
-using WpfApp1Demo2018.Model;
-using WpfApp1Demo2018.ViewModel;
+using WpfApp1Demo2018.ViewModel; // для доступа к RoleViewModel
 
-namespace WpfApp1Demo2018.View
+// внутри класса PersonDPO:
+
+public PersonDPO ShallowCopy()
 {
-    public partial class WindowEmployee : Window
-    {
-        private PersonViewModel vmPerson;
-        private RoleViewModel vmRole;
-        private ObservableCollection<PersonDPO> personsDPO;
-        private List<Role> roles;
+    return (PersonDPO)this.MemberwiseClone();
+}
 
-        public WindowEmployee()
-        {
-            InitializeComponent();
-            vmPerson = new PersonViewModel();
-            vmRole = new RoleViewModel();
-            roles = vmRole.ListRole.ToList();
-
-            // Преобразуем Person в PersonDPO для отображения
-            personsDPO = new ObservableCollection<PersonDPO>();
-            foreach (var person in vmPerson.ListPerson)
-            {
-                PersonDPO p = new PersonDPO();
-                p = p.CopyFromPerson(person, roles); // мы реализуем этот метод ниже
-                personsDPO.Add(p);
-            }
-            lvEmployee.ItemsSource = personsDPO;
-        }
-
-        // Добавление
-        private void btnAdd_Click(object sender, RoutedEventArgs e)
-        {
-            WindowNewEmployee wnEmployee = new WindowNewEmployee { Title = "Новый сотрудник", Owner = this };
-            int maxId = vmPerson.MaxId() + 1;
-            PersonDPO per = new PersonDPO { Id = maxId, Birthday = System.DateTime.Now };
-
-            wnEmployee.tbId.Text = per.Id.ToString();
-            wnEmployee.cbRole.ItemsSource = roles;
-            wnEmployee.cbRole.SelectedValuePath = "Id";
-            wnEmployee.cbRole.DisplayMemberPath = "NameRole";
-            wnEmployee.tbLastName.Text = "";
-            wnEmployee.tbFirstName.Text = "";
-            wnEmployee.dpBirthday.SelectedDate = per.Birthday;
-
-            if (wnEmployee.ShowDialog() == true)
-            {
-                // Получаем выбранную должность
-                Role selectedRole = wnEmployee.cbRole.SelectedItem as Role;
-                if (selectedRole == null)
-                {
-                    MessageBox.Show("Выберите должность!");
-                    return;
-                }
-                per.Role = selectedRole.NameRole;
-                per.FirstName = wnEmployee.tbFirstName.Text.Trim();
-                per.LastName = wnEmployee.tbLastName.Text.Trim();
-                per.Birthday = wnEmployee.dpBirthday.SelectedDate ?? System.DateTime.Now;
-
-                personsDPO.Add(per);
-
-                // Добавляем в коллекцию Person
-                Person newPerson = new Person();
-                newPerson = newPerson.CopyFromPersonDPO(per, roles);
-                vmPerson.ListPerson.Add(newPerson);
-                RefreshList();
-            }
-        }
-
-        // Редактирование
-        private void btnEdit_Click(object sender, RoutedEventArgs e)
-        {
-            PersonDPO perDPO = lvEmployee.SelectedItem as PersonDPO;
-            if (perDPO == null)
-            {
-                MessageBox.Show("Выберите сотрудника для редактирования.", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            WindowNewEmployee wnEmployee = new WindowNewEmployee { Title = "Редактирование сотрудника", Owner = this };
-            // Создаём копию для редактирования
-            PersonDPO tempPer = perDPO.ShallowCopy();
-
-            wnEmployee.tbId.Text = tempPer.Id.ToString();
-            wnEmployee.cbRole.ItemsSource = roles;
-            wnEmployee.cbRole.SelectedValuePath = "Id";
-            wnEmployee.cbRole.DisplayMemberPath = "NameRole";
-            // Находим Id должности по имени
-            var role = roles.FirstOrDefault(r => r.NameRole == tempPer.Role);
-            if (role != null) wnEmployee.cbRole.SelectedValue = role.Id;
-            wnEmployee.tbLastName.Text = tempPer.LastName;
-            wnEmployee.tbFirstName.Text = tempPer.FirstName;
-            wnEmployee.dpBirthday.SelectedDate = tempPer.Birthday;
-
-            if (wnEmployee.ShowDialog() == true)
-            {
-                Role selectedRole = wnEmployee.cbRole.SelectedItem as Role;
-                if (selectedRole == null)
-                {
-                    MessageBox.Show("Выберите должность!");
-                    return;
-                }
-                // Применяем изменения к оригиналу
-                perDPO.Role = selectedRole.NameRole;
-                perDPO.FirstName = wnEmployee.tbFirstName.Text.Trim();
-                perDPO.LastName = wnEmployee.tbLastName.Text.Trim();
-                perDPO.Birthday = wnEmployee.dpBirthday.SelectedDate ?? perDPO.Birthday;
-
-                // Обновляем данные в vmPerson.ListPerson
-                var person = vmPerson.ListPerson.FirstOrDefault(p => p.Id == perDPO.Id);
-                if (person != null)
-                {
-                    person.RoleId = selectedRole.Id;
-                    person.FirstName = perDPO.FirstName;
-                    person.LastName = perDPO.LastName;
-                    person.Birthday = perDPO.Birthday;
-                }
-                RefreshList();
-            }
-        }
-
-        // Удаление
-        private void btnDelete_Click(object sender, RoutedEventArgs e)
-        {
-            PersonDPO person = lvEmployee.SelectedItem as PersonDPO;
-            if (person == null)
-            {
-                MessageBox.Show("Выберите сотрудника для удаления.", "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-            MessageBoxResult result = MessageBox.Show($"Удалить сотрудника: {person.LastName} {person.FirstName}?", "Подтверждение", MessageBoxButton.OKCancel, MessageBoxImage.Question);
-            if (result == MessageBoxResult.OK)
-            {
-                personsDPO.Remove(person);
-                var p = vmPerson.ListPerson.FirstOrDefault(per => per.Id == person.Id);
-                if (p != null) vmPerson.ListPerson.Remove(p);
-                RefreshList();
-            }
-        }
-
-        private void RefreshList()
-        {
-            lvEmployee.ItemsSource = null;
-            lvEmployee.ItemsSource = personsDPO;
-        }
-    }
+public PersonDPO CopyFromPerson(Person person, List<Role> roles)
+{
+    this.Id = person.Id;
+    var role = roles.FirstOrDefault(r => r.Id == person.RoleId);
+    this.Role = role?.NameRole ?? "Не задано";
+    this.FirstName = person.FirstName;
+    this.LastName = person.LastName;
+    this.Birthday = person.Birthday;
+    return this;
 }
