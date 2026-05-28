@@ -1,19 +1,41 @@
-<Window x:Class="WpfApp1Demo2018.View.WindowEmployee"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Сотрудники" Height="300" Width="550">
-    <StackPanel>
-        <ListView x:Name="lvEmployee">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Header="Код" Width="50" DisplayMemberBinding="{Binding Id}"/>
-                    <GridViewColumn Header="Фамилия" DisplayMemberBinding="{Binding LastName}"/>
-                    <GridViewColumn Header="Имя" DisplayMemberBinding="{Binding FirstName}"/>
-                    <GridViewColumn Header="Должность" Width="100" DisplayMemberBinding="{Binding Role}"/>
-                    <!-- Исправленный формат даты -->
-                    <GridViewColumn Header="Дата рождения" Width="100" DisplayMemberBinding="{Binding Birthday, StringFormat='dd.MM.yyyy'}"/>
-                </GridView>
-            </ListView.View>
-        </ListView>
-    </StackPanel>
-</Window>
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Windows;
+using WpfApp1Demo2018.Helper;
+using WpfApp1Demo2018.Model;
+using WpfApp1Demo2018.ViewModel;
+
+namespace WpfApp1Demo2018.View
+{
+    public partial class WindowEmployee : Window
+    {
+        public WindowEmployee()
+        {
+            InitializeComponent();
+            PersonViewModel vmPerson = new PersonViewModel();
+            RoleViewModel vmRole = new RoleViewModel();
+
+            // Преобразуем ObservableCollection<Role> в List<Role> для использования Find
+            List<Role> roles = new List<Role>();
+            foreach (Role r in vmRole.ListRole)
+                roles.Add(r);
+
+            ObservableCollection<PersonDPO> persons = new ObservableCollection<PersonDPO>();
+            FindRole finder;
+            foreach (var p in vmPerson.ListPerson)
+            {
+                finder = new FindRole(p.RoleId);
+                Role rol = roles.Find(new System.Predicate<Role>(finder.RolePredicate));
+                persons.Add(new PersonDPO
+                {
+                    Id = p.Id,
+                    Role = rol?.NameRole ?? "Не задано",
+                    FirstName = p.FirstName,
+                    LastName = p.LastName,
+                    Birthday = p.Birthday
+                });
+            }
+            lvEmployee.ItemsSource = persons;
+        }
+    }
+}
