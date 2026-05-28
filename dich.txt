@@ -1,8 +1,106 @@
-<?xml version="1.0" encoding="utf-8"?>
-<configuration>
-  <connectionStrings>
-    <add name="CompanyEntities" 
-         connectionString="Data Source=(LocalDB)\MSSQLLocalDB;Initial Catalog=CompanyDB;Integrated Security=True" 
-         providerName="System.Data.SqlClient" />
-  </connectionStrings>
-</configuration>
+using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Data.Entity;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Windows;
+using WpfApp1Demo2018.Helper;
+using WpfApp1Demo2018.Model;
+using WpfApp1Demo2018.View;
+
+namespace WpfApp1Demo2018.ViewModel
+{
+    public class RoleViewModel : INotifyPropertyChanged
+    {
+        public ObservableCollection<Role> ListRole { get; set; } = new ObservableCollection<Role>();
+        private Role _selectedRole;
+        public Role SelectedRole { get => _selectedRole; set { _selectedRole = value; OnPropertyChanged(); } }
+
+        public RoleViewModel()
+        {
+            LoadRoles();
+        }
+
+        private void LoadRoles()
+        {
+            using (var context = new CompanyEntities())
+            {
+                var list = context.Roles.OrderBy(r => r.Id).ToList();
+                ListRole.Clear();
+                foreach (var r in list) ListRole.Add(r);
+            }
+        }
+
+        public int MaxId()
+        {
+            using (var context = new CompanyEntities())
+            {
+                return context.Roles.Any() ? context.Roles.Max(r => r.Id) : 0;
+            }
+        }
+
+        private RelayCommand _addRole;
+        public RelayCommand AddRole => _addRole ?? (_addRole = new RelayCommand(obj =>
+        {
+            var win = new WindowNewRole { Title = "Новая должность", Owner = Application.Current.Windows[0] };
+            int newId = MaxId() + 1;
+            win.tbId.Text = newId.ToString();
+            win.tbRole.Text = "";
+            if (win.ShowDialog() == true)
+            {
+                string name = win.tbRole.Text.Trim();
+                if (string.IsNullOrEmpty(name)) { MessageBox.Show("Введите название!"); return; }
+                var newRole = new Role { Id = newId, NameRole = name };
+                using (var context = new CompanyEntities())
+                {
+                    context.Roles.Add(newRole);
+                    context.SaveChanges();
+                }
+                LoadRoles(); // обновить список
+                SelectedRole = ListRole.LastOrDefault();
+            }
+        }));
+
+        private RelayCommand _editRole;
+        public RelayCommand EditRole => _editRole ?? (_editRole = new RelayCommand(obj =>
+        {
+            if (SelectedRole == null) { MessageBox.Show("Выберите должность."); return; }
+            var win = new WindowNewRole { Title = "Редактирование должности", Owner = Application.Current.Windows[0] };
+            win.tbId.Text = SelectedRole.Id.ToString();
+            win.tbRole.Text = SelectedRole.NameRole;
+            if (win.ShowDialog() == true)
+            {
+                string newName = win.tbRole.Text.Trim();
+                if (string.IsNullOrEmpty(newName)) { MessageBox.Show("Введите название!"); return; }
+                using (var context = new CompanyEntities())
+                {
+                    var role = context.Roles.Find(SelectedRole.Id);
+                    if (role != null) role.NameRole = newName;
+                    context.SaveChanges();
+                }
+                LoadRoles();
+            }
+        }, obj => SelectedRole != null));
+
+        private RelayCommand _deleteRole;
+        public RelayCommand DeleteRole => _deleteRole ?? (_deleteRole = new RelayCommand(obj =>
+        {
+            if (SelectedRole == null) { MessageBox.Show("Выберите должность."); return; }
+            if (MessageBox.Show($"Удалить должность «{SelectedRole.NameRole}»?", "Подтверждение", MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.OK)
+            {
+                using (var context = new CompanyEntities())
+                {
+                    var role = context.Roles.Find(SelectedRole.Id);
+                    if (role != null) context.Roles.Remove(role);
+                    context.SaveChanges();
+                }
+                LoadRoles();
+            }
+        }, obj => SelectedRole != null));
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+}
