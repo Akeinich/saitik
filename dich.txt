@@ -1,22 +1,16 @@
-using System;
+using System.Collections.ObjectModel;
+using WpfApp1Demo2018.Model;
 
-namespace WpfApp1Demo2018.Model
+namespace WpfApp1Demo2018.ViewModel
 {
-    public class Person
+    public class RoleViewModel
     {
-        public int Id { get; set; }
-        public int RoleId { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public DateTime Birthday { get; set; }
-        public Person() { }
-        public Person(int id, int roleId, string firstName, string lastName, DateTime birthday)
+        public ObservableCollection<Role> ListRole { get; set; } = new ObservableCollection<Role>();
+        public RoleViewModel()
         {
-            Id = id;
-            RoleId = roleId;
-            FirstName = firstName;
-            LastName = lastName;
-            Birthday = birthday;
+            ListRole.Add(new Role { Id = 1, NameRole = "Директор" });
+            ListRole.Add(new Role { Id = 2, NameRole = "Бухгалтер" });
+            ListRole.Add(new Role { Id = 3, NameRole = "Менеджер" });
         }
     }
 }
