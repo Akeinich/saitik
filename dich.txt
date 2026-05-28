@@ -1,151 +1,32 @@
 using System;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Data.Entity;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Windows;
-using WpfApp1Demo2018.Helper;
-using WpfApp1Demo2018.Model;
-using WpfApp1Demo2018.View;
 
-namespace WpfApp1Demo2018.ViewModel
+namespace UnitTestBankAccount
 {
-    public class PersonViewModel : INotifyPropertyChanged
+    public class Account
     {
-        private RoleViewModel _roleVm;
-        public ObservableCollection<Person> ListPerson { get; set; } = new ObservableCollection<Person>();
-        public ObservableCollection<PersonDPO> ListPersonDpo { get; set; } = new ObservableCollection<PersonDPO>();
-        private PersonDPO _selectedPersonDpo;
-        public PersonDPO SelectedPersonDpo { get => _selectedPersonDpo; set { _selectedPersonDpo = value; OnPropertyChanged(); } }
+        public string Customer { get; private set; }
+        public double Balance { get; private set; }
 
-        public PersonViewModel()
+        public Account(string customer, double balance)
         {
-            _roleVm = new RoleViewModel();
-            LoadPersons();
+            Customer = customer;
+            Balance = balance;
         }
 
-        private void LoadPersons()
+        public void Credit(double amount)
         {
-            using (var context = new CompanyEntities())
-            {
-                var list = context.Persons.Include(p => p.Role).OrderBy(p => p.Id).ToList();
-                ListPerson.Clear();
-                foreach (var p in list) ListPerson.Add(p);
-                RefreshDpoList();
-            }
+            if (amount < 0)
+                throw new ArgumentOutOfRangeException(nameof(amount), "Сумма не может быть отрицательной");
+            Balance += amount;
         }
 
-        private void RefreshDpoList()
+        public void Debit(double amount)
         {
-            ListPersonDpo.Clear();
-            foreach (var p in ListPerson)
-            {
-                ListPersonDpo.Add(new PersonDPO
-                {
-                    Id = p.Id,
-                    Role = p.Role?.NameRole ?? "Не задано",
-                    FirstName = p.FirstName,
-                    LastName = p.LastName,
-                    Birthday = p.Birthday
-                });
-            }
+            if (amount < 0)
+                throw new ArgumentOutOfRangeException(nameof(amount), "Сумма не может быть отрицательной");
+            if (amount > Balance)
+                throw new ArgumentException("Недостаточно средств");
+            Balance -= amount;
         }
-
-        public int MaxId()
-        {
-            using (var context = new CompanyEntities())
-            {
-                return context.Persons.Any() ? context.Persons.Max(p => p.Id) : 0;
-            }
-        }
-
-        private RelayCommand _addPerson;
-        public RelayCommand AddPerson => _addPerson ?? (_addPerson = new RelayCommand(obj =>
-        {
-            var win = new WindowNewEmployee { Title = "Новый сотрудник", Owner = Application.Current.Windows[0] };
-            int newId = MaxId() + 1;
-            win.tbId.Text = newId.ToString();
-            win.cbRole.ItemsSource = _roleVm.ListRole;
-            win.cbRole.SelectedValuePath = "Id";
-            win.cbRole.DisplayMemberPath = "NameRole";
-            win.tbLastName.Text = "";
-            win.tbFirstName.Text = "";
-            win.dpBirthday.SelectedDate = DateTime.Now;
-            if (win.ShowDialog() == true)
-            {
-                var selectedRole = win.cbRole.SelectedItem as Role;
-                if (selectedRole == null) { MessageBox.Show("Выберите должность!"); return; }
-                var newPerson = new Person
-                {
-                    Id = newId,
-                    RoleId = selectedRole.Id,
-                    FirstName = win.tbFirstName.Text.Trim(),
-                    LastName = win.tbLastName.Text.Trim(),
-                    Birthday = win.dpBirthday.SelectedDate ?? DateTime.Now
-                };
-                using (var context = new CompanyEntities())
-                {
-                    context.Persons.Add(newPerson);
-                    context.SaveChanges();
-                }
-                LoadPersons();
-            }
-        }));
-
-        private RelayCommand _editPerson;
-        public RelayCommand EditPerson => _editPerson ?? (_editPerson = new RelayCommand(obj =>
-        {
-            if (SelectedPersonDpo == null) { MessageBox.Show("Выберите сотрудника."); return; }
-            var win = new WindowNewEmployee { Title = "Редактирование сотрудника", Owner = Application.Current.Windows[0] };
-            var temp = SelectedPersonDpo.ShallowCopy();
-            win.tbId.Text = temp.Id.ToString();
-            win.cbRole.ItemsSource = _roleVm.ListRole;
-            win.cbRole.SelectedValuePath = "Id";
-            win.cbRole.DisplayMemberPath = "NameRole";
-            var role = _roleVm.ListRole.FirstOrDefault(r => r.NameRole == temp.Role);
-            if (role != null) win.cbRole.SelectedValue = role.Id;
-            win.tbLastName.Text = temp.LastName;
-            win.tbFirstName.Text = temp.FirstName;
-            win.dpBirthday.SelectedDate = temp.Birthday;
-            if (win.ShowDialog() == true)
-            {
-                var selectedRole = win.cbRole.SelectedItem as Role;
-                if (selectedRole == null) { MessageBox.Show("Выберите должность!"); return; }
-                using (var context = new CompanyEntities())
-                {
-                    var person = context.Persons.Find(SelectedPersonDpo.Id);
-                    if (person != null)
-                    {
-                        person.RoleId = selectedRole.Id;
-                        person.FirstName = win.tbFirstName.Text.Trim();
-                        person.LastName = win.tbLastName.Text.Trim();
-                        person.Birthday = win.dpBirthday.SelectedDate ?? temp.Birthday;
-                        context.SaveChanges();
-                    }
-                }
-                LoadPersons();
-            }
-        }, obj => SelectedPersonDpo != null));
-
-        private RelayCommand _deletePerson;
-        public RelayCommand DeletePerson => _deletePerson ?? (_deletePerson = new RelayCommand(obj =>
-        {
-            if (SelectedPersonDpo == null) { MessageBox.Show("Выберите сотрудника."); return; }
-            if (MessageBox.Show($"Удалить сотрудника: {SelectedPersonDpo.LastName} {SelectedPersonDpo.FirstName}?", "Подтверждение", MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.OK)
-            {
-                using (var context = new CompanyEntities())
-                {
-                    var person = context.Persons.Find(SelectedPersonDpo.Id);
-                    if (person != null) context.Persons.Remove(person);
-                    context.SaveChanges();
-                }
-                LoadPersons();
-            }
-        }, obj => SelectedPersonDpo != null));
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) =>
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }
