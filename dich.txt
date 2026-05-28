@@ -1,4 +1,2 @@
-SELECT r.NameRole, COUNT(p.Id) AS Count
-FROM Roles r
-LEFT JOIN Persons p ON r.Id = p.RoleId
-GROUP BY r.NameRole
+INSERT INTO Roles (Id, NameRole) 
+VALUES (10, 'Тестовая должность');
