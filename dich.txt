@@ -1,13 +1,8 @@
-using System.Data.Entity;
-using WpfApp1Demo2018.Model;
-
-namespace WpfApp1Demo2018
-{
-    public class CompanyEntities : DbContext
-    {
-        public CompanyEntities() : base("name=CompanyEntities") { }
-
-        public DbSet<Role> Roles { get; set; }
-        public DbSet<Person> Persons { get; set; }
-    }
-}
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <connectionStrings>
+    <add name="CompanyEntities" 
+         connectionString="Data Source=(LocalDB)\MSSQLLocalDB;Initial Catalog=CompanyDB;Integrated Security=True" 
+         providerName="System.Data.SqlClient" />
+  </connectionStrings>
+</configuration>
