@@ -1,14 +1,18 @@
-using System.Collections.Generic;
+using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WpfApp1Demo2018.Model
 {
-    public class Role
+    public class Person
     {
         [Key]
         public int Id { get; set; }
-        public string NameRole { get; set; }
-        public virtual ICollection<Person> Persons { get; set; }
-        public Role() { Persons = new HashSet<Person>(); }
+        public int RoleId { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public DateTime Birthday { get; set; }
+        [ForeignKey("RoleId")]
+        public virtual Role Role { get; set; }
     }
 }
