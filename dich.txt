@@ -1,18 +1,15 @@
-<Window x:Class="WpfApp1Demo2018.View.WindowEmployee"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Сотрудники" Height="300" Width="500">
-    <StackPanel>
-        <ListView x:Name="lvEmployee">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Header="Код" Width="50" DisplayMemberBinding="{Binding Id}"/>
-                    <GridViewColumn Header="Фамилия" DisplayMemberBinding="{Binding LastName}"/>
-                    <GridViewColumn Header="Имя" DisplayMemberBinding="{Binding FirstName}"/>
-                    <GridViewColumn Header="Должность" DisplayMemberBinding="{Binding RoleId}"/>
-                    <GridViewColumn Header="Дата рождения" DisplayMemberBinding="{Binding Birthday}"/>
-                </GridView>
-            </ListView.View>
-        </ListView>
-    </StackPanel>
-</Window>
+using System.Windows;
+using WpfApp1Demo2018.ViewModel;
+
+namespace WpfApp1Demo2018.View
+{
+    public partial class WindowEmployee : Window
+    {
+        public WindowEmployee()
+        {
+            InitializeComponent();
+            PersonViewModel vmPerson = new PersonViewModel();
+            lvEmployee.ItemsSource = vmPerson.ListPerson;
+        }
+    }
+}
