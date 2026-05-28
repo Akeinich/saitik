@@ -1,6 +1,108 @@
-[
-  { "Id": 1, "RoleId": 1, "FirstName": "Иван", "LastName": "Иванов", "Birthday": "1980-02-28T00:00:00" },
-  { "Id": 2, "RoleId": 2, "FirstName": "Петр", "LastName": "Петров", "Birthday": "1981-03-20T00:00:00" },
-  { "Id": 3, "RoleId": 3, "FirstName": "Виктор", "LastName": "Викторов", "Birthday": "1982-04-15T00:00:00" },
-  { "Id": 4, "RoleId": 3, "FirstName": "Сидор", "LastName": "Сидоров", "Birthday": "1983-05-10T00:00:00" }
-]
+using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Windows;
+using Newtonsoft.Json;
+using WpfApp1Demo2018.Helper;
+using WpfApp1Demo2018.Model;
+using WpfApp1Demo2018.View;
+
+namespace WpfApp1Demo2018.ViewModel
+{
+    public class RoleViewModel : INotifyPropertyChanged
+    {
+        private readonly string _path = @"DataModels\RoleData.json";
+        public ObservableCollection<Role> ListRole { get; set; } = new ObservableCollection<Role>();
+        private Role _selectedRole;
+        public Role SelectedRole { get => _selectedRole; set { _selectedRole = value; OnPropertyChanged(); } }
+
+        public RoleViewModel()
+        {
+            LoadRole();
+        }
+
+        private void LoadRole()
+        {
+            if (File.Exists(_path))
+            {
+                string json = File.ReadAllText(_path);
+                var list = JsonConvert.DeserializeObject<ObservableCollection<Role>>(json);
+                if (list != null) ListRole = list;
+            }
+            else
+            {
+                // если файла нет, создаём с начальными данными
+                ListRole.Add(new Role { Id = 1, NameRole = "Директор" });
+                ListRole.Add(new Role { Id = 2, NameRole = "Бухгалтер" });
+                ListRole.Add(new Role { Id = 3, NameRole = "Менеджер" });
+                SaveRole();
+            }
+        }
+
+        private void SaveRole()
+        {
+            string json = JsonConvert.SerializeObject(ListRole, Formatting.Indented);
+            File.WriteAllText(_path, json);
+        }
+
+        public int MaxId() => ListRole.Count > 0 ? ListRole.Max(r => r.Id) : 0;
+
+        private RelayCommand _addRole;
+        public RelayCommand AddRole => _addRole ?? (_addRole = new RelayCommand(obj =>
+        {
+            var win = new WindowNewRole { Title = "Новая должность", Owner = Application.Current.Windows[0] };
+            int newId = MaxId() + 1;
+            win.tbId.Text = newId.ToString();
+            win.tbRole.Text = "";
+            if (win.ShowDialog() == true)
+            {
+                string name = win.tbRole.Text.Trim();
+                if (!string.IsNullOrEmpty(name))
+                {
+                    ListRole.Add(new Role { Id = newId, NameRole = name });
+                    SelectedRole = ListRole.Last();
+                    SaveRole();
+                }
+                else MessageBox.Show("Наименование должности не может быть пустым!");
+            }
+        }));
+
+        private RelayCommand _editRole;
+        public RelayCommand EditRole => _editRole ?? (_editRole = new RelayCommand(obj =>
+        {
+            if (SelectedRole == null) { MessageBox.Show("Выберите должность."); return; }
+            var win = new WindowNewRole { Title = "Редактирование должности", Owner = Application.Current.Windows[0] };
+            win.tbId.Text = SelectedRole.Id.ToString();
+            win.tbRole.Text = SelectedRole.NameRole;
+            if (win.ShowDialog() == true)
+            {
+                string newName = win.tbRole.Text.Trim();
+                if (!string.IsNullOrEmpty(newName))
+                {
+                    SelectedRole.NameRole = newName;
+                    SaveRole();
+                }
+                else MessageBox.Show("Наименование должности не может быть пустым!");
+            }
+        }, obj => SelectedRole != null));
+
+        private RelayCommand _deleteRole;
+        public RelayCommand DeleteRole => _deleteRole ?? (_deleteRole = new RelayCommand(obj =>
+        {
+            if (SelectedRole == null) { MessageBox.Show("Выберите должность."); return; }
+            if (MessageBox.Show($"Удалить должность «{SelectedRole.NameRole}»?", "Подтверждение", MessageBoxButton.OKCancel, MessageBoxImage.Question) == MessageBoxResult.OK)
+            {
+                ListRole.Remove(SelectedRole);
+                SelectedRole = null;
+                SaveRole();
+            }
+        }, obj => SelectedRole != null));
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+}
