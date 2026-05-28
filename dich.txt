@@ -1,16 +1,22 @@
-using System.Collections.Generic;
+using System;
 
 namespace WpfApp1Demo2018.Model
 {
-    public class Role
+    public class Person
     {
         public int Id { get; set; }
-        public string NameRole { get; set; }
-        public Role() { }
-        public Role(int id, string nameRole)
+        public int RoleId { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public DateTime Birthday { get; set; }
+        public Person() { }
+        public Person(int id, int roleId, string firstName, string lastName, DateTime birthday)
         {
             Id = id;
-            NameRole = nameRole;
+            RoleId = roleId;
+            FirstName = firstName;
+            LastName = lastName;
+            Birthday = birthday;
         }
     }
 }
