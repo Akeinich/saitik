@@ -1,17 +1,22 @@
-using WpfApp1Demo2018.ViewModel;
+using System;
 
-namespace WpfApp1Demo2018.Helper
+namespace WpfApp1Demo2018.Model
 {
-    public class FindRole
+    public class PersonDPO
     {
-        private int id;
-        public FindRole(int id)
+        public int Id { get; set; }
+        public string Role { get; set; }      // наименование должности
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public DateTime Birthday { get; set; }
+        public PersonDPO() { }
+        public PersonDPO(int id, string role, string firstName, string lastName, DateTime birthday)
         {
-            this.id = id;
-        }
-        public bool RolePredicate(Role role)
-        {
-            return role.Id == id;
+            Id = id;
+            Role = role;
+            FirstName = firstName;
+            LastName = lastName;
+            Birthday = birthday;
         }
     }
 }
