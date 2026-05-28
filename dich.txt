@@ -1,30 +1,14 @@
-<Window x:Class="WpfApp1Demo2018.View.WindowEmployee"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Сотрудники" Height="350" Width="600">
-    <Window.Resources>
-        <Style x:Key="ButtonStyle" TargetType="Button">
-            <Setter Property="Height" Value="25"/>
-            <Setter Property="Margin" Value="10,10,5,10"/>
-            <Setter Property="Padding" Value="5,0"/>
-        </Style>
-    </Window.Resources>
-    <StackPanel>
-        <StackPanel Orientation="Horizontal">
-            <Button Style="{StaticResource ButtonStyle}" Content="Добавить" Command="{Binding AddPerson}"/>
-            <Button Style="{StaticResource ButtonStyle}" Content="Редактировать" Command="{Binding EditPerson}"/>
-            <Button Style="{StaticResource ButtonStyle}" Content="Удалить" Command="{Binding DeletePerson}"/>
-        </StackPanel>
-        <ListView x:Name="lvEmployee" ItemsSource="{Binding ListPersonDpo}" SelectedItem="{Binding SelectedPersonDpo, Mode=TwoWay}">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Header="Код" Width="50" DisplayMemberBinding="{Binding Id}"/>
-                    <GridViewColumn Header="Фамилия" Width="100" DisplayMemberBinding="{Binding LastName}"/>
-                    <GridViewColumn Header="Имя" Width="100" DisplayMemberBinding="{Binding FirstName}"/>
-                    <GridViewColumn Header="Должность" Width="120" DisplayMemberBinding="{Binding Role}"/>
-                    <GridViewColumn Header="Дата рождения" Width="100" DisplayMemberBinding="{Binding Birthday, StringFormat='dd.MM.yyyy'}"/>
-                </GridView>
-            </ListView.View>
-        </ListView>
-    </StackPanel>
-</Window>
+using System.Windows;
+using WpfApp1Demo2018.ViewModel;
+
+namespace WpfApp1Demo2018.View
+{
+    public partial class WindowEmployee : Window
+    {
+        public WindowEmployee()
+        {
+            InitializeComponent();
+            DataContext = new PersonViewModel();
+        }
+    }
+}
