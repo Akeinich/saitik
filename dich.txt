@@ -1,35 +1,143 @@
-<Window x:Class="CoopGame.PongWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Pong - классическая аркада" Height="450" Width="650"
-        WindowStartupLocation="CenterOwner" KeyDown="Window_KeyDown">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-        
-        <!-- Счёт -->
-        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
-            <TextBlock x:Name="tbScoreLeft" Text="0" FontSize="28" FontWeight="Bold" Margin="20,0"/>
-            <TextBlock Text=":" FontSize="28" Margin="10,0"/>
-            <TextBlock x:Name="tbScoreRight" Text="0" FontSize="28" FontWeight="Bold" Margin="20,0"/>
-        </StackPanel>
-        
-        <!-- Игровое поле -->
-        <Canvas x:Name="gameCanvas" Grid.Row="1" Background="Black" ClipToBounds="True">
-            <!-- Ракетки -->
-            <Rectangle x:Name="paddleLeft" Width="15" Height="80" Fill="White" Canvas.Left="20" Canvas.Top="160"/>
-            <Rectangle x:Name="paddleRight" Width="15" Height="80" Fill="White" Canvas.Right="20" Canvas.Top="160"/>
-            <!-- Мяч -->
-            <Ellipse x:Name="ball" Width="15" Height="15" Fill="White" Canvas.Left="317" Canvas.Top="217"/>
-        </Canvas>
-        
-        <!-- Информация -->
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
-            <TextBlock Text="Управление: левая ракетка - W/S, правая - стрелки вверх/вниз" FontSize="12"/>
-            <Button x:Name="btnReset" Content="Новая игра" Margin="20,0,0,0" Click="btnReset_Click"/>
-        </StackPanel>
-    </Grid>
-</Window>
+using System.Windows;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Threading;
+
+namespace CoopGame
+{
+    public partial class PongWindow : Window
+    {
+        private DispatcherTimer gameTimer;
+        private double ballSpeedX = 3;
+        private double ballSpeedY = 3;
+        private int scoreLeft = 0;
+        private int scoreRight = 0;
+        private bool leftUp = false, leftDown = false;
+        private bool rightUp = false, rightDown = false;
+        private const double paddleSpeed = 8;
+        private const double canvasHeight = 400; // реальная высота canvas
+        private const double canvasWidth = 630;  // реальная ширина canvas
+
+        public PongWindow()
+        {
+            InitializeComponent();
+            gameTimer = new DispatcherTimer();
+            gameTimer.Interval = TimeSpan.FromMilliseconds(16); // ~60 FPS
+            gameTimer.Tick += GameLoop;
+            gameTimer.Start();
+        }
+
+        private void Window_KeyDown(object sender, KeyEventArgs e)
+        {
+            // Левая ракетка (W/S)
+            if (e.Key == Key.W) leftUp = true;
+            if (e.Key == Key.S) leftDown = true;
+            // Правая ракетка (стрелки)
+            if (e.Key == Key.Up) rightUp = true;
+            if (e.Key == Key.Down) rightDown = true;
+        }
+
+        private void Window_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.W) leftUp = false;
+            if (e.Key == Key.S) leftDown = false;
+            if (e.Key == Key.Up) rightUp = false;
+            if (e.Key == Key.Down) rightDown = false;
+        }
+
+        private void GameLoop(object sender, EventArgs e)
+        {
+            // Движение ракеток
+            if (leftUp && Canvas.GetTop(paddleLeft) > 0)
+                Canvas.SetTop(paddleLeft, Canvas.GetTop(paddleLeft) - paddleSpeed);
+            if (leftDown && Canvas.GetTop(paddleLeft) + paddleLeft.Height < canvasHeight)
+                Canvas.SetTop(paddleLeft, Canvas.GetTop(paddleLeft) + paddleSpeed);
+            if (rightUp && Canvas.GetTop(paddleRight) > 0)
+                Canvas.SetTop(paddleRight, Canvas.GetTop(paddleRight) - paddleSpeed);
+            if (rightDown && Canvas.GetTop(paddleRight) + paddleRight.Height < canvasHeight)
+                Canvas.SetTop(paddleRight, Canvas.GetTop(paddleRight) + paddleSpeed);
+
+            // Движение мяча
+            double ballLeft = Canvas.GetLeft(ball);
+            double ballTop = Canvas.GetTop(ball);
+            ballLeft += ballSpeedX;
+            ballTop += ballSpeedY;
+            Canvas.SetLeft(ball, ballLeft);
+            Canvas.SetTop(ball, ballTop);
+
+            // Столкновение с верхней/нижней границей
+            if (ballTop <= 0 || ballTop + ball.Height >= canvasHeight)
+                ballSpeedY = -ballSpeedY;
+
+            // Столкновение с левой ракеткой
+            Rect ballRect = new Rect(ballLeft, ballTop, ball.Width, ball.Height);
+            Rect leftPaddleRect = new Rect(Canvas.GetLeft(paddleLeft), Canvas.GetTop(paddleLeft), paddleLeft.Width, paddleLeft.Height);
+            Rect rightPaddleRect = new Rect(Canvas.GetLeft(paddleRight), Canvas.GetTop(paddleRight), paddleRight.Width, paddleRight.Height);
+
+            if (ballRect.IntersectsWith(leftPaddleRect))
+            {
+                ballSpeedX = -ballSpeedX;
+                // небольшое смещение, чтобы не залипало
+                Canvas.SetLeft(ball, Canvas.GetLeft(paddleLeft) + paddleLeft.Width);
+            }
+            else if (ballRect.IntersectsWith(rightPaddleRect))
+            {
+                ballSpeedX = -ballSpeedX;
+                Canvas.SetLeft(ball, Canvas.GetLeft(paddleRight) - ball.Width);
+            }
+
+            // Проверка выхода за левую/правую границу (гол)
+            if (ballLeft <= 0)
+            {
+                scoreRight++;
+                UpdateScore();
+                ResetBall();
+            }
+            else if (ballLeft + ball.Width >= canvasWidth)
+            {
+                scoreLeft++;
+                UpdateScore();
+                ResetBall();
+            }
+        }
+
+        private void ResetBall()
+        {
+            // центральная позиция
+            Canvas.SetLeft(ball, (canvasWidth - ball.Width) / 2);
+            Canvas.SetTop(ball, (canvasHeight - ball.Height) / 2);
+            // случайное направление
+            ballSpeedX = (ballSpeedX > 0 ? -3 : 3);
+            ballSpeedY = (ballSpeedY > 0 ? 3 : -3);
+        }
+
+        private void UpdateScore()
+        {
+            tbScoreLeft.Text = scoreLeft.ToString();
+            tbScoreRight.Text = scoreRight.ToString();
+        }
+
+        private void btnReset_Click(object sender, RoutedEventArgs e)
+        {
+            scoreLeft = 0;
+            scoreRight = 0;
+            UpdateScore();
+            ResetBall();
+            // Сброс позиций ракеток
+            Canvas.SetTop(paddleLeft, canvasHeight / 2 - paddleLeft.Height / 2);
+            Canvas.SetTop(paddleRight, canvasHeight / 2 - paddleRight.Height / 2);
+            ballSpeedX = 3;
+            ballSpeedY = 3;
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            // установка начальных позиций
+            canvasHeight = gameCanvas.ActualHeight;
+            canvasWidth = gameCanvas.ActualWidth;
+            Canvas.SetTop(paddleLeft, canvasHeight / 2 - paddleLeft.Height / 2);
+            Canvas.SetTop(paddleRight, canvasHeight / 2 - paddleLeft.Height / 2);
+            ResetBall();
+        }
+    }
+}
