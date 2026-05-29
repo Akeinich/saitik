@@ -22,7 +22,7 @@ namespace CoopGame
         {
             InitializeComponent();
             gameTimer = new DispatcherTimer();
-            gameTimer.Interval = TimeSpan.FromMilliseconds(16);
+            gameTimer.Interval = TimeSpan.FromMilliseconds(16); // ~60 FPS
             gameTimer.Tick += GameLoop;
             gameTimer.Start();
         }
@@ -34,7 +34,7 @@ namespace CoopGame
             Canvas.SetTop(paddleLeft, canvasHeight / 2 - paddleLeft.Height / 2);
             Canvas.SetTop(paddleRight, canvasHeight / 2 - paddleLeft.Height / 2);
             ResetBall();
-            this.Focus(); // важно: устанавливаем фокус на окно
+            this.Focus();
         }
 
         private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -43,7 +43,7 @@ namespace CoopGame
             if (e.Key == Key.S) leftDown = true;
             if (e.Key == Key.Up) rightUp = true;
             if (e.Key == Key.Down) rightDown = true;
-            e.Handled = false; // чтобы другие элементы (кнопка) тоже могли получать события
+            e.Handled = false;
         }
 
         private void Window_PreviewKeyUp(object sender, KeyEventArgs e)
@@ -67,55 +67,69 @@ namespace CoopGame
             if (rightDown && Canvas.GetTop(paddleRight) + paddleRight.Height < canvasHeight)
                 Canvas.SetTop(paddleRight, Canvas.GetTop(paddleRight) + paddleSpeed);
 
-            // Движение мяча
-            double ballLeft = Canvas.GetLeft(ball);
-            double ballTop = Canvas.GetTop(ball);
-            ballLeft += ballSpeedX;
-            ballTop += ballSpeedY;
-            Canvas.SetLeft(ball, ballLeft);
-            Canvas.SetTop(ball, ballTop);
+            // --- Движение мяча ---
+            double newLeft = Canvas.GetLeft(ball) + ballSpeedX;
+            double newTop = Canvas.GetTop(ball) + ballSpeedY;
 
-            // Столкновение с верхней/нижней границей
-            if (ballTop <= 0 || ballTop + ball.Height >= canvasHeight)
+            // Ограничение по Y (верх/низ)
+            if (newTop <= 0)
+            {
+                newTop = 0;
                 ballSpeedY = -ballSpeedY;
+            }
+            else if (newTop + ball.Height >= canvasHeight)
+            {
+                newTop = canvasHeight - ball.Height;
+                ballSpeedY = -ballSpeedY;
+            }
 
-            // Столкновения с ракетками
-            Rect ballRect = new Rect(ballLeft, ballTop, ball.Width, ball.Height);
+            // --- Обработка столкновений с ракетками ---
+            Rect ballRect = new Rect(newLeft, newTop, ball.Width, ball.Height);
             Rect leftPaddleRect = new Rect(Canvas.GetLeft(paddleLeft), Canvas.GetTop(paddleLeft), paddleLeft.Width, paddleLeft.Height);
             Rect rightPaddleRect = new Rect(Canvas.GetLeft(paddleRight), Canvas.GetTop(paddleRight), paddleRight.Width, paddleRight.Height);
 
+            // Левая ракетка (движение влево)
             if (ballRect.IntersectsWith(leftPaddleRect))
             {
+                // Отодвигаем мяч, чтобы он не застревал
+                newLeft = Canvas.GetLeft(paddleLeft) + paddleLeft.Width;
                 ballSpeedX = -ballSpeedX;
-                Canvas.SetLeft(ball, Canvas.GetLeft(paddleLeft) + paddleLeft.Width);
             }
+            // Правая ракетка (движение вправо)
             else if (ballRect.IntersectsWith(rightPaddleRect))
             {
+                newLeft = Canvas.GetLeft(paddleRight) - ball.Width;
                 ballSpeedX = -ballSpeedX;
-                Canvas.SetLeft(ball, Canvas.GetLeft(paddleRight) - ball.Width);
             }
 
-            // Проверка голов
-            if (ballLeft <= 0)
+            // --- Проверка голов (выход за левую или правую границу) ---
+            if (newLeft <= 0)
             {
                 scoreRight++;
                 UpdateScore();
                 ResetBall();
+                return; // выходим, чтобы не обновлять позицию в этом кадре
             }
-            else if (ballLeft + ball.Width >= canvasWidth)
+            else if (newLeft + ball.Width >= canvasWidth)
             {
                 scoreLeft++;
                 UpdateScore();
                 ResetBall();
+                return;
             }
+
+            // Применяем новые координаты
+            Canvas.SetLeft(ball, newLeft);
+            Canvas.SetTop(ball, newTop);
         }
 
         private void ResetBall()
         {
             Canvas.SetLeft(ball, (canvasWidth - ball.Width) / 2);
             Canvas.SetTop(ball, (canvasHeight - ball.Height) / 2);
+            // Меняем направление случайным образом, но не вертикально 0
             ballSpeedX = (ballSpeedX > 0 ? -3 : 3);
-            ballSpeedY = (ballSpeedY > 0 ? 3 : -3);
+            ballSpeedY = (new Random().Next(2) == 0 ? 3 : -3);
         }
 
         private void UpdateScore()
@@ -134,7 +148,7 @@ namespace CoopGame
             Canvas.SetTop(paddleRight, canvasHeight / 2 - paddleLeft.Height / 2);
             ballSpeedX = 3;
             ballSpeedY = 3;
-            this.Focus(); // возвращаем фокус на окно после нажатия на кнопку
+            this.Focus();
         }
     }
 }
