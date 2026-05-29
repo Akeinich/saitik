@@ -22,7 +22,7 @@ namespace CoopGame
         {
             InitializeComponent();
             gameTimer = new DispatcherTimer();
-            gameTimer.Interval = TimeSpan.FromMilliseconds(16); // ~60 FPS
+            gameTimer.Interval = TimeSpan.FromMilliseconds(16);
             gameTimer.Tick += GameLoop;
             gameTimer.Start();
         }
@@ -57,7 +57,7 @@ namespace CoopGame
 
         private void GameLoop(object sender, EventArgs e)
         {
-            // Движение ракеток
+            // --- Движение ракеток ---
             if (leftUp && Canvas.GetTop(paddleLeft) > 0)
                 Canvas.SetTop(paddleLeft, Canvas.GetTop(paddleLeft) - paddleSpeed);
             if (leftDown && Canvas.GetTop(paddleLeft) + paddleLeft.Height < canvasHeight)
@@ -67,50 +67,62 @@ namespace CoopGame
             if (rightDown && Canvas.GetTop(paddleRight) + paddleRight.Height < canvasHeight)
                 Canvas.SetTop(paddleRight, Canvas.GetTop(paddleRight) + paddleSpeed);
 
-            // --- Движение мяча ---
-            double newLeft = Canvas.GetLeft(ball) + ballSpeedX;
-            double newTop = Canvas.GetTop(ball) + ballSpeedY;
+            // --- Позиция мяча ---
+            double ballX = Canvas.GetLeft(ball);
+            double ballY = Canvas.GetTop(ball);
+            double newX = ballX + ballSpeedX;
+            double newY = ballY + ballSpeedY;
 
-            // Ограничение по Y (верх/низ)
-            if (newTop <= 0)
+            // --- Столкновение с верхней/нижней стенкой ---
+            if (newY <= 0)
             {
-                newTop = 0;
+                newY = 0;
                 ballSpeedY = -ballSpeedY;
             }
-            else if (newTop + ball.Height >= canvasHeight)
+            else if (newY + ball.Height >= canvasHeight)
             {
-                newTop = canvasHeight - ball.Height;
+                newY = canvasHeight - ball.Height;
                 ballSpeedY = -ballSpeedY;
             }
 
-            // --- Обработка столкновений с ракетками ---
-            Rect ballRect = new Rect(newLeft, newTop, ball.Width, ball.Height);
-            Rect leftPaddleRect = new Rect(Canvas.GetLeft(paddleLeft), Canvas.GetTop(paddleLeft), paddleLeft.Width, paddleLeft.Height);
-            Rect rightPaddleRect = new Rect(Canvas.GetLeft(paddleRight), Canvas.GetTop(paddleRight), paddleRight.Width, paddleRight.Height);
+            // --- Проверка столкновений с ракетками ---
+            bool hit = false;
 
             // Левая ракетка (движение влево)
-            if (ballRect.IntersectsWith(leftPaddleRect))
+            if (!hit && ballSpeedX < 0)
             {
-                // Отодвигаем мяч, чтобы он не застревал
-                newLeft = Canvas.GetLeft(paddleLeft) + paddleLeft.Width;
-                ballSpeedX = -ballSpeedX;
-            }
-            // Правая ракетка (движение вправо)
-            else if (ballRect.IntersectsWith(rightPaddleRect))
-            {
-                newLeft = Canvas.GetLeft(paddleRight) - ball.Width;
-                ballSpeedX = -ballSpeedX;
+                Rect leftPaddle = new Rect(Canvas.GetLeft(paddleLeft), Canvas.GetTop(paddleLeft), paddleLeft.Width, paddleLeft.Height);
+                if (CheckCollision(ballX, ballY, newX, newY, leftPaddle, out double colX, out double colY))
+                {
+                    newX = colX;
+                    newY = colY;
+                    ballSpeedX = -ballSpeedX;
+                    hit = true;
+                }
             }
 
-            // --- Проверка голов (выход за левую или правую границу) ---
-            if (newLeft <= 0)
+            // Правая ракетка (движение вправо) – исправлено!
+            if (!hit && ballSpeedX > 0)
+            {
+                Rect rightPaddle = new Rect(Canvas.GetLeft(paddleRight), Canvas.GetTop(paddleRight), paddleRight.Width, paddleRight.Height);
+                if (CheckCollision(ballX, ballY, newX, newY, rightPaddle, out double colX, out double colY))
+                {
+                    newX = colX;
+                    newY = colY;
+                    ballSpeedX = -ballSpeedX;
+                    hit = true;
+                }
+            }
+
+            // --- Проверка голов (выход за границы по X) ---
+            if (newX <= 0)
             {
                 scoreRight++;
                 UpdateScore();
                 ResetBall();
-                return; // выходим, чтобы не обновлять позицию в этом кадре
+                return;
             }
-            else if (newLeft + ball.Width >= canvasWidth)
+            else if (newX + ball.Width >= canvasWidth)
             {
                 scoreLeft++;
                 UpdateScore();
@@ -118,16 +130,48 @@ namespace CoopGame
                 return;
             }
 
-            // Применяем новые координаты
-            Canvas.SetLeft(ball, newLeft);
-            Canvas.SetTop(ball, newTop);
+            // --- Применяем новую позицию ---
+            Canvas.SetLeft(ball, newX);
+            Canvas.SetTop(ball, newY);
+        }
+
+        /// <summary>
+        /// Проверяет пересечение отрезка (from -> to) с прямоугольником.
+        /// Возвращает true, если пересекает, и корректирует координаты collisionX, collisionY.
+        /// </summary>
+        private bool CheckCollision(double fromX, double fromY, double toX, double toY, Rect rect, out double collisionX, out double collisionY)
+        {
+            collisionX = toX;
+            collisionY = toY;
+
+            // Проверяем, попадает ли конечная точка внутрь прямоугольника (или рядом)
+            Rect ballRect = new Rect(toX, toY, ball.Width, ball.Height);
+            if (ballRect.IntersectsWith(rect))
+            {
+                // Отодвигаем мяч в зависимости от того, с какой стороны подлетел
+                if (fromX + ball.Width / 2 < rect.Left) // мяч слева
+                    collisionX = rect.Left - ball.Width;
+                else if (fromX > rect.Right) // мяч справа
+                    collisionX = rect.Right;
+                else
+                    collisionX = toX; // если по вертикали, не меняем X
+
+                if (fromY + ball.Height / 2 < rect.Top)
+                    collisionY = rect.Top - ball.Height;
+                else if (fromY > rect.Bottom)
+                    collisionY = rect.Bottom;
+                else
+                    collisionY = toY;
+
+                return true;
+            }
+            return false;
         }
 
         private void ResetBall()
         {
             Canvas.SetLeft(ball, (canvasWidth - ball.Width) / 2);
             Canvas.SetTop(ball, (canvasHeight - ball.Height) / 2);
-            // Меняем направление случайным образом, но не вертикально 0
             ballSpeedX = (ballSpeedX > 0 ? -3 : 3);
             ballSpeedY = (new Random().Next(2) == 0 ? 3 : -3);
         }
