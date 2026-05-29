@@ -1,9 +1,140 @@
-<Window x:Class="CoopGame.PongWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Pong - классическая аркада" Height="450" Width="650"
-        WindowStartupLocation="CenterOwner"
-        Focusable="True"
-        PreviewKeyDown="Window_PreviewKeyDown"
-        PreviewKeyUp="Window_PreviewKeyUp"
-        Loaded="Window_Loaded">
+using System;
+using System.Windows;
+using System.Windows.Input;
+using System.Windows.Threading;
+
+namespace CoopGame
+{
+    public partial class PongWindow : Window
+    {
+        private DispatcherTimer gameTimer;
+        private double ballSpeedX = 3;
+        private double ballSpeedY = 3;
+        private int scoreLeft = 0;
+        private int scoreRight = 0;
+        private bool leftUp = false, leftDown = false;
+        private bool rightUp = false, rightDown = false;
+        private const double paddleSpeed = 8;
+        private double canvasHeight;
+        private double canvasWidth;
+
+        public PongWindow()
+        {
+            InitializeComponent();
+            gameTimer = new DispatcherTimer();
+            gameTimer.Interval = TimeSpan.FromMilliseconds(16);
+            gameTimer.Tick += GameLoop;
+            gameTimer.Start();
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            canvasHeight = gameCanvas.ActualHeight;
+            canvasWidth = gameCanvas.ActualWidth;
+            Canvas.SetTop(paddleLeft, canvasHeight / 2 - paddleLeft.Height / 2);
+            Canvas.SetTop(paddleRight, canvasHeight / 2 - paddleLeft.Height / 2);
+            ResetBall();
+            this.Focus(); // важно: устанавливаем фокус на окно
+        }
+
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.W) leftUp = true;
+            if (e.Key == Key.S) leftDown = true;
+            if (e.Key == Key.Up) rightUp = true;
+            if (e.Key == Key.Down) rightDown = true;
+            e.Handled = false; // чтобы другие элементы (кнопка) тоже могли получать события
+        }
+
+        private void Window_PreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.W) leftUp = false;
+            if (e.Key == Key.S) leftDown = false;
+            if (e.Key == Key.Up) rightUp = false;
+            if (e.Key == Key.Down) rightDown = false;
+            e.Handled = false;
+        }
+
+        private void GameLoop(object sender, EventArgs e)
+        {
+            // Движение ракеток
+            if (leftUp && Canvas.GetTop(paddleLeft) > 0)
+                Canvas.SetTop(paddleLeft, Canvas.GetTop(paddleLeft) - paddleSpeed);
+            if (leftDown && Canvas.GetTop(paddleLeft) + paddleLeft.Height < canvasHeight)
+                Canvas.SetTop(paddleLeft, Canvas.GetTop(paddleLeft) + paddleSpeed);
+            if (rightUp && Canvas.GetTop(paddleRight) > 0)
+                Canvas.SetTop(paddleRight, Canvas.GetTop(paddleRight) - paddleSpeed);
+            if (rightDown && Canvas.GetTop(paddleRight) + paddleRight.Height < canvasHeight)
+                Canvas.SetTop(paddleRight, Canvas.GetTop(paddleRight) + paddleSpeed);
+
+            // Движение мяча
+            double ballLeft = Canvas.GetLeft(ball);
+            double ballTop = Canvas.GetTop(ball);
+            ballLeft += ballSpeedX;
+            ballTop += ballSpeedY;
+            Canvas.SetLeft(ball, ballLeft);
+            Canvas.SetTop(ball, ballTop);
+
+            // Столкновение с верхней/нижней границей
+            if (ballTop <= 0 || ballTop + ball.Height >= canvasHeight)
+                ballSpeedY = -ballSpeedY;
+
+            // Столкновения с ракетками
+            Rect ballRect = new Rect(ballLeft, ballTop, ball.Width, ball.Height);
+            Rect leftPaddleRect = new Rect(Canvas.GetLeft(paddleLeft), Canvas.GetTop(paddleLeft), paddleLeft.Width, paddleLeft.Height);
+            Rect rightPaddleRect = new Rect(Canvas.GetLeft(paddleRight), Canvas.GetTop(paddleRight), paddleRight.Width, paddleRight.Height);
+
+            if (ballRect.IntersectsWith(leftPaddleRect))
+            {
+                ballSpeedX = -ballSpeedX;
+                Canvas.SetLeft(ball, Canvas.GetLeft(paddleLeft) + paddleLeft.Width);
+            }
+            else if (ballRect.IntersectsWith(rightPaddleRect))
+            {
+                ballSpeedX = -ballSpeedX;
+                Canvas.SetLeft(ball, Canvas.GetLeft(paddleRight) - ball.Width);
+            }
+
+            // Проверка голов
+            if (ballLeft <= 0)
+            {
+                scoreRight++;
+                UpdateScore();
+                ResetBall();
+            }
+            else if (ballLeft + ball.Width >= canvasWidth)
+            {
+                scoreLeft++;
+                UpdateScore();
+                ResetBall();
+            }
+        }
+
+        private void ResetBall()
+        {
+            Canvas.SetLeft(ball, (canvasWidth - ball.Width) / 2);
+            Canvas.SetTop(ball, (canvasHeight - ball.Height) / 2);
+            ballSpeedX = (ballSpeedX > 0 ? -3 : 3);
+            ballSpeedY = (ballSpeedY > 0 ? 3 : -3);
+        }
+
+        private void UpdateScore()
+        {
+            tbScoreLeft.Text = scoreLeft.ToString();
+            tbScoreRight.Text = scoreRight.ToString();
+        }
+
+        private void btnReset_Click(object sender, RoutedEventArgs e)
+        {
+            scoreLeft = 0;
+            scoreRight = 0;
+            UpdateScore();
+            ResetBall();
+            Canvas.SetTop(paddleLeft, canvasHeight / 2 - paddleLeft.Height / 2);
+            Canvas.SetTop(paddleRight, canvasHeight / 2 - paddleLeft.Height / 2);
+            ballSpeedX = 3;
+            ballSpeedY = 3;
+            this.Focus(); // возвращаем фокус на окно после нажатия на кнопку
+        }
+    }
+}
