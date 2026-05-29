@@ -1,1 +1,128 @@
-<Button Content="Pong" Click="Pong_Click" Width="100" Margin="10"/>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Windows;
+using System.Windows.Controls;
+
+namespace CoopGame
+{
+    public partial class MainWindow : Window
+    {
+        private string secretWord = "";
+        private char[] currentState;
+        private List<char> usedLetters = new List<char>();
+        private int mistakes = 0;
+        private const int maxMistakes = 6;
+
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
+
+        private void btnStart_Click(object sender, RoutedEventArgs e)
+        {
+            string input = pbSecretWord.Password;
+            if (string.IsNullOrWhiteSpace(input))
+            {
+                MessageBox.Show("Введите загаданное слово!");
+                return;
+            }
+            secretWord = input.Trim();
+            currentState = new char[secretWord.Length];
+            for (int i = 0; i < secretWord.Length; i++)
+                currentState[i] = '_';
+            usedLetters.Clear();
+            mistakes = 0;
+            UpdateUI();
+
+            pbSecretWord.IsEnabled = false;
+            btnStart.IsEnabled = false;
+            tbLetter.IsEnabled = true;
+            btnGuess.IsEnabled = true;
+            btnNewGame.IsEnabled = true;
+
+            tbMessage.Text = "Игра началась! Вводите буквы.";
+        }
+
+        private void btnGuess_Click(object sender, RoutedEventArgs e)
+        {
+            string letterInput = tbLetter.Text.Trim();
+            if (string.IsNullOrEmpty(letterInput))
+            {
+                tbMessage.Text = "Введите букву!";
+                return;
+            }
+            char letter = letterInput[0];
+            tbLetter.Clear();
+
+            if (usedLetters.Contains(letter))
+            {
+                tbMessage.Text = $"Буква '{letter}' уже была использована!";
+                return;
+            }
+
+            usedLetters.Add(letter);
+            bool found = false;
+            for (int i = 0; i < secretWord.Length; i++)
+            {
+                if (char.ToLower(secretWord[i]) == char.ToLower(letter))
+                {
+                    currentState[i] = secretWord[i];
+                    found = true;
+                }
+            }
+
+            if (!found)
+            {
+                mistakes++;
+                tbMessage.Text = $"Буквы '{letter}' нет в слове. Осталось попыток: {maxMistakes - mistakes}";
+            }
+            else
+            {
+                tbMessage.Text = $"Буква '{letter}' есть в слове!";
+            }
+
+            UpdateUI();
+
+            // Проверка победы
+            if (new string(currentState).IndexOf('_') == -1)
+            {
+                tbMessage.Text = $"Поздравляем! Вы отгадали слово '{secretWord}'!";
+                EndGame();
+            }
+            else if (mistakes >= maxMistakes)
+            {
+                tbMessage.Text = $"Вы проиграли. Загаданное слово: '{secretWord}'.";
+                EndGame();
+            }
+        }
+
+        private void UpdateUI()
+        {
+            tbWordDisplay.Text = string.Join(" ", currentState);
+            tbUsedLetters.Text = "Использованные буквы: " + string.Join(", ", usedLetters);
+            tbMistakes.Text = $"Ошибки: {mistakes} / {maxMistakes}";
+        }
+
+        private void EndGame()
+        {
+            tbLetter.IsEnabled = false;
+            btnGuess.IsEnabled = false;
+        }
+
+        private void btnNewGame_Click(object sender, RoutedEventArgs e)
+        {
+            pbSecretWord.Clear();
+            pbSecretWord.IsEnabled = true;
+            btnStart.IsEnabled = true;
+            tbLetter.IsEnabled = false;
+            btnGuess.IsEnabled = false;
+            btnNewGame.IsEnabled = false;
+            tbWordDisplay.Text = "";
+            tbUsedLetters.Text = "Использованные буквы: ";
+            tbMistakes.Text = "Ошибки: 0 / 6";
+            tbMessage.Text = "Готово к новой игре. Загадайте слово.";
+        }
+    }
+}
