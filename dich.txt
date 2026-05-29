@@ -1,198 +1,32 @@
-using System;
-using System.Windows;
-using System.Windows.Input;
-using System.Windows.Threading;
-
-namespace CoopGame
-{
-    public partial class PongWindow : Window
-    {
-        private DispatcherTimer gameTimer;
-        private double ballSpeedX = 3;
-        private double ballSpeedY = 3;
-        private int scoreLeft = 0;
-        private int scoreRight = 0;
-        private bool leftUp = false, leftDown = false;
-        private bool rightUp = false, rightDown = false;
-        private const double paddleSpeed = 8;
-        private double canvasHeight;
-        private double canvasWidth;
-
-        public PongWindow()
-        {
-            InitializeComponent();
-            gameTimer = new DispatcherTimer();
-            gameTimer.Interval = TimeSpan.FromMilliseconds(16);
-            gameTimer.Tick += GameLoop;
-            gameTimer.Start();
-        }
-
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            canvasHeight = gameCanvas.ActualHeight;
-            canvasWidth = gameCanvas.ActualWidth;
-            Canvas.SetTop(paddleLeft, canvasHeight / 2 - paddleLeft.Height / 2);
-            Canvas.SetTop(paddleRight, canvasHeight / 2 - paddleLeft.Height / 2);
-            ResetBall();
-            this.Focus();
-        }
-
-        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.W) leftUp = true;
-            if (e.Key == Key.S) leftDown = true;
-            if (e.Key == Key.Up) rightUp = true;
-            if (e.Key == Key.Down) rightDown = true;
-            e.Handled = false;
-        }
-
-        private void Window_PreviewKeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.W) leftUp = false;
-            if (e.Key == Key.S) leftDown = false;
-            if (e.Key == Key.Up) rightUp = false;
-            if (e.Key == Key.Down) rightDown = false;
-            e.Handled = false;
-        }
-
-        private void GameLoop(object sender, EventArgs e)
-        {
-            // --- Движение ракеток ---
-            if (leftUp && Canvas.GetTop(paddleLeft) > 0)
-                Canvas.SetTop(paddleLeft, Canvas.GetTop(paddleLeft) - paddleSpeed);
-            if (leftDown && Canvas.GetTop(paddleLeft) + paddleLeft.Height < canvasHeight)
-                Canvas.SetTop(paddleLeft, Canvas.GetTop(paddleLeft) + paddleSpeed);
-            if (rightUp && Canvas.GetTop(paddleRight) > 0)
-                Canvas.SetTop(paddleRight, Canvas.GetTop(paddleRight) - paddleSpeed);
-            if (rightDown && Canvas.GetTop(paddleRight) + paddleRight.Height < canvasHeight)
-                Canvas.SetTop(paddleRight, Canvas.GetTop(paddleRight) + paddleSpeed);
-
-            // --- Позиция мяча ---
-            double ballX = Canvas.GetLeft(ball);
-            double ballY = Canvas.GetTop(ball);
-            double newX = ballX + ballSpeedX;
-            double newY = ballY + ballSpeedY;
-
-            // --- Столкновение с верхней/нижней стенкой ---
-            if (newY <= 0)
-            {
-                newY = 0;
-                ballSpeedY = -ballSpeedY;
-            }
-            else if (newY + ball.Height >= canvasHeight)
-            {
-                newY = canvasHeight - ball.Height;
-                ballSpeedY = -ballSpeedY;
-            }
-
-            // --- Проверка столкновений с ракетками ---
-            bool hit = false;
-
-            // Левая ракетка (движение влево)
-            if (!hit && ballSpeedX < 0)
-            {
-                Rect leftPaddle = new Rect(Canvas.GetLeft(paddleLeft), Canvas.GetTop(paddleLeft), paddleLeft.Width, paddleLeft.Height);
-                if (CheckCollision(ballX, ballY, newX, newY, leftPaddle, out double colX, out double colY))
-                {
-                    newX = colX;
-                    newY = colY;
-                    ballSpeedX = -ballSpeedX;
-                    hit = true;
-                }
-            }
-
-            // Правая ракетка (движение вправо) – исправлено!
-            if (!hit && ballSpeedX > 0)
-            {
-                Rect rightPaddle = new Rect(Canvas.GetLeft(paddleRight), Canvas.GetTop(paddleRight), paddleRight.Width, paddleRight.Height);
-                if (CheckCollision(ballX, ballY, newX, newY, rightPaddle, out double colX, out double colY))
-                {
-                    newX = colX;
-                    newY = colY;
-                    ballSpeedX = -ballSpeedX;
-                    hit = true;
-                }
-            }
-
-            // --- Проверка голов (выход за границы по X) ---
-            if (newX <= 0)
-            {
-                scoreRight++;
-                UpdateScore();
-                ResetBall();
-                return;
-            }
-            else if (newX + ball.Width >= canvasWidth)
-            {
-                scoreLeft++;
-                UpdateScore();
-                ResetBall();
-                return;
-            }
-
-            // --- Применяем новую позицию ---
-            Canvas.SetLeft(ball, newX);
-            Canvas.SetTop(ball, newY);
-        }
-
-        /// <summary>
-        /// Проверяет пересечение отрезка (from -> to) с прямоугольником.
-        /// Возвращает true, если пересекает, и корректирует координаты collisionX, collisionY.
-        /// </summary>
-        private bool CheckCollision(double fromX, double fromY, double toX, double toY, Rect rect, out double collisionX, out double collisionY)
-        {
-            collisionX = toX;
-            collisionY = toY;
-
-            // Проверяем, попадает ли конечная точка внутрь прямоугольника (или рядом)
-            Rect ballRect = new Rect(toX, toY, ball.Width, ball.Height);
-            if (ballRect.IntersectsWith(rect))
-            {
-                // Отодвигаем мяч в зависимости от того, с какой стороны подлетел
-                if (fromX + ball.Width / 2 < rect.Left) // мяч слева
-                    collisionX = rect.Left - ball.Width;
-                else if (fromX > rect.Right) // мяч справа
-                    collisionX = rect.Right;
-                else
-                    collisionX = toX; // если по вертикали, не меняем X
-
-                if (fromY + ball.Height / 2 < rect.Top)
-                    collisionY = rect.Top - ball.Height;
-                else if (fromY > rect.Bottom)
-                    collisionY = rect.Bottom;
-                else
-                    collisionY = toY;
-
-                return true;
-            }
-            return false;
-        }
-
-        private void ResetBall()
-        {
-            Canvas.SetLeft(ball, (canvasWidth - ball.Width) / 2);
-            Canvas.SetTop(ball, (canvasHeight - ball.Height) / 2);
-            ballSpeedX = (ballSpeedX > 0 ? -3 : 3);
-            ballSpeedY = (new Random().Next(2) == 0 ? 3 : -3);
-        }
-
-        private void UpdateScore()
-        {
-            tbScoreLeft.Text = scoreLeft.ToString();
-            tbScoreRight.Text = scoreRight.ToString();
-        }
-
-        private void btnReset_Click(object sender, RoutedEventArgs e)
-        {
-            scoreLeft = 0;
-            scoreRight = 0;
-            UpdateScore();
-            ResetBall();
-            Canvas.SetTop(paddleLeft, canvasHeight / 2 - paddleLeft.Height / 2);
-            Canvas.SetTop(paddleRight, canvasHeight / 2 - paddleLeft.Height / 2);
-            ballSpeedX = 3;
-            ballSpeedY = 3;
-            this.Focus();
-        }
-    }
-}
+<Window x:Class="CoopGame.PongWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Pong" Height="450" Width="650" 
+        WindowStartupLocation="CenterOwner"
+        Focusable="True"
+        PreviewKeyDown="Window_PreviewKeyDown"
+        PreviewKeyUp="Window_PreviewKeyUp"
+        Loaded="Window_Loaded"
+        SizeChanged="Window_SizeChanged">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center">
+            <TextBlock x:Name="tbScoreLeft" Text="0" FontSize="28" FontWeight="Bold" Margin="20,0"/>
+            <TextBlock Text=":" FontSize="28" Margin="10,0"/>
+            <TextBlock x:Name="tbScoreRight" Text="0" FontSize="28" FontWeight="Bold" Margin="20,0"/>
+        </StackPanel>
+        <Canvas x:Name="gameCanvas" Grid.Row="1" Background="Black" ClipToBounds="True">
+            <Rectangle x:Name="paddleLeft" Width="15" Height="80" Fill="White" Canvas.Left="20" Canvas.Top="160"/>
+            <Rectangle x:Name="paddleRight" Width="15" Height="80" Fill="White" Canvas.Left="615" Canvas.Top="160"/>
+            <Ellipse x:Name="ball" Width="15" Height="15" Fill="White" Canvas.Left="317" Canvas.Top="217"/>
+        </Canvas>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Center" Margin="10">
+            <TextBlock Text="Левая: W/S, Правая: стрелки" FontSize="12"/>
+            <Button x:Name="btnReset" Content="Новая игра" Margin="20,0,0,0" Click="btnReset_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
