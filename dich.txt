@@ -1,166 +1,75 @@
-using System;
-using System.Windows;
-using System.Windows.Input;
-using System.Windows.Threading;
+Ниже представлены ответы на контрольные вопросы по двум темам: «План видов характеристик» и «Бухгалтерский учет» на основе указанных глав пособия.
 
-namespace CoopGame
-{
-    public partial class PongWindow : Window
-    {
-        private DispatcherTimer timer;
-        private double ballX = 317, ballY = 217;
-        private double ballSpeedX = 3, ballSpeedY = 3;
-        private double leftPaddleY = 160, rightPaddleY = 160;
-        private int scoreLeft = 0, scoreRight = 0;
-        private bool leftUp = false, leftDown = false, rightUp = false, rightDown = false;
-        private const double paddleSpeed = 7;
-        private double canvasHeight, canvasWidth;
-        private const double paddleHeight = 80;
-        private double rightPaddleLeftFixed = 615; // начальное значение
+Контрольные вопросы 13. План видов характеристик (стр. 471–522)
 
-        public PongWindow()
-        {
-            InitializeComponent();
-            timer = new DispatcherTimer();
-            timer.Interval = TimeSpan.FromMilliseconds(16);
-            timer.Tick += GameTick;
-            timer.Start();
-        }
+1) Для чего предназначен объект конфигурации «План видов характеристик»?
+План видов характеристик предназначен для описания возможных типов дополнительных реквизитов (характеристик), которые могут быть назначены различным объектам конфигурации. Он позволяет хранить набор типов значений (например, «Цвет», «Размер», «Материал») и управлять ими.
 
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            canvasHeight = gameCanvas.ActualHeight;
-            canvasWidth = gameCanvas.ActualWidth;
-            leftPaddleY = (canvasHeight - paddleHeight) / 2;
-            rightPaddleY = (canvasHeight - paddleHeight) / 2;
-            // Устанавливаем правую ракетку у правого края с отступом 20
-            rightPaddleLeftFixed = canvasWidth - 20 - paddleLeft.Width;
-            Canvas.SetLeft(paddleRight, rightPaddleLeftFixed);
-            UpdatePaddles();
-            ResetBall();
-            this.Focus();
-        }
+2) В чем принципиальное отличие плана вида характеристик от справочника? Что такое тип значения характеристик?
+Отличие в том, что элементы плана видов характеристик описывают тип характеристики (например, «Цвет» как вид характеристики), а не конкретное значение (красный, синий). Тип значения характеристик — это тот тип данных, который может принимать конкретная характеристика (строка, число, ссылка на справочник и т.д.). План видов характеристик позволяет задать для каждого вида свой допустимый тип значений.
 
-        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            canvasHeight = gameCanvas.ActualHeight;
-            canvasWidth = gameCanvas.ActualWidth;
-            rightPaddleLeftFixed = canvasWidth - 20 - paddleLeft.Width;
-            Canvas.SetLeft(paddleRight, rightPaddleLeftFixed);
-            // также скорректируем позицию ракеток по Y, если нужно
-            if (leftPaddleY + paddleHeight > canvasHeight) leftPaddleY = canvasHeight - paddleHeight;
-            if (rightPaddleY + paddleHeight > canvasHeight) rightPaddleY = canvasHeight - paddleHeight;
-            UpdatePaddles();
-        }
+3) Зачем нужны дополнительные значения характеристик?
+Дополнительные значения характеристик нужны для хранения фактических значений конкретных характеристик у конкретных объектов (например, у товара «Стул» цвет = «Красный»). Они хранятся в специальном регистре сведений и связывают объект, вид характеристики и её значение.
 
-        private void UpdatePaddles()
-        {
-            Canvas.SetTop(paddleLeft, leftPaddleY);
-            Canvas.SetTop(paddleRight, rightPaddleY);
-        }
+4) Как, используя план видов характеристик, организовать учет по переменному количеству характеристик?
+Создаётся план видов характеристик, где перечисляются возможные виды характеристик. Затем создаётся регистр сведений с измерениями: «Объект» (например, номенклатура), «Характеристика» (ссылка на элемент плана видов характеристик) и ресурсом «Значение» (универсального типа или с описанием типов). Так можно добавлять неограниченное количество характеристик для каждого объекта.
 
-        private void ResetBall()
-        {
-            ballX = (canvasWidth - ball.Width) / 2;
-            ballY = (canvasHeight - ball.Height) / 2;
-            ballSpeedX = 3;
-            ballSpeedY = 3;
-            Canvas.SetLeft(ball, ballX);
-            Canvas.SetTop(ball, ballY);
-        }
+5) Как создать план видов характеристик?
+В конфигураторе добавить новый объект «План видов характеристик». Задать имя, синоним, при необходимости — иерархию, владельцев, а также определить форму элемента и списка.
 
-        private void GameTick(object sender, EventArgs e)
-        {
-            // Движение ракеток
-            if (leftUp && leftPaddleY > 0) leftPaddleY -= paddleSpeed;
-            if (leftDown && leftPaddleY + paddleHeight < canvasHeight) leftPaddleY += paddleSpeed;
-            if (rightUp && rightPaddleY > 0) rightPaddleY -= paddleSpeed;
-            if (rightDown && rightPaddleY + paddleHeight < canvasHeight) rightPaddleY += paddleSpeed;
-            UpdatePaddles();
+6) Что такое связь по параметрам выбора?
+Связь по параметрам выбора — это механизм, позволяющий ограничить доступные значения характеристики в зависимости от значения другой характеристики или реквизита. Например, для характеристики «Размер обуви» можно ограничить значения только для товара с типом «Обувь».
 
-            // Движение мяча
-            ballX += ballSpeedX;
-            ballY += ballSpeedY;
+7) Как изменить заголовок формы?
+В форме элемента плана видов характеристик нужно изменить свойство «Заголовок» в окне свойств формы. Также можно программно установить ЭтотОбъект.Заголовок = "Новый заголовок".
 
-            // Границы по Y
-            if (ballY <= 0) { ballY = 0; ballSpeedY = -ballSpeedY; }
-            if (ballY + ball.Height >= canvasHeight) { ballY = canvasHeight - ball.Height; ballSpeedY = -ballSpeedY; }
+8) Как скрывать элементы формы с подчиненной информацией при ее создании? Как описать характеристики в метаданных?
+При создании формы в конфигураторе можно в свойствах полей или табличных частей установить видимость = Ложь. Или программно в событии ПриСозданииНаСервере: Элементы.ИмяПоля.Видимость = Ложь. Характеристики в метаданных описываются через план видов характеристик и регистр сведений с типом значения.
 
-            // Отскок от левой ракетки
-            double leftPaddleLeft = Canvas.GetLeft(paddleLeft);
-            if (ballSpeedX < 0 && ballX <= leftPaddleLeft + paddleLeft.Width && ballX + ball.Width >= leftPaddleLeft)
-            {
-                if (ballY + ball.Height >= leftPaddleY && ballY <= leftPaddleY + paddleHeight)
-                {
-                    ballX = leftPaddleLeft + paddleLeft.Width;
-                    ballSpeedX = -ballSpeedX;
-                }
-            }
+9) Как использовать характеристики при выполнении отчета?
+В отчёте нужно подключить регистр сведений, где хранятся значения характеристик. С помощью запроса можно связать основной объект (например, номенклатуру) с этим регистром и вывести значения характеристик как отдельные колонки или строки.
 
-            // Отскок от правой ракетки
-            double rightPaddleLeft = Canvas.GetLeft(paddleRight);
-            if (ballSpeedX > 0 && ballX + ball.Width >= rightPaddleLeft && ballX <= rightPaddleLeft + paddleLeft.Width)
-            {
-                if (ballY + ball.Height >= rightPaddleY && ballY <= rightPaddleY + paddleHeight)
-                {
-                    ballX = rightPaddleLeft - ball.Width;
-                    ballSpeedX = -ballSpeedX;
-                }
-            }
+Контрольные вопросы 14. Бухгалтерский учет (стр. 523–551)
 
-            // Голы
-            if (ballX <= 0)
-            {
-                scoreRight++;
-                UpdateScore();
-                ResetBall();
-                return;
-            }
-            if (ballX + ball.Width >= canvasWidth)
-            {
-                scoreLeft++;
-                UpdateScore();
-                ResetBall();
-                return;
-            }
+1) Как использовать план видов характеристик для организации ведения бухгалтерского учета?
+План видов характеристик в бухгалтерском учёте используется для создания аналитики (субконто). Каждый вид субконто — это элемент плана видов характеристик. Тип значения субконто может быть ссылкой на справочник или документ.
 
-            Canvas.SetLeft(ball, ballX);
-            Canvas.SetTop(ball, ballY);
-        }
+2) Что такое субконто?
+Субконто — это объект аналитического учёта, дополнительный разрез (например, товары, контрагенты, договоры), который детализирует записи на счетах бухгалтерского учёта.
 
-        private void UpdateScore()
-        {
-            tbScoreLeft.Text = scoreLeft.ToString();
-            tbScoreRight.Text = scoreRight.ToString();
-        }
+3) Для чего предназначен объект конфигурации «План счетов»?
+План счетов хранит перечень синтетических счетов бухгалтерского учёта (например, 60, 10). Он определяет структуру счетов, их характеристики (активный/пассивный, валютный, количественный, субконто и т.д.).
 
-        private void btnReset_Click(object sender, RoutedEventArgs e)
-        {
-            scoreLeft = 0; scoreRight = 0;
-            UpdateScore();
-            ResetBall();
-            leftPaddleY = (canvasHeight - paddleHeight) / 2;
-            rightPaddleY = (canvasHeight - paddleHeight) / 2;
-            UpdatePaddles();
-            this.Focus();
-        }
+4) Как создать план счетов?
+В конфигураторе добавить объект «План счетов». Задать имя, длину кода, количество субконто, признаки учёта (валютный, количественный). Для каждого счета в форме элемента можно указать список субконто.
 
-        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.W) leftUp = true;
-            if (e.Key == Key.S) leftDown = true;
-            if (e.Key == Key.Up) rightUp = true;
-            if (e.Key == Key.Down) rightDown = true;
-            e.Handled = false;
-        }
+5) Для чего предназначен «Регистр бухгалтерии»?
+Регистр бухгалтерии предназначен для хранения проводок — движений по счетам бухгалтерского учета. Он связывает план счетов, субконто и количественно-суммовые показатели.
 
-        private void Window_PreviewKeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.W) leftUp = false;
-            if (e.Key == Key.S) leftDown = false;
-            if (e.Key == Key.Up) rightUp = false;
-            if (e.Key == Key.Down) rightDown = false;
-            e.Handled = false;
-        }
-    }
-}
+6) Как создать регистр бухгалтерии и настроить параметры учета?
+Добавить объект «Регистр бухгалтерии». Настроить:
+
+· Связь с планом счетов.
+· Измерения — корреспонденцию счетов (Дебет, Кредит), субконто.
+· Ресурсы — сумма, количество, валюта.
+· Параметры учета (например, раздельный учёт).
+
+7) Как создать движения документа по регистру бухгалтерии средствами встроенного языка?
+В модуле документа в обработчике проведения создать набор записей регистра:
+
+```1c
+Движения.ИмяРегистра.Записать = Истина;
+Движение = Движения.ИмяРегистра.Добавить();
+Движение.СчетДт = Счета.СчетДт;
+Движение.СчетКт = Счета.СчетКт;
+Движение.Сумма = Сумма;
+// ... другие поля
+```
+
+8) Как создать отчет на основании данных из регистра бухгалтерии с помощью системы компоновки?
+Создать отчёт, в схему компоновки добавить набор данных — запрос к регистру бухгалтерии (например, виртуальная таблица «Обороты»). Настроить ресурсы (сумма, количество), группировки по счетам и субконто. Пользовательские настройки позволят выбирать период и счета.
+
+9) Как задать стандартный период для выполнения отчета?
+В форме отчёта в параметре Период (или аналогичном) установить значение по умолчанию — например, НачалоМесяца(ТекущаяДата()). Также можно в модуле отчёта в обработчике ПередВыполнением задать значение параметра отбора.
+
+Если потребуются дополнительные пояснения или примеры кода, обращайтесь.
