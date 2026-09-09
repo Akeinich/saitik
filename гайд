@@ -1,393 +1,974 @@
 import sys
 import os
+import hashlib
+import secrets
+import hmac
+from datetime import datetime
 
-# ============================================
-# ДОБАВЛЕНИЕ ПУТИ К PYODBC
-# ============================================
-pyodbc_path = r"c:\users\student_22_02\appdata\roaming\python\python39\site-packages"
 
-if os.path.exists(pyodbc_path):
-    if pyodbc_path not in sys.path:
-        sys.path.append(pyodbc_path)
-        print(f"✓ Путь к pyodbc добавлен")
-else:
-    # Альтернативные пути
-    alternative_paths = [
-        os.path.expanduser("~") + r"\appdata\roaming\python\python39\site-packages",
-        os.path.expanduser("~") + r"\AppData\Roaming\Python\Python39\site-packages",
+# ============================================================
+# НАСТРОЙКА PYODBC
+# ============================================================
+
+def import_pyodbc():
+    """
+    Пытается импортировать pyodbc.
+    Если библиотека установлена в пользовательский каталог,
+    добавляет этот каталог в sys.path.
+    """
+
+    try:
+        import pyodbc
+        return pyodbc
+    except ImportError:
+        pass
+
+    # Возможные пользовательские каталоги Python
+    user_paths = [
+        os.path.expanduser(
+            r"~\AppData\Roaming\Python\Python39\site-packages"
+        ),
+        os.path.expanduser(
+            r"~\appdata\roaming\python\python39\site-packages"
+        ),
     ]
-    for path in alternative_paths:
-        if os.path.exists(path) and path not in sys.path:
-            sys.path.append(path)
-            print(f"✓ Путь добавлен: {path}")
-            break
 
-# Импортируем pyodbc
-try:
-    import pyodbc
-    print(f"✓ pyodbc импортирован (версия {pyodbc.version})")
-except ImportError as e:
-    print(f"✗ Ошибка импорта pyodbc: {e}")
+    for path in user_paths:
+        if os.path.exists(path) and path not in sys.path:
+            sys.path.insert(0, path)
+
+            try:
+                import pyodbc
+                return pyodbc
+            except ImportError:
+                continue
+
+    return None
+
+
+pyodbc = import_pyodbc()
+
+
+# ============================================================
+# ПРОВЕРКА PYODBC
+# ============================================================
+
+if pyodbc is None:
+    print("=" * 60)
+    print("ОШИБКА: pyodbc не найден")
+    print("=" * 60)
+    print()
+    print("На этом компьютере не удалось найти библиотеку pyodbc.")
+    print()
+    print("Если pyodbc уже установлен, проверьте:")
+    print("  1. Python 3.9")
+    print("  2. пользовательский каталог Python")
+    print("  3. наличие pyodbc")
+    print()
     input("Нажмите Enter для выхода...")
     sys.exit(1)
 
-# Импортируем остальные модули
-import hashlib
-import secrets
-import datetime
 
-# ============================================
-# КОНФИГУРАЦИЯ ПОДКЛЮЧЕНИЯ
-# ============================================
-SERVER = r'ET_SERVER\STUD2023'  # Ваш сервер
-DATABASE = 'Ip_23_01(1)'  # Ваша база данных
-USERNAME = 'Ip_23_01'  # Логин для подключения
-PASSWORD = 'Qweasd01'  # Пароль для подключения
+# ============================================================
+# КОНФИГУРАЦИЯ
+# ============================================================
+
+SERVER = r"ET_SERVER\STUD2023"
+DATABASE = "Ip_23_01(1)"
+USERNAME = "Ip_23_01"
+PASSWORD = "Qweasd01"
+
+
+# ============================================================
+# КОНСТАНТЫ
+# ============================================================
+
+PBKDF2_ITERATIONS = 120_000
+SALT_LENGTH = 16
+
+
+# ============================================================
+# ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+# ============================================================
+
+def print_header(title):
+    """Красивый заголовок раздела."""
+    print()
+    print("=" * 60)
+    print(title)
+    print("=" * 60)
+
+
+def input_required(message):
+    """Получение обязательного значения."""
+    while True:
+        value = input(message).strip()
+
+        if value:
+            return value
+
+        print("✗ Поле не может быть пустым.")
+
+
+def validate_login(login):
+    """
+    Простая проверка логина.
+    Разрешаем латиницу, цифры, _, -, .
+    """
+
+    if not login:
+        return False
+
+    if len(login) > 50:
+        return False
+
+    allowed = (
+        "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "0123456789_-."
+    )
+
+    return all(char in allowed for char in login)
+
+
+def validate_email(email):
+    """Простая проверка email."""
+
+    if not email:
+        return True
+
+    if len(email) > 100:
+        return False
+
+    return "@" in email and "." in email
+
+
+# ============================================================
+# РАБОТА С БАЗОЙ ДАННЫХ
+# ============================================================
 
 class Database:
-    """Класс для работы с базой данных Ip_23_01"""
-    
+    """Класс для работы с SQL Server."""
+
     def __init__(self):
         self.connection = None
         self.cursor = None
-    
-    def connect(self):
-        """Подключение к базе данных"""
-        print(f"\nПодключение к базе данных {DATABASE}...")
-        print(f"Сервер: {SERVER}")
-        print(f"Пользователь: {USERNAME}")
-        
-        # Список драйверов для перебора
-        drivers = [
-            '{ODBC Driver 17 for SQL Server}',
-            '{ODBC Driver 13 for SQL Server}',
-            '{SQL Server}',
-            '{SQL Server Native Client 11.0}'
-        ]
-        
-        for driver in drivers:
-            try:
-                connection_string = (
-                    f"DRIVER={driver};"
-                    f"SERVER={SERVER};"
-                    f"DATABASE={DATABASE};"
-                    f"UID={USERNAME};"
-                    f"PWD={PASSWORD}"
-                )
-                
-                self.connection = pyodbc.connect(connection_string)
-                self.cursor = self.connection.cursor()
-                print(f"✓ Подключение успешно (драйвер: {driver})\n")
-                return True
-                
-            except pyodbc.Error as e:
-                # Пробуем следующий драйвер
-                continue
-        
-        print("✗ Не удалось подключиться к базе данных")
-        print("\nПроверьте:")
-        print(f"1. Доступен ли сервер: {SERVER}")
-        print(f"2. Правильный ли логин: {USERNAME}")
-        print("3. Правильный ли пароль")
-        print(f"4. Существует ли база данных: {DATABASE}")
-        return False
-    
-    def disconnect(self):
-        """Закрытие соединения"""
-        if self.connection:
-            self.connection.close()
-            print("✓ Соединение закрыто")
-    
-    def execute(self, query, params=None):
-        """Выполнение SQL-запроса"""
-        try:
-            if params:
-                self.cursor.execute(query, params)
-            else:
-                self.cursor.execute(query)
-            
-            # Проверяем, есть ли результаты
-            if self.cursor.description:
-                result = self.cursor.fetchall()
-                self.connection.commit()
-                return result
-            else:
-                self.connection.commit()
-                return True
-                
-        except pyodbc.Error as e:
-            print(f"✗ Ошибка SQL: {e}")
-            try:
-                self.connection.rollback()
-            except:
-                pass
+        self.driver = None
+
+    def find_driver(self):
+        """
+        Определяет установленный ODBC-драйвер.
+        """
+
+        drivers = pyodbc.drivers()
+
+        if not drivers:
             return None
 
+        # Предпочтительные драйверы.
+        preferred = [
+            "ODBC Driver 18 for SQL Server",
+            "ODBC Driver 17 for SQL Server",
+            "ODBC Driver 13 for SQL Server",
+            "ODBC Driver 11 for SQL Server",
+            "SQL Server Native Client 11.0",
+            "SQL Server"
+        ]
+
+        for preferred_driver in preferred:
+            if preferred_driver in drivers:
+                return preferred_driver
+
+        # Если ничего из известных нет,
+        # берём последний установленный драйвер.
+        return drivers[-1]
+
+    def connect(self):
+        """Подключение к SQL Server."""
+
+        print_header("ПОДКЛЮЧЕНИЕ К БАЗЕ ДАННЫХ")
+
+        print("Сервер:   ", SERVER)
+        print("База:     ", DATABASE)
+        print("Пользователь:", USERNAME)
+        print()
+
+        self.driver = self.find_driver()
+
+        if not self.driver:
+            print("✗ ODBC-драйвер SQL Server не найден.")
+            print()
+            print("Установленные драйверы отсутствуют.")
+            return False
+
+        print("Используется драйвер:")
+        print(self.driver)
+        print()
+
+        connection_string = (
+            f"DRIVER={{{self.driver}}};"
+            f"SERVER={SERVER};"
+            f"DATABASE={DATABASE};"
+            f"UID={USERNAME};"
+            f"PWD={PASSWORD};"
+            "TrustServerCertificate=yes;"
+        )
+
+        try:
+            self.connection = pyodbc.connect(
+                connection_string,
+                timeout=5
+            )
+
+            self.cursor = self.connection.cursor()
+
+            print("✓ Подключение успешно!")
+            return True
+
+        except pyodbc.Error as error:
+            print("✗ Не удалось подключиться к SQL Server.")
+            print()
+            print("Ошибка:")
+            print(error)
+
+            self.connection = None
+            self.cursor = None
+
+            return False
+
+    def close(self):
+        """Закрытие соединения."""
+
+        try:
+            if self.cursor:
+                self.cursor.close()
+        except pyodbc.Error:
+            pass
+
+        try:
+            if self.connection:
+                self.connection.close()
+        except pyodbc.Error:
+            pass
+
+        self.cursor = None
+        self.connection = None
+
+    def select(self, query, params=()):
+        """
+        Выполнение SELECT-запроса.
+        Возвращает список строк.
+        """
+
+        try:
+            self.cursor.execute(query, params)
+            return self.cursor.fetchall()
+
+        except pyodbc.Error as error:
+            print()
+            print("✗ Ошибка SQL:")
+            print(error)
+            return None
+
+    def execute(self, query, params=()):
+        """
+        Выполнение INSERT / UPDATE / DELETE.
+        """
+
+        try:
+            self.cursor.execute(query, params)
+            self.connection.commit()
+            return True
+
+        except pyodbc.Error as error:
+            print()
+            print("✗ Ошибка SQL:")
+            print(error)
+
+            try:
+                self.connection.rollback()
+            except pyodbc.Error:
+                pass
+
+            return False
+
+
+# ============================================================
+# АВТОРИЗАЦИЯ
+# ============================================================
+
 class AuthSystem:
-    """Система авторизации"""
-    
-    def __init__(self, db):
-        self.db = db
-    
-    def hash_password(self, password, salt=None):
-        """Хеширование пароля с солью"""
-        if salt is None:
-            salt = secrets.token_hex(16)
-        
-        password_salt = password + salt
-        password_hash = hashlib.sha256(password_salt.encode()).hexdigest()
-        
-        return password_hash, salt
-    
+    """Система регистрации и авторизации."""
+
+    def __init__(self, database):
+        self.db = database
+
+    # --------------------------------------------------------
+    # ХЕШИРОВАНИЕ
+    # --------------------------------------------------------
+
+    @staticmethod
+    def hash_password(password):
+        """
+        Новое безопасное хеширование пароля.
+
+        Используется PBKDF2-HMAC-SHA256.
+        Дополнительные библиотеки не нужны.
+        """
+
+        salt = secrets.token_bytes(SALT_LENGTH)
+
+        password_hash = hashlib.pbkdf2_hmac(
+            "sha256",
+            password.encode("utf-8"),
+            salt,
+            PBKDF2_ITERATIONS
+        )
+
+        return password_hash.hex(), salt.hex()
+
+    @staticmethod
+    def hash_password_old(password, salt):
+        """
+        Старый способ хеширования из исходной программы.
+
+        Нужен для совместимости с уже существующими
+        пользователями.
+        """
+
+        value = password + salt
+
+        return hashlib.sha256(
+            value.encode("utf-8")
+        ).hexdigest()
+
+    @staticmethod
+    def verify_password(password, stored_hash, salt):
+        """
+        Проверяет пароль.
+
+        Поддерживает:
+        1. новый PBKDF2
+        2. старый SHA-256
+        """
+
+        # ----------------------------------------------------
+        # Попытка проверить новый PBKDF2
+        # ----------------------------------------------------
+
+        try:
+            salt_bytes = bytes.fromhex(salt)
+
+            new_hash = hashlib.pbkdf2_hmac(
+                "sha256",
+                password.encode("utf-8"),
+                salt_bytes,
+                PBKDF2_ITERATIONS
+            ).hex()
+
+            if hmac.compare_digest(new_hash, stored_hash):
+                return True, "pbkdf2"
+
+        except (ValueError, TypeError):
+            pass
+
+        # ----------------------------------------------------
+        # Проверка старого SHA-256
+        # ----------------------------------------------------
+
+        old_hash = AuthSystem.hash_password_old(
+            password,
+            salt
+        )
+
+        if hmac.compare_digest(old_hash, stored_hash):
+            return True, "sha256"
+
+        return False, None
+
+    # --------------------------------------------------------
+    # РЕГИСТРАЦИЯ
+    # --------------------------------------------------------
+
     def register(self):
-        """Регистрация нового пользователя"""
-        print("\n" + "="*50)
-        print("РЕГИСТРАЦИЯ НОВОГО ПОЛЬЗОВАТЕЛЯ")
-        print("="*50)
-        
-        # Ввод логина
+        """Регистрация нового пользователя."""
+
+        print_header("РЕГИСТРАЦИЯ НОВОГО ПОЛЬЗОВАТЕЛЯ")
+
+        # Логин
         while True:
             login = input("Придумайте логин: ").strip()
+
             if not login:
-                print("✗ Логин не может быть пустым\n")
+                print("✗ Логин не может быть пустым.")
                 continue
+
+            if not validate_login(login):
+                print(
+                    "✗ Логин может содержать только "
+                    "латинские буквы, цифры, _, - и ."
+                )
+                continue
+
+            if len(login) > 50:
+                print("✗ Логин слишком длинный.")
+                continue
+
             break
-        
-        # Проверка существования логина
-        result = self.db.execute(
-            "SELECT UserID FROM Users WHERE Login = ?",
+
+        # Проверяем существование
+        result = self.db.select(
+            """
+            SELECT UserID
+            FROM Users
+            WHERE Login = ?
+            """,
             (login,)
         )
+
+        if result is None:
+            print("✗ Не удалось проверить логин.")
+            return False
+
         if result:
-            print(f"✗ Пользователь с логином '{login}' уже существует\n")
-            return
-        
-        # Ввод пароля
+            print()
+            print(
+                f"✗ Пользователь '{login}' "
+                f"уже существует."
+            )
+            return False
+
+        # Пароль
         while True:
-            password = input("Придумайте пароль (мин. 4 символа): ")
+            password = input(
+                "Придумайте пароль (мин. 4 символа): "
+            )
+
             if len(password) < 4:
-                print("✗ Пароль слишком короткий\n")
+                print("✗ Пароль слишком короткий.")
                 continue
+
             break
-        
-        # Дополнительные данные
-        full_name = input("Введите полное имя (Enter - пропустить): ").strip()
-        email = input("Введите email (Enter - пропустить): ").strip()
-        
-        # Хеширование пароля
-        password_hash, salt = self.hash_password(password)
-        
-        # Сохранение в базу данных
-        result = self.db.execute(
-            """INSERT INTO Users (Login, PasswordHash, Salt, FullName, Email) 
-               VALUES (?, ?, ?, ?, ?)""",
-            (login, password_hash, salt, full_name or None, email or None)
+
+        # Подтверждение
+        while True:
+            password_confirm = input(
+                "Повторите пароль: "
+            )
+
+            if password != password_confirm:
+                print("✗ Пароли не совпадают.")
+                continue
+
+            break
+
+        # Имя
+        full_name = input(
+            "Введите полное имя (Enter - пропустить): "
+        ).strip()
+
+        # Email
+        while True:
+            email = input(
+                "Введите email (Enter - пропустить): "
+            ).strip()
+
+            if validate_email(email):
+                break
+
+            print("✗ Некорректный email.")
+
+        # Хеш
+        password_hash, salt = self.hash_password(
+            password
         )
-        
-        if result:
-            print("\n✓ Регистрация успешна!")
-            print(f"  Логин: {login}")
-            if full_name:
-                print(f"  Имя: {full_name}")
-        else:
-            print("\n✗ Ошибка при регистрации")
-    
+
+        # Запись в БД
+        success = self.db.execute(
+            """
+            INSERT INTO Users
+                (Login, PasswordHash, Salt, FullName, Email)
+            VALUES
+                (?, ?, ?, ?, ?)
+            """,
+            (
+                login,
+                password_hash,
+                salt,
+                full_name or None,
+                email or None
+            )
+        )
+
+        if not success:
+            print()
+            print("✗ Не удалось зарегистрировать пользователя.")
+            return False
+
+        print()
+        print("✓ Регистрация успешно завершена!")
+        print()
+        print("Логин:", login)
+
+        if full_name:
+            print("Имя:", full_name)
+
+        return True
+
+    # --------------------------------------------------------
+    # ВХОД
+    # --------------------------------------------------------
+
     def login(self):
-        """Вход пользователя в систему"""
-        print("\n" + "="*50)
-        print("ВХОД В СИСТЕМУ")
-        print("="*50)
-        
+        """Авторизация пользователя."""
+
+        print_header("ВХОД В СИСТЕМУ")
+
         login = input("Введите логин: ").strip()
         password = input("Введите пароль: ")
-        
-        # Поиск пользователя
-        result = self.db.execute(
-            """SELECT UserID, PasswordHash, Salt, FullName, IsActive 
-               FROM Users WHERE Login = ?""",
+
+        result = self.db.select(
+            """
+            SELECT
+                UserID,
+                PasswordHash,
+                Salt,
+                FullName,
+                IsActive
+            FROM Users
+            WHERE Login = ?
+            """,
             (login,)
         )
-        
+
+        # Пользователь не найден
+        if result is None:
+            return False
+
         if not result:
-            # Логирование неудачной попытки
-            self.db.execute(
-                "INSERT INTO LoginAttempts (Login, Success, IPAddress) VALUES (?, 0, 'localhost')",
-                (login,)
-            )
-            print("\n✗ Неверный логин или пароль")
+            self.log_attempt(login, False)
+
+            print()
+            print("✗ Неверный логин или пароль.")
             return False
-        
-        user_id, stored_hash, salt, full_name, is_active = result[0]
-        
-        # Проверка активности
+
+        (
+            user_id,
+            stored_hash,
+            salt,
+            full_name,
+            is_active
+        ) = result[0]
+
+        # Заблокирован
         if not is_active:
-            print("\n✗ Аккаунт заблокирован")
+            print()
+            print("✗ Аккаунт заблокирован.")
             return False
-        
-        # Проверка пароля
-        entered_hash, _ = self.hash_password(password, salt)
-        
-        if entered_hash == stored_hash:
-            # Обновление времени последнего входа
-            self.db.execute(
-                "UPDATE Users SET LastLoginDate = ? WHERE UserID = ?",
-                (datetime.datetime.now(), user_id)
-            )
-            # Логирование успешной попытки
-            self.db.execute(
-                "INSERT INTO LoginAttempts (Login, Success, IPAddress) VALUES (?, 1, 'localhost')",
-                (login,)
-            )
-            display_name = full_name or login
-            print(f"\n✓ Авторизация успешна!")
-            print(f"  Добро пожаловать, {display_name}!")
-            return True
-        else:
-            # Логирование неудачной попытки
-            self.db.execute(
-                "INSERT INTO LoginAttempts (Login, Success, IPAddress) VALUES (?, 0, 'localhost')",
-                (login,)
-            )
-            print("\n✗ Неверный логин или пароль")
+
+        # Проверяем пароль
+        correct, hash_type = self.verify_password(
+            password,
+            stored_hash,
+            salt
+        )
+
+        if not correct:
+            self.log_attempt(login, False)
+
+            print()
+            print("✗ Неверный логин или пароль.")
             return False
-    
+
+        # ----------------------------------------------------
+        # Если старый SHA-256 успешно проверился,
+        # автоматически обновляем хеш до PBKDF2.
+        # ----------------------------------------------------
+
+        if hash_type == "sha256":
+            new_hash, new_salt = self.hash_password(
+                password
+            )
+
+            self.db.execute(
+                """
+                UPDATE Users
+                SET PasswordHash = ?, Salt = ?
+                WHERE UserID = ?
+                """,
+                (
+                    new_hash,
+                    new_salt,
+                    user_id
+                )
+            )
+
+        # Обновляем дату последнего входа
+        self.db.execute(
+            """
+            UPDATE Users
+            SET LastLoginDate = ?
+            WHERE UserID = ?
+            """,
+            (
+                datetime.now(),
+                user_id
+            )
+        )
+
+        # Логируем успешный вход
+        self.log_attempt(login, True)
+
+        display_name = full_name or login
+
+        print()
+        print("✓ Авторизация успешна!")
+        print()
+        print(
+            f"Добро пожаловать, {display_name}!"
+        )
+
+        return True
+
+    # --------------------------------------------------------
+    # ЛОГИРОВАНИЕ
+    # --------------------------------------------------------
+
+    def log_attempt(self, login, success):
+        """Записывает попытку входа."""
+
+        self.db.execute(
+            """
+            INSERT INTO LoginAttempts
+                (Login, Success, IPAddress)
+            VALUES
+                (?, ?, ?)
+            """,
+            (
+                login,
+                1 if success else 0,
+                "localhost"
+            )
+        )
+
+    # --------------------------------------------------------
+    # СМЕНА ПАРОЛЯ
+    # --------------------------------------------------------
+
     def change_password(self):
-        """Смена пароля"""
-        print("\n" + "="*50)
-        print("СМЕНА ПАРОЛЯ")
-        print("="*50)
-        
+        """Изменение пароля."""
+
+        print_header("СМЕНА ПАРОЛЯ")
+
         login = input("Введите логин: ").strip()
         old_password = input("Введите старый пароль: ")
-        
-        # Проверка старого пароля
-        result = self.db.execute(
-            "SELECT PasswordHash, Salt FROM Users WHERE Login = ?",
+
+        result = self.db.select(
+            """
+            SELECT UserID, PasswordHash, Salt
+            FROM Users
+            WHERE Login = ?
+            """,
             (login,)
         )
-        
+
+        if result is None:
+            return False
+
         if not result:
-            print("\n✗ Пользователь не найден")
+            print()
+            print("✗ Пользователь не найден.")
             return False
-        
-        stored_hash, salt = result[0]
-        old_hash, _ = self.hash_password(old_password, salt)
-        
-        if old_hash != stored_hash:
-            print("\n✗ Старый пароль неверен")
+
+        user_id, stored_hash, salt = result[0]
+
+        correct, _ = self.verify_password(
+            old_password,
+            stored_hash,
+            salt
+        )
+
+        if not correct:
+            print()
+            print("✗ Старый пароль неверен.")
             return False
-        
-        # Ввод нового пароля
+
+        # Новый пароль
         while True:
-            new_password = input("Введите новый пароль (мин. 4 символа): ")
+            new_password = input(
+                "Введите новый пароль (мин. 4 символа): "
+            )
+
             if len(new_password) < 4:
-                print("✗ Пароль слишком короткий")
+                print("✗ Пароль слишком короткий.")
                 continue
+
             break
-        
-        # Обновление пароля
-        new_hash, new_salt = self.hash_password(new_password)
-        result = self.db.execute(
-            "UPDATE Users SET PasswordHash = ?, Salt = ? WHERE Login = ?",
-            (new_hash, new_salt, login)
+
+        # Подтверждение
+        while True:
+            confirm = input(
+                "Повторите новый пароль: "
+            )
+
+            if confirm != new_password:
+                print("✗ Пароли не совпадают.")
+                continue
+
+            break
+
+        new_hash, new_salt = self.hash_password(
+            new_password
         )
-        
-        if result:
-            print("\n✓ Пароль успешно изменён")
-            return True
-        return False
-    
+
+        success = self.db.execute(
+            """
+            UPDATE Users
+            SET PasswordHash = ?, Salt = ?
+            WHERE UserID = ?
+            """,
+            (
+                new_hash,
+                new_salt,
+                user_id
+            )
+        )
+
+        if success:
+            print()
+            print("✓ Пароль успешно изменён.")
+
+        return success
+
+    # --------------------------------------------------------
+    # СПИСОК ПОЛЬЗОВАТЕЛЕЙ
+    # --------------------------------------------------------
+
     def show_users(self):
-        """Показать список пользователей"""
-        print("\n" + "="*50)
-        print("СПИСОК ПОЛЬЗОВАТЕЛЕЙ")
-        print("="*50)
-        
-        result = self.db.execute(
-            """SELECT Login, FullName, Email, CreatedDate, LastLoginDate, IsActive 
-               FROM Users ORDER BY CreatedDate DESC"""
+        """Вывод списка пользователей."""
+
+        print_header("СПИСОК ПОЛЬЗОВАТЕЛЕЙ")
+
+        result = self.db.select(
+            """
+            SELECT
+                Login,
+                FullName,
+                Email,
+                CreatedDate,
+                LastLoginDate,
+                IsActive
+            FROM Users
+            ORDER BY CreatedDate DESC
+            """
         )
-        
-        if result:
-            print(f"\n{'Логин':<15} {'Имя':<20} {'Email':<25} {'Создан':<20} {'Активен':<10}")
-            print("-"*90)
-            for user in result:
-                login, full_name, email, created, last_login, is_active = user
-                active = "Да" if is_active else "Нет"
-                print(f"{login:<15} {(full_name or 'N/A'):<20} {(email or 'N/A'):<25} {str(created):<20} {active:<10}")
-            print(f"\nВсего пользователей: {len(result)}")
-        else:
-            print("✗ Нет зарегистрированных пользователей")
-    
+
+        if result is None:
+            return
+
+        if not result:
+            print("Пользователей пока нет.")
+            return
+
+        print()
+
+        print(
+            f"{'Логин':<15}"
+            f"{'Имя':<20}"
+            f"{'Email':<25}"
+            f"{'Активен':<10}"
+        )
+
+        print("-" * 70)
+
+        for user in result:
+            (
+                login,
+                full_name,
+                email,
+                created_date,
+                last_login,
+                is_active
+            ) = user
+
+            name = full_name or "-"
+            email_value = email or "-"
+            active = "Да" if is_active else "Нет"
+
+            print(
+                f"{str(login)[:14]:<15}"
+                f"{str(name)[:19]:<20}"
+                f"{str(email_value)[:24]:<25}"
+                f"{active:<10}"
+            )
+
+        print()
+        print("Всего пользователей:", len(result))
+
+    # --------------------------------------------------------
+    # ПОПЫТКИ ВХОДА
+    # --------------------------------------------------------
+
     def show_login_attempts(self):
-        """Показать историю попыток входа"""
-        print("\n" + "="*50)
-        print("ИСТОРИЯ ПОПЫТОК ВХОДА")
-        print("="*50)
-        
-        result = self.db.execute(
-            """SELECT TOP 20 Login, AttemptDate, Success, IPAddress 
-               FROM LoginAttempts ORDER BY AttemptDate DESC"""
+        """Показывает последние попытки входа."""
+
+        print_header("ИСТОРИЯ ПОПЫТОК ВХОДА")
+
+        result = self.db.select(
+            """
+            SELECT TOP 20
+                Login,
+                AttemptDate,
+                Success,
+                IPAddress
+            FROM LoginAttempts
+            ORDER BY AttemptDate DESC
+            """
         )
-        
-        if result:
-            print(f"\n{'Логин':<15} {'Дата':<25} {'Успех':<10} {'IP адрес':<15}")
-            print("-"*65)
-            for attempt in result:
-                login, attempt_date, success, ip = attempt
-                success_str = "Да" if success else "Нет"
-                print(f"{login:<15} {str(attempt_date):<25} {success_str:<10} {ip:<15}")
-        else:
-            print("✗ История попыток пуста")
+
+        if result is None:
+            return
+
+        if not result:
+            print("История попыток пуста.")
+            return
+
+        print()
+
+        print(
+            f"{'Логин':<15}"
+            f"{'Дата':<25}"
+            f"{'Успех':<10}"
+            f"{'IP адрес':<15}"
+        )
+
+        print("-" * 65)
+
+        for attempt in result:
+            (
+                login,
+                attempt_date,
+                success,
+                ip
+            ) = attempt
+
+            success_text = (
+                "Да" if success else "Нет"
+            )
+
+            print(
+                f"{str(login)[:14]:<15}"
+                f"{str(attempt_date):<25}"
+                f"{success_text:<10}"
+                f"{str(ip):<15}"
+            )
+
+
+# ============================================================
+# ГЛАВНОЕ МЕНЮ
+# ============================================================
 
 def main():
-    """Главная функция"""
-    print("\n" + "="*50)
+    """Запуск программы."""
+
+    print()
+    print("=" * 60)
     print("СИСТЕМА АВТОРИЗАЦИИ")
-    print(f"База данных: {DATABASE}")
-    print(f"Сервер: {SERVER}")
-    print("="*50)
-    
-    # Подключение к базе данных
+    print("=" * 60)
+    print()
+    print("База данных:", DATABASE)
+    print("Сервер:", SERVER)
+    print()
+
+    # --------------------------------------------------------
+    # Подключение
+    # --------------------------------------------------------
+
     db = Database()
+
     if not db.connect():
-        input("\nНажмите Enter для выхода...")
+        print()
+        input("Нажмите Enter для выхода...")
         return
-    
+
     auth = AuthSystem(db)
-    
-    while True:
-        print("\n" + "="*50)
-        print("ГЛАВНОЕ МЕНЮ")
-        print("="*50)
-        print("1. Войти в систему")
-        print("2. Зарегистрироваться")
-        print("3. Сменить пароль")
-        print("4. Список пользователей")
-        print("5. История попыток входа")
-        print("6. Выйти")
-        
-        choice = input("\nВыберите действие (1-6): ").strip()
-        
-        if choice == "1":
-            auth.login()
-        elif choice == "2":
-            auth.register()
-        elif choice == "3":
-            auth.change_password()
-        elif choice == "4":
-            auth.show_users()
-        elif choice == "5":
-            auth.show_login_attempts()
-        elif choice == "6":
-            print("\nДо свидания!")
-            break
-        else:
-            print("\n✗ Неверный ввод! Выберите число от 1 до 6")
-        
-        input("\nНажмите Enter для продолжения...")
-    
-    db.disconnect()
+
+    try:
+
+        while True:
+
+            print()
+            print("=" * 60)
+            print("ГЛАВНОЕ МЕНЮ")
+            print("=" * 60)
+
+            print()
+            print("1. Войти в систему")
+            print("2. Зарегистрироваться")
+            print("3. Сменить пароль")
+            print("4. Список пользователей")
+            print("5. История попыток входа")
+            print("6. Выйти")
+
+            print()
+
+            choice = input(
+                "Выберите действие (1-6): "
+            ).strip()
+
+            if choice == "1":
+                auth.login()
+
+            elif choice == "2":
+                auth.register()
+
+            elif choice == "3":
+                auth.change_password()
+
+            elif choice == "4":
+                auth.show_users()
+
+            elif choice == "5":
+                auth.show_login_attempts()
+
+            elif choice == "6":
+                print()
+                print("До свидания!")
+                break
+
+            else:
+                print()
+                print(
+                    "✗ Неверный ввод. "
+                    "Выберите число от 1 до 6."
+                )
+
+            if choice != "6":
+                input(
+                    "\nНажмите Enter для продолжения..."
+                )
+
+    except KeyboardInterrupt:
+        print()
+        print()
+        print("Программа остановлена пользователем.")
+
+    except Exception as error:
+        print()
+        print("=" * 60)
+        print("НЕПРЕДВИДЕННАЯ ОШИБКА")
+        print("=" * 60)
+        print(error)
+
+    finally:
+        db.close()
+        print()
+        print("Соединение с базой данных закрыто.")
+
+
+# ============================================================
+# ЗАПУСК
+# ============================================================
 
 if __name__ == "__main__":
     main()
