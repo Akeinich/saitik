@@ -169,3 +169,13 @@
       const saved = localStorage.getItem('school_remembered');
       if (saved) { document.getElementById('loginEmail').value = saved; document.getElementById('rememberMe').checked = true; }
     })();
+
+
+/* Дополнительная игровая комната */
+document.addEventListener('DOMContentLoaded', () => {
+  const access = document.getElementById('cornerGameAccess');
+  if (!access) return;
+  access.addEventListener('click', () => {
+    window.location.href = 'playroom.html';
+  });
+});
