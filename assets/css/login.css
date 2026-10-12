@@ -117,18 +117,30 @@
   position: fixed;
   right: 0;
   bottom: 0;
-  z-index: 9999;
+  z-index: 99999;
+  display: block;
   width: 60px;
   height: 60px;
   padding: 0;
   border: 0;
-  border-radius: 0;
-  background: transparent;
+  background: linear-gradient(
+    135deg,
+    transparent 68%,
+    #c9a84c55 100%
+  );
   cursor: pointer;
-  opacity: 0;
+  pointer-events: auto;
 }
+
+#cornerGameAccess:hover {
+  background: linear-gradient(
+    135deg,
+    transparent 48%,
+    #c9a84caa 100%
+  );
+}
+
 #cornerGameAccess:focus-visible {
-  opacity: 1;
   outline: 2px solid #c9a84c;
   outline-offset: -4px;
 }
