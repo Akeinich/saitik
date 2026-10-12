@@ -73,7 +73,7 @@
     .input-icon { position:absolute; left:16px; bottom:12px; color:#5a2020; font-size:17px; transition:color .3s; pointer-events:none; }
     .form-group:focus-within .input-icon { color:var(--red); }
 
-    .options { display:flex; justify-content:space-between; align-items:center; margin-bottom:22px; }
+    .options { display:flex; justify-content:space-evenly; align-items:center; margin-bottom:22px; }
     .checkbox-wrap { display:flex; align-items:center; gap:8px; cursor:pointer; user-select:none; }
     .checkbox-wrap input { display:none; }
     .custom-check { width:16px; height:16px; border:1px solid #3a0a0a; background:#0e0202; position:relative; transition:border-color .3s; }
