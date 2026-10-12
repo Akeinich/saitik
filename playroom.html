@@ -46,7 +46,7 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
 .game-card-badge{position:absolute;top:.75rem;right:.75rem;font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;background:var(--gold);color:var(--bg);padding:.2rem .5rem;border-radius:4px;font-weight:700;}
 
 /* ── BACK BUTTON + HEADER ── */
-.game-header{width:100%;max-width:900px;display:flex;align-items:center;justify-content:space-playween;padding:1.5rem 0 1rem;}
+.game-header{width:100%;max-width:900px;display:flex;align-items:center;justify-content:space-evenly;padding:1.5rem 0 1rem;}
 .back-btn{background:none;border:1px solid var(--border);color:var(--text2);padding:.4rem 1rem;border-radius:8px;cursor:pointer;font-family:'Cinzel',serif;font-size:.75rem;letter-spacing:.1em;transition:all .2s;}
 .back-btn:hover{border-color:var(--gold);color:var(--gold);}
 .game-title{font-family:'Cinzel Decorative',serif;font-size:1.4rem;color:var(--gold);letter-spacing:.05em;}
@@ -120,12 +120,12 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
 .guess-btn.selected{background:var(--gold-d);border-color:var(--gold);color:var(--gold-l);}
 
 /* ── SOT MACHINE ── */
-#slotGame{padding-top:1.5rem;}
-.slot-wrapper{width:100%;max-width:900px;}
-.slot-machine{background:var(--felt);border:2px solid var(--gold-d);border-radius:20px;padding:1.5rem;position:relative;overflow:hidden;}
-.slot-machine::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,#c9a22710 0%,transparent 60%);pointer-events:none;}
-.slot-machine-top{display:flex;align-items:center;justify-content:space-playween;margin-bottom:1.2rem;}
-.slot-machine-label{font-family:'Cinzel Decorative',serif;font-size:1rem;color:var(--gold);letter-spacing:.1em;}
+#reelsGame{padding-top:1.5rem;}
+.reels-wrapper{width:100%;max-width:900px;}
+.reels-machine{background:var(--felt);border:2px solid var(--gold-d);border-radius:20px;padding:1.5rem;position:relative;overflow:hidden;}
+.reels-machine::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 0%,#c9a22710 0%,transparent 60%);pointer-events:none;}
+.reels-machine-top{display:flex;align-items:center;justify-content:space-evenly;margin-bottom:1.2rem;}
+.reels-machine-label{font-family:'Cinzel Decorative',serif;font-size:1rem;color:var(--gold);letter-spacing:.1em;}
 .payline-toggle{background:none;border:1px solid var(--border);color:var(--text2);padding:.3rem .8rem;border-radius:6px;cursor:pointer;font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:.1em;transition:all .2s;}
 .payline-toggle:hover{border-color:var(--gold);color:var(--gold);}
 
@@ -163,10 +163,10 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
 .center-line::before{left:-16px;}
 .center-line::after{right:-16px;transform:translateY(-50%) scaleX(-1);}
 
-/* ── SLOT CONTROLS ── */
-.slot-controls{display:flex;align-items:center;justify-content:space-playween;margin-top:1.2rem;flex-wrap:wrap;gap:1rem;}
-.slot-play-area{display:flex;align-items:center;gap:.5rem;}
-.slot-result{flex:1;min-width:200px;text-align:center;}
+/* ── reels CONTROLS ── */
+.reels-controls{display:flex;align-items:center;justify-content:space-evenly;margin-top:1.2rem;flex-wrap:wrap;gap:1rem;}
+.reels-play-area{display:flex;align-items:center;gap:.5rem;}
+.reels-result{flex:1;min-width:200px;text-align:center;}
 .spin-btn{background:linear-gradient(135deg,#c9a227,#e8c840,#c9a227);color:var(--bg);font-family:'Cinzel Decorative',serif;font-size:1.1rem;font-weight:700;padding:.7rem 2rem;border:none;border-radius:10px;cursor:pointer;letter-spacing:.05em;transition:all .2s;box-shadow:0 4px 20px #c9a22750;min-width:120px;}
 .spin-btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important;}
 .spin-btn:not(:disabled):hover{transform:translateY(-2px);box-shadow:0 6px 30px #c9a22770;}
@@ -329,7 +329,7 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
 .wheel-pointer{font-size:1.8rem;color:var(--gold);text-shadow:0 0 12px #c9a22799;line-height:1;margin-bottom:-2px;z-index:2;}
 #wheelCanvas{border-radius:50%;border:3px solid var(--gold-d);box-shadow:0 0 30px #c9a22730;display:block;}
 
-/* ── RUSSIAN ROULETTE → БАРАБАН ИСПЫТАНИЙ ── */
+/* ── CHALLENGE MODE ── */
 .revolver-wrap{display:flex;flex-direction:column;align-items:center;gap:.75rem;}
 .revolver-cylinder{width:200px;height:200px;position:relative;border-radius:50%;background:radial-gradient(circle at 40% 35%,#3a3a3a,#111);border:3px solid #555;box-shadow:inset 0 0 20px #00000088,0 0 20px #00000066;}
 .chamber-ring{position:absolute;inset:0;border-radius:50%;}
@@ -348,11 +348,11 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
 .revolver-cylinder.clicking{animation:cylClick .35s ease-out;}
 .revolver-cylinder::before{content:'▼';position:absolute;top:-22px;left:50%;transform:translateX(-50%);color:var(--gold);font-size:14px;text-shadow:0 0 8px #c9a22799;}
 .revolver-barrel{font-size:3rem;filter:drop-shadow(0 0 8px #00000088);margin-top:.25rem;}
-.roulette-info{display:flex;gap:1.5rem;align-items:center;font-size:.85rem;}
-.roulette-shot-count{font-family:'Cinzel',serif;font-weight:700;color:var(--text2);letter-spacing:.05em;}
-.roulette-odds{font-family:'JetBrains Mono',monospace;color:var(--win);font-size:.8rem;}
-.roulette-shoot-btn{background:linear-gradient(135deg,#8b0000,#c0392b);padding:.7rem 1.5rem;font-size:.85rem;}
-.roulette-pass-btn{background:linear-gradient(135deg,#1a3a1a,#2d8b2d);padding:.7rem 1.5rem;font-size:.85rem;}
+.challenge-info{display:flex;gap:1.5rem;align-items:center;font-size:.85rem;}
+.challenge-shot-count{font-family:'Cinzel',serif;font-weight:700;color:var(--text2);letter-spacing:.05em;}
+.challenge-odds{font-family:'JetBrains Mono',monospace;color:var(--win);font-size:.8rem;}
+.challenge-shoot-btn{background:linear-gradient(135deg,#8b0000,#c0392b);padding:.7rem 1.5rem;font-size:.85rem;}
+.challenge-pass-btn{background:linear-gradient(135deg,#1a3a1a,#2d8b2d);padding:.7rem 1.5rem;font-size:.85rem;}
 </style>
 </head>
 <body>
@@ -412,7 +412,7 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
         <div class="game-card-title">Кубик Удачи</div>
         <div class="game-card-desc">Угадайте точное число от 1 до 6 и утройте свою выбор!</div>
       </div>
-      <div class="game-card" onclick="showScreen('slotGame')">
+      <div class="game-card" onclick="showScreen('reelsGame')">
         <div class="game-card-badge">CLOVER PIT</div>
         <span class="game-card-icon" style="font-size:2rem;">🍀💎7️⃣</span>
         <div class="game-card-title">Clover Pit</div>
@@ -430,7 +430,7 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
         <div class="game-card-title">Колесо Сюрпризов</div>
         <div class="game-card-desc">Вращай колесо с 12 секторами — от ×0 до ×20. Какой подарок выпадет?</div>
       </div>
-      <div class="game-card" onclick="showScreen('rouletteGame')">
+      <div class="game-card" onclick="showScreen('challengeGame')">
         <div class="game-card-badge">ИСПЫТАНИЕ</div>
         <span class="game-card-icon">🎲</span>
         <div class="game-card-title">Барабан Испытаний</div>
@@ -522,17 +522,17 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
   </div>
 </div>
 
-<!-- ══════════════════ SLOT MACHINE ══════════════════ -->
-<div id="slotGame" class="screen">
+<!-- ══════════════════ reels MACHINE ══════════════════ -->
+<div id="reelsGame" class="screen">
   <div class="game-header">
     <button class="back-btn" onclick="showScreen('lobby')">← Лобби</button>
     <div class="game-title">Игровые барабаны</div>
-    <div class="hdr-balance">Баланс: <span id="slotBalance">100</span></div>
+    <div class="hdr-balance">Баланс: <span id="reelsBalance">100</span></div>
   </div>
-  <div class="slot-wrapper">
-    <div class="slot-machine">
-      <div class="slot-machine-top">
-        <div class="slot-machine-label">✦ CLOVER PIT ✦</div>
+  <div class="reels-wrapper">
+    <div class="reels-machine">
+      <div class="reels-machine-top">
+        <div class="reels-machine-label">✦ CLOVER PIT ✦</div>
         <button class="payline-toggle" onclick="togglePaytable()">📋 Комбинации</button>
       </div>
       <div class="paylines-wrap">
@@ -541,23 +541,23 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
           <!-- reels injected by JS -->
         </div>
       </div>
-      <div class="slot-controls">
-        <div class="slot-play-area">
+      <div class="reels-controls">
+        <div class="reels-play-area">
           <span class="play-label" style="font-size:.7rem;">выбор</span>
-          <input type="number" class="play-input" id="slotplay" value="10" min="1" style="width:90px;">
+          <input type="number" class="play-input" id="reelsplay" value="10" min="1" style="width:90px;">
           <div class="play-chips">
-            <button class="chip" onclick="setplay('slotplay',5)">5</button>
-            <button class="chip" onclick="setplay('slotplay',10)">10</button>
-            <button class="chip" onclick="setplay('slotplay',25)">25</button>
-            <button class="chip" onclick="setMaxplay('slotplay')">MAX</button>
+            <button class="chip" onclick="setplay('reelsplay',5)">5</button>
+            <button class="chip" onclick="setplay('reelsplay',10)">10</button>
+            <button class="chip" onclick="setplay('reelsplay',25)">25</button>
+            <button class="chip" onclick="setMaxplay('reelsplay')">MAX</button>
           </div>
         </div>
-        <div class="slot-result">
+        <div class="reels-result">
           <div class="win-amount" id="winAmount"></div>
-          <div id="slotResultMsg" style="font-size:.8rem;color:var(--text2);"></div>
+          <div id="reelsResultMsg" style="font-size:.8rem;color:var(--text2);"></div>
         </div>
         <div style="display:flex;flex-direction:column;gap:.5rem;align-items:flex-end;">
-          <button class="spin-btn" id="spinBtn" onclick="spinSlot()">▶ СПИН</button>
+          <button class="spin-btn" id="spinBtn" onclick="spinreels()">▶ СПИН</button>
           <div style="display:flex;gap:.4rem;align-items:center;">
             <button class="payline-toggle" id="autoSpinBtn" onclick="toggleAutoSpin()" style="font-size:.65rem;">🔄 АВТО</button>
             <select id="autoSpinCount" class="play-input" style="width:64px;padding:.3rem .4rem;font-size:.75rem;">
@@ -679,20 +679,20 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
 </div>
 
 <!-- ══════════════════ БАРАБАН ИСПЫТАНИЙ ══════════════════ -->
-<div id="rouletteGame" class="screen">
+<div id="challengeGame" class="screen">
   <div class="game-header">
     <button class="back-btn" onclick="showScreen('lobby')">← Лобби</button>
     <div class="game-title">Барабан Испытаний</div>
-    <div class="hdr-balance">Баланс: <span id="rouletteBalance">100</span></div>
+    <div class="hdr-balance">Баланс: <span id="challengeBalance">100</span></div>
   </div>
   <div style="display:flex;flex-direction:column;align-items:center;gap:1.2rem;max-width:420px;width:100%;">
     <div class="play-area">
       <span class="play-label">выбор:</span>
-      <input type="number" class="play-input" id="rouletteplay" value="10" min="1">
+      <input type="number" class="play-input" id="challengeplay" value="10" min="1">
       <div class="play-chips">
-        <button class="chip" onclick="setplay('rouletteplay',5)">5</button>
-        <button class="chip" onclick="setplay('rouletteplay',10)">10</button>
-        <button class="chip" onclick="setplay('rouletteplay',25)">25</button>
+        <button class="chip" onclick="setplay('challengeplay',5)">5</button>
+        <button class="chip" onclick="setplay('challengeplay',10)">10</button>
+        <button class="chip" onclick="setplay('challengeplay',25)">25</button>
       </div>
     </div>
 
@@ -711,20 +711,20 @@ canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
       <div class="revolver-barrel">🎲</div>
     </div>
 
-    <div class="roulette-info">
-      <div class="roulette-shot-count">Попытка: <span id="rouletteShotNum">1</span>/6</div>
-      <div class="roulette-odds" id="rouletteOdds">Шанс на приз: 5/6</div>
+    <div class="challenge-info">
+      <div class="challenge-shot-count">Попытка: <span id="challengeShotNum">1</span>/6</div>
+      <div class="challenge-odds" id="challengeOdds">Шанс на приз: 5/6</div>
     </div>
 
     <div style="display:flex;gap:1rem;">
-      <button class="action-btn roulette-shoot-btn" id="rouletteShootBtn" onclick="rouletteShoot()">⚡ Рискнуть</button>
-      <button class="action-btn roulette-pass-btn"  id="roulettePassBtn"  onclick="roulettePass()">🛑 Отступить</button>
+      <button class="action-btn challenge-shoot-btn" id="challengeShootBtn" onclick="challengeShoot()">⚡ Рискнуть</button>
+      <button class="action-btn challenge-pass-btn"  id="challengePassBtn"  onclick="challengePass()">🛑 Отступить</button>
     </div>
     <div style="font-size:.7rem;color:var(--text2);text-align:center;letter-spacing:.08em;">
       Риск: ×2 от выборы · Отступ: −½ выборы · Неудача: −выбор
     </div>
-    <button class="chip" onclick="rouletteReload()" style="margin-top:.5rem;">🔄 Перемешать ячейки</button>
-    <div class="result-box" id="rouletteResult"></div>
+    <button class="chip" onclick="challengeReload()" style="margin-top:.5rem;">🔄 Перемешать ячейки</button>
+    <div class="result-box" id="challengeResult"></div>
   </div>
 </div>
 
@@ -747,7 +747,7 @@ function showScreen(id) {
   window.scrollTo(0, 0);
 }
 function updateAllBalances() {
-  ['lobbyCoins','coinBalance','diceBalance','slotBalance','plinkoBalance','wheelBalance','rouletteBalance'].forEach(id => {
+  ['lobbyCoins','coinBalance','diceBalance','reelsBalance','plinkoBalance','wheelBalance','challengeBalance'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.textContent = coins;
   });
@@ -856,7 +856,7 @@ async function playDice() {
 }
 
 // ═══════════════════════════════════════════════
-//  SLOT MACHINE — CONSTANTS (Clover Pit authentic)
+//  reels MACHINE — CONSTANTS (Clover Pit authentic)
 // ═══════════════════════════════════════════════
 const SYMS = ['🍋','🍒','🍀','🔔','💎','🎁','7','9','6'];
 const WEIGHTS = [19, 18, 14, 14, 11, 11, 7, 1, 5];
@@ -1013,11 +1013,11 @@ function spinReel(col, finalSyms, delay, duration) {
   });
 }
 
-async function spinSlot() {
+async function spinreels() {
   if (isSpinning) return;
-  const play = getplay('slotplay');
+  const play = getplay('reelsplay');
   if (play <= 0 || play > coins) {
-    document.getElementById('slotResultMsg').textContent = '❌ Неверная выбор!';
+    document.getElementById('reelsResultMsg').textContent = '❌ Неверная выбор!';
     return;
   }
   isSpinning = true;
@@ -1031,7 +1031,7 @@ async function spinSlot() {
   btn.onclick = quickStop;
   clearHighlights();
   document.getElementById('winAmount').className = 'win-amount';
-  document.getElementById('slotResultMsg').textContent = '🎮 Крутим...';
+  document.getElementById('reelsResultMsg').textContent = '🎮 Крутим...';
   document.getElementById('winLines').innerHTML = '';
   const results = [];
   for (let col = 0; col < NUM_REELS; col++) {
@@ -1045,7 +1045,7 @@ async function spinSlot() {
   await sleep(80);
   btn.textContent = '▶ СПИН';
   btn.className = 'spin-btn';
-  btn.onclick = spinSlot;
+  btn.onclick = spinreels;
   btn.disabled = true;
   const grid = [];
   for (let row = 0; row < NUM_ROWS; row++) {
@@ -1058,8 +1058,8 @@ async function spinSlot() {
   const sc = outcome.scatterCount || 0;
   if (sc > 0) {
     const bar = '🍀'.repeat(sc) + '⬜'.repeat(Math.max(0, 5 - sc));
-    document.getElementById('slotResultMsg').textContent =
-      (document.getElementById('slotResultMsg').textContent || '') +
+    document.getElementById('reelsResultMsg').textContent =
+      (document.getElementById('reelsResultMsg').textContent || '') +
       `  │ Scatter: ${bar} ${sc}/5`;
   }
   await animateOutcome(outcome, play, grid);
@@ -1102,7 +1102,7 @@ async function animateOutcome(outcome, play, grid) {
     for (let col = 0; col < 3; col++) {
       if (reelCells[col]?.[1]) reelCells[col][1].classList.add('curse-hl');
     }
-    document.getElementById('slotResultMsg').textContent = '💀 6 6 6 — ПРОКЛЯТИЕ! Выигрыш раунда сожжён.';
+    document.getElementById('reelsResultMsg').textContent = '💀 6 6 6 — ПРОКЛЯТИЕ! Выигрыш раунда сожжён.';
     document.getElementById('winAmount').textContent = '';
     showbonusRound('☠ 6 6 6 ☠', 'Три шестёрки! Монеты этого раунда потеряны.', false);
     checkBankrupt();
@@ -1117,7 +1117,7 @@ async function animateOutcome(outcome, play, grid) {
     const wa = document.getElementById('winAmount');
     wa.textContent = `+${outcome.win}`;
     wa.className = 'win-amount show';
-    document.getElementById('slotResultMsg').textContent = '✨ 9 9 9 — БОЖЕСТВЕННОЕ ВМЕШАТЕЛЬСТВО!';
+    document.getElementById('reelsResultMsg').textContent = '✨ 9 9 9 — БОЖЕСТВЕННОЕ ВМЕШАТЕЛЬСТВО!';
     showbonusRound('✨ 9 9 9 ✨', `Секретная комбинация! +${outcome.win} монет!`, true);
     return;
   }
@@ -1130,7 +1130,7 @@ async function animateOutcome(outcome, play, grid) {
     const wa = document.getElementById('winAmount');
     wa.textContent = `+${outcome.win}`;
     wa.className = 'win-amount show';
-    document.getElementById('slotResultMsg').textContent = '★ bonusRound — ВСЁ ПОЛЕ СЕМЁРОК!';
+    document.getElementById('reelsResultMsg').textContent = '★ bonusRound — ВСЁ ПОЛЕ СЕМЁРОК!';
     showbonusRound('★ J A C K P O T ★', `Всё поле заполнено 7! +${outcome.win} монет!`, true);
     return;
   }
@@ -1146,7 +1146,7 @@ async function animateOutcome(outcome, play, grid) {
     wa.textContent = `+${outcome.win}`;
     wa.className = 'win-amount show';
     const names = [...new Set(outcome.hitPatterns.map(p=>p.name))].join(', ');
-    document.getElementById('slotResultMsg').textContent = `🎉 ${names}! +${outcome.win} монет`;
+    document.getElementById('reelsResultMsg').textContent = `🎉 ${names}! +${outcome.win} монет`;
     showWinLines(outcome.hitPatterns);
     await sleep(200);
     const mult = outcome.win / play;
@@ -1155,7 +1155,7 @@ async function animateOutcome(outcome, play, grid) {
     if ((outcome.scatterCount || 0) >= 5) await triggerBonus(play);
     return;
   }
-  document.getElementById('slotResultMsg').textContent = '😞 Нет паттернов. Крути ещё!';
+  document.getElementById('reelsResultMsg').textContent = '😞 Нет паттернов. Крути ещё!';
   if ((outcome.scatterCount || 0) >= 5) await triggerBonus(play);
   checkBankrupt();
 }
@@ -1313,7 +1313,7 @@ function collectBonus() {
   if (bonusTotal > 0) {
     coins += bonusTotal;
     updateAllBalances();
-    document.getElementById('slotResultMsg').textContent = `🍀 БОНУС: +${bonusTotal} монет!`;
+    document.getElementById('reelsResultMsg').textContent = `🍀 БОНУС: +${bonusTotal} монет!`;
   }
   if (bonusResolve) { bonusResolve(); bonusResolve = null; }
   checkBankrupt();
@@ -1348,7 +1348,7 @@ async function runAutoSpin() {
   while (autoSpinActive && autoSpinRemaining > 0 && coins > 0) {
     autoSpinRemaining--;
     document.getElementById('autoSpinBtn').textContent = `⏹ ${autoSpinRemaining}`;
-    await spinSlot();
+    await spinreels();
     if (!autoSpinActive) break;
     await sleep(600);
   }
@@ -1401,7 +1401,7 @@ function doReset() {
   const ab = document.getElementById('autoSpinBtn');
   if (ab) { ab.textContent = '🔄 АВТО'; ab.style.borderColor = ''; }
   const sb = document.getElementById('spinBtn');
-  if (sb) { sb.textContent = '▶ СПИН'; sb.className = 'spin-btn'; sb.onclick = spinSlot; sb.disabled = false; }
+  if (sb) { sb.textContent = '▶ СПИН'; sb.className = 'spin-btn'; sb.onclick = spinreels; sb.disabled = false; }
   document.getElementById('headsBtn').classList.remove('selected');
   document.getElementById('tailsBtn').classList.remove('selected');
   document.querySelectorAll('.guess-btn').forEach(b => b.classList.remove('selected'));
@@ -1410,7 +1410,7 @@ function doReset() {
     el.className = 'result-box';
     el.textContent = '';
   });
-  document.getElementById('slotResultMsg').textContent = '';
+  document.getElementById('reelsResultMsg').textContent = '';
   document.getElementById('winAmount').className = 'win-amount';
   document.getElementById('winLines').innerHTML = '';
   clearHighlights();
@@ -1778,20 +1778,20 @@ let rrCurrent   = 0;
 let rrShotsLeft = 6;
 let rrBusy      = false;
 
-function rouletteReload() {
+function challengeReload() {
   rrBullet    = Math.floor(Math.random() * 6);
   rrCurrent   = 0;
   rrShotsLeft = 6;
   rrBusy      = false;
-  resetRouletteChambers();
-  document.getElementById('rouletteShotNum').textContent = '1';
-  document.getElementById('rouletteOdds').textContent = 'Шанс на приз: 5/6';
-  document.getElementById('rouletteResult').className = 'result-box';
-  document.getElementById('rouletteShootBtn').disabled = false;
-  document.getElementById('roulettePassBtn').disabled  = false;
+  resetchallengeChambers();
+  document.getElementById('challengeShotNum').textContent = '1';
+  document.getElementById('challengeOdds').textContent = 'Шанс на приз: 5/6';
+  document.getElementById('challengeResult').className = 'result-box';
+  document.getElementById('challengeShootBtn').disabled = false;
+  document.getElementById('challengePassBtn').disabled  = false;
 }
 
-function updateRouletteChambers() {
+function updatechallengeChambers() {
   for (let i = 0; i < 6; i++) {
     document.getElementById(`ch${i}`).classList.remove('active');
   }
@@ -1800,7 +1800,7 @@ function updateRouletteChambers() {
   }
 }
 
-function resetRouletteChambers() {
+function resetchallengeChambers() {
   for (let i = 0; i < 6; i++) {
     const ch = document.getElementById(`ch${i}`);
     ch.classList.remove('active','fired','bullet-fired');
@@ -1811,17 +1811,17 @@ function resetRouletteChambers() {
   }
 }
 
-async function rouletteShoot() {
+async function challengeShoot() {
   if (rrBusy || rrShotsLeft <= 0) return;
-  const play = getplay('rouletteplay');
+  const play = getplay('challengeplay');
   if (play <= 0 || play > coins) {
-    document.getElementById('rouletteResult').className = 'result-box lose show';
-    document.getElementById('rouletteResult').textContent = '❌ Неверная выбор!';
+    document.getElementById('challengeResult').className = 'result-box lose show';
+    document.getElementById('challengeResult').textContent = '❌ Неверная выбор!';
     return;
   }
   rrBusy = true;
-  document.getElementById('rouletteShootBtn').disabled = true;
-  document.getElementById('roulettePassBtn').disabled  = true;
+  document.getElementById('challengeShootBtn').disabled = true;
+  document.getElementById('challengePassBtn').disabled  = true;
   const cyl = document.getElementById('revolverCylinder');
   cyl.classList.add('clicking');
   await sleep(380);
@@ -1833,13 +1833,13 @@ async function rouletteShoot() {
     ch.querySelector('.chamber-inner').textContent = '❌';
     coins -= play;
     updateAllBalances();
-    document.getElementById('rouletteResult').className = 'result-box lose show';
-    document.getElementById('rouletteResult').textContent = `❌ Неудача! -${play} монет.`;
+    document.getElementById('challengeResult').className = 'result-box lose show';
+    document.getElementById('challengeResult').textContent = `❌ Неудача! -${play} монет.`;
     rrShotsLeft = 0;
     await sleep(300);
     showbonusRound('❌ Неудача!', `Вы попали в несчастливый сектор. Потеряно ${play} монет!`, false);
-    document.getElementById('rouletteShootBtn').disabled = true;
-    document.getElementById('roulettePassBtn').disabled  = true;
+    document.getElementById('challengeShootBtn').disabled = true;
+    document.getElementById('challengePassBtn').disabled  = true;
     checkBankrupt();
   } else {
     ch.classList.remove('active');
@@ -1850,32 +1850,32 @@ async function rouletteShoot() {
     updateAllBalances();
     rrShotsLeft--;
     rrCurrent++;
-    document.getElementById('rouletteShotNum').textContent = Math.min(rrCurrent + 1, 6);
-    updateRouletteChambers();
+    document.getElementById('challengeShotNum').textContent = Math.min(rrCurrent + 1, 6);
+    updatechallengeChambers();
     const remaining = 6 - rrCurrent;
-    document.getElementById('rouletteOdds').textContent =
+    document.getElementById('challengeOdds').textContent =
       remaining > 0 ? `Шанс на приз: ${remaining - 1}/${remaining}` : 'Барабан пуст!';
-    document.getElementById('rouletteResult').className = 'result-box win show';
-    document.getElementById('rouletteResult').textContent = `✅ Повезло! +${win} монет (×2)`;
+    document.getElementById('challengeResult').className = 'result-box win show';
+    document.getElementById('challengeResult').textContent = `✅ Повезло! +${win} монет (×2)`;
     if (rrCurrent >= 6) {
-      document.getElementById('rouletteShootBtn').disabled = true;
-      document.getElementById('roulettePassBtn').disabled  = true;
+      document.getElementById('challengeShootBtn').disabled = true;
+      document.getElementById('challengePassBtn').disabled  = true;
     } else {
-      document.getElementById('rouletteShootBtn').disabled = false;
-      document.getElementById('roulettePassBtn').disabled  = false;
+      document.getElementById('challengeShootBtn').disabled = false;
+      document.getElementById('challengePassBtn').disabled  = false;
     }
     checkBankrupt();
   }
   rrBusy = false;
 }
 
-async function roulettePass() {
+async function challengePass() {
   if (rrBusy || rrShotsLeft <= 0) return;
-  const play = getplay('rouletteplay');
+  const play = getplay('challengeplay');
   if (play <= 0 || play > coins) return;
   rrBusy = true;
-  document.getElementById('rouletteShootBtn').disabled = true;
-  document.getElementById('roulettePassBtn').disabled  = true;
+  document.getElementById('challengeShootBtn').disabled = true;
+  document.getElementById('challengePassBtn').disabled  = true;
   const cyl = document.getElementById('revolverCylinder');
   cyl.classList.add('clicking');
   await sleep(380);
@@ -1889,19 +1889,19 @@ async function roulettePass() {
   updateAllBalances();
   rrShotsLeft--;
   rrCurrent++;
-  document.getElementById('rouletteShotNum').textContent = Math.min(rrCurrent + 1, 6);
-  updateRouletteChambers();
+  document.getElementById('challengeShotNum').textContent = Math.min(rrCurrent + 1, 6);
+  updatechallengeChambers();
   const remaining = 6 - rrCurrent;
-  document.getElementById('rouletteOdds').textContent =
+  document.getElementById('challengeOdds').textContent =
     remaining > 0 ? `Шанс на приз: ${remaining - 1}/${remaining}` : 'Барабан пуст!';
-  document.getElementById('rouletteResult').className = 'result-box lose show';
-  document.getElementById('rouletteResult').textContent = `🛑 Отступили. -${cost} монет.`;
+  document.getElementById('challengeResult').className = 'result-box lose show';
+  document.getElementById('challengeResult').textContent = `🛑 Отступили. -${cost} монет.`;
   if (rrCurrent >= 6) {
-    document.getElementById('rouletteShootBtn').disabled = true;
-    document.getElementById('roulettePassBtn').disabled  = true;
+    document.getElementById('challengeShootBtn').disabled = true;
+    document.getElementById('challengePassBtn').disabled  = true;
   } else {
-    document.getElementById('rouletteShootBtn').disabled = false;
-    document.getElementById('roulettePassBtn').disabled  = false;
+    document.getElementById('challengeShootBtn').disabled = false;
+    document.getElementById('challengePassBtn').disabled  = false;
   }
   rrBusy = false;
   checkBankrupt();
@@ -1913,7 +1913,7 @@ async function roulettePass() {
 initBG();
 drawBG();
 buildReels();
-rouletteReload();
+challengeReload();
 drawPlinkoBoard();
 drawWheel(0);
 updateAllBalances();
