@@ -162,21 +162,21 @@ function animateCounter(id, from, to, duration) {
 
 /* ═══ PROFILE DATA ═══ */
 const QUOTES_DATA = [
-  { text:'«Jackpot!»',                                    author:'— Данте, Devil May Cry 5' },
-  { text:'«Мне нужно больше силы»',                       author:'— Вергилий, Devil May Cry 5' },
-  { text:'«Всё это было забавно»',                        author:'— Данте, Devil May Cry 5' },
-  { text:'«Я не проигрываю»',                             author:'— Неро, Devil May Cry 5' },
-  { text:'«Демоны никогда не плачут»',                    author:'— V, Devil May Cry 5' },
-  { text:'«Давай, покажи мне, на что ты способен»',       author:'— Данте, Devil May Cry 5' },
-  { text:'«Ты и я... мы одной крови»',                    author:'— Вергилий, Devil May Cry 5' }
+  { text:'«Отлично!»',                                    author:'— Данте, игровая серия' },
+  { text:'«Мне нужно больше силы»',                       author:'— Вергилий, игровая серия' },
+  { text:'«Всё это было забавно»',                        author:'— Данте, игровая серия' },
+  { text:'«Я не проигрываю»',                             author:'— Неро, игровая серия' },
+  { text:'«Сильные люди не сдаются»',                    author:'— V, игровая серия' },
+  { text:'«Давай, покажи мне, на что ты способен»',       author:'— Данте, игровая серия' },
+  { text:'«Мы с тобой одна команда»',                    author:'— Вергилий, игровая серия' }
 ];
 const STYLE_DESC = {
-  Trickster  : 'Скорость и уклонение — уходи от атак с невероятной грацией',
-  Swordmaster: 'Мастерство клинка — раскрой потенциал холодного оружия',
-  Gunslinger : 'Дальний бой — огнестрельное оружие как смертоносный инструмент',
-  'Royal Guard': 'Железная защита — парируй и отвечай сокрушительной контратакой'
+  Analyst  : 'Внимательность и скорость — быстро замечай изменения',
+  Planner: 'Планирование — используй возможности на максимум',
+  Strategist : 'Стратегия — действуй точно и обдуманно',
+  'Coordinator': 'Железная защита — парируй и отвечай сокрушительной контратакой'
 };
-const DEFAULTS = { subject:'Математика', style:'Trickster', quote:'0' };
+const DEFAULTS = { subject:'Математика', style:'Analyst', quote:'0' };
 
 function generateRandomClass() {
   const g=['5','6','7','8','9','10','11'], l=['Z','O','V'];
@@ -200,14 +200,14 @@ function loadProfileData() {
   applyQuote(parseInt(qi));
 
   /* rank based on style */
-  const ranks = { Trickster:'A', Swordmaster:'S', Gunslinger:'SS', 'Royal Guard':'SSS' };
+  const ranks = { Analyst:'A', Planner:'S', Strategist:'SS', 'Coordinator':'SSS' };
   document.getElementById('statRank').textContent = ranks[sty] || 'S';
 }
 
 function saveProfileField(field, value) {
   localStorage.setItem('profile_' + field, value);
   if (field === 'style') {
-    const ranks = { Trickster:'A', Swordmaster:'S', Gunslinger:'SS', 'Royal Guard':'SSS' };
+    const ranks = { Analyst:'A', Planner:'S', Strategist:'SS', 'Coordinator':'SSS' };
     document.getElementById('statRank').textContent = ranks[value] || 'S';
   }
   showSaveToast();
