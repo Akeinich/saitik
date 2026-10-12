@@ -1,14 +1,4 @@
-/* ── BLOOD DRIPS ── */
-    (function(){
-      const w = document.getElementById('drips');
-      for(let i=0;i<20;i++){
-        const d=document.createElement('div'); d.className='drip';
-        d.style.cssText=`margin-left:${Math.random()*100}%;animation-duration:${3+Math.random()*6}s;animation-delay:${Math.random()*8}s;opacity:${0.2+Math.random()*0.5};width:${1+Math.random()*3}px;`;
-        w.appendChild(d);
-      }
-    })();
-
-    /* ── PARTICLES ── */
+/* ── PARTICLES ── */
     (function(){
       const cv=document.getElementById('particles'), cx=cv.getContext('2d');
       let W,H,ps=[];
