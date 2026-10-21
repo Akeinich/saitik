@@ -2,461 +2,622 @@
 from direct.showbase.ShowBase import ShowBase
 from direct.gui.OnscreenText import OnscreenText
 from panda3d.core import (
-    TextNode,
     WindowProperties,
+    TextNode,
+    CardMaker,
     AmbientLight,
     DirectionalLight,
-    PointLight,
     Vec4,
-    Vec3,
     CollisionTraverser,
     CollisionHandlerQueue,
     CollisionNode,
     CollisionRay,
-    CollisionSphere,
     BitMask32,
-    CardMaker,
-    LineSegs,
     loadPrcFileData,
-    ClockObject,
 )
 import random
 import math
 
 
-# ---------------- НАСТРОЙКИ ----------------
-
-loadPrcFileData("", "window-title Aim Trainer")
-loadPrcFileData("", "win-size 1280 720")
+# Низкие настройки для слабых ПК
+loadPrcFileData("", "window-title RETRO DOOM")
+loadPrcFileData("", "win-size 960 540")
 loadPrcFileData("", "fullscreen false")
 loadPrcFileData("", "sync-video true")
 loadPrcFileData("", "show-frame-rate-meter false")
-loadPrcFileData("", "framebuffer-multisample true")
-loadPrcFileData("", "multisamples 4")
+loadPrcFileData("", "textures-power-2 none")
 
 
-class ShooterGame(ShowBase):
+class RetroDoom(ShowBase):
     def __init__(self):
         super().__init__()
 
         self.disableMouse()
-        self.setBackgroundColor(0.025, 0.035, 0.065, 1)
+        self.setBackgroundColor(0.025, 0.02, 0.035, 1)
 
-        # ---------------- КАМЕРА ----------------
+        # ---------------- НАСТРОЙКИ ----------------
+
+        self.cell = 4
+        self.player_speed = 6.0
+        self.mouse_sensitivity = 0.12
+
+        self.health = 100
+        self.ammo = 50
+        self.score = 0
+        self.kills = 0
+
+        self.heading = 0.0
+        self.pitch = 0.0
+        self.mouse_ready = False
+
+        self.game_over = False
+        self.shoot_cooldown = 0.0
+        self.damage_cooldown = 0.0
+        self.spawn_timer = 0.0
+
+        self.enemies = []
+
+        # # = стена, . = пол
+        self.level = [
+            "############",
+            "#..........#",
+            "#..##......#",
+            "#..##..##..#",
+            "#......##..#",
+            "#.##.......#",
+            "#.##..###..#",
+            "#..........#",
+            "#..###.....#",
+            "#......##..#",
+            "#..........#",
+            "############",
+        ]
+
+        self.map_h = len(self.level)
+        self.map_w = len(self.level[0])
+
+        self.player_x = 6 * self.cell + 2
+        self.player_y = 9 * self.cell + 2
+
+        # ---------------- МЫШЬ ----------------
 
         props = WindowProperties()
         props.setCursorHidden(True)
         props.setMouseMode(WindowProperties.M_absolute)
         self.win.requestProperties(props)
 
-        self.heading = 0.0
-        self.pitch = 0.0
-        self.sensitivity = 0.12
-        self.mouse_ready = False
-
-        # Камера не перемещается, только поворачивается.
-        self.camera.setPos(0, -18, 3)
-        self.camera.setHpr(0, 0, 0)
-
-        self.taskMgr.add(self.update_camera, "update_camera")
-
-        # ---------------- ИГРА ----------------
-
-        self.score = 0
-        self.shots = 0
-        self.hits = 0
-        self.max_targets = 8
-        self.targets = []
-        self.target_id = 0
-        self.game_time = 0.0
-        self.spawn_timer = 0.0
+        self.camera.setPos(
+            self.player_x,
+            self.player_y,
+            1.55,
+        )
+        self.camera.setHpr(180, 0, 0)
 
         # ---------------- ОСВЕЩЕНИЕ ----------------
 
         ambient = AmbientLight("ambient")
-        ambient.setColor(Vec4(0.35, 0.38, 0.48, 1))
+        ambient.setColor(Vec4(0.65, 0.58, 0.55, 1))
         ambient_np = self.render.attachNewNode(ambient)
         self.render.setLight(ambient_np)
 
-        sun = DirectionalLight("main_light")
-        sun.setColor(Vec4(0.85, 0.90, 1.0, 1))
+        sun = DirectionalLight("sun")
+        sun.setColor(Vec4(0.45, 0.42, 0.4, 1))
         sun_np = self.render.attachNewNode(sun)
-        sun_np.setHpr(-35, -55, 0)
+        sun_np.setHpr(-30, -60, 0)
         self.render.setLight(sun_np)
 
-        point = PointLight("arena_light")
-        point.setColor(Vec4(0.15, 0.55, 1.0, 1))
-        point.setAttenuation(Vec3(1, 0.015, 0.001))
-        point_np = self.render.attachNewNode(point)
-        point_np.setPos(0, 12, 9)
-        self.render.setLight(point_np)
+        # ---------------- МИР ----------------
 
-        # ---------------- ОКРУЖЕНИЕ ----------------
-
-        self.build_arena()
-
-        # ---------------- СТРЕЛЬБА ----------------
-
-        self.cTrav = CollisionTraverser()
-        self.queue = CollisionHandlerQueue()
-
-        self.ray = CollisionRay()
-        self.ray.setFromLens(self.camNode, 0, 0)
-
-        ray_node = CollisionNode("camera_ray")
-        ray_node.addSolid(self.ray)
-        ray_node.setFromCollideMask(BitMask32.bit(1))
-        ray_node.setIntoCollideMask(BitMask32.allOff())
-
-        self.ray_np = self.camera.attachNewNode(ray_node)
-        self.cTrav.addCollider(self.ray_np, self.queue)
+        self.build_level()
 
         # ---------------- ИНТЕРФЕЙС ----------------
 
         self.create_ui()
 
-        # ---------------- УПРАВЛЕНИЕ ----------------
+        # ---------------- СОБЫТИЯ ----------------
 
-        self.accept("mouse1", self.shoot)
         self.accept("escape", self.userExit)
+        self.accept("mouse1", self.shoot)
         self.accept("r", self.restart)
+        self.accept("enter", self.restart)
 
-        # ---------------- ЦИКЛ ИГРЫ ----------------
+        self.taskMgr.add(self.update, "game_update")
 
-        self.taskMgr.add(self.spawn_targets, "spawn_targets")
-        self.taskMgr.add(self.update_targets, "update_targets")
+        self.spawn_enemies(5)
 
-        self.spawn_initial_targets()
+    # =================================================
+    # СОЗДАНИЕ КАРТЫ
+    # =================================================
 
-    # ==================================================
-    # ОКРУЖЕНИЕ
-    # ==================================================
+    def make_card(self, name, x1, x2, z1, z2, color,
+                  x, y, z, heading=0, pitch=0):
+        maker = CardMaker(name)
+        maker.setFrame(x1, x2, z1, z2)
 
-    def build_arena(self):
-        floor_maker = CardMaker("floor")
-        floor_maker.setFrame(-35, 35, -25, 65)
+        node = self.render.attachNewNode(maker.generate())
+        node.setPos(x, y, z)
+        node.setHpr(heading, pitch, 0)
+        node.setColor(*color)
+        node.setTwoSided(True)
 
-        floor = self.render.attachNewNode(floor_maker.generate())
-        floor.setP(-90)
-        floor.setPos(0, 15, 0)
-        floor.setColor(0.055, 0.075, 0.12, 1)
+        return node
 
-        wall_maker = CardMaker("back_wall")
-        wall_maker.setFrame(-35, 35, -1, 18)
+    def build_level(self):
+        # Пол
+        floor = self.make_card(
+            "floor",
+            -2, self.map_w * self.cell,
+            -2, self.map_h * self.cell,
+            (0.19, 0.16, 0.15, 1),
+            0, 0, 0,
+        )
 
-        wall = self.render.attachNewNode(wall_maker.generate())
-        wall.setPos(0, 55, 0)
-        wall.setColor(0.075, 0.10, 0.17, 1)
+        # Потолок
+        ceiling = self.make_card(
+            "ceiling",
+            -2, self.map_w * self.cell,
+            -2, self.map_h * self.cell,
+            (0.10, 0.09, 0.11, 1),
+            0, 0, 3.5,
+            pitch=180,
+        )
 
-        # Боковые стены
-        for x in (-35, 35):
-            maker = CardMaker("side_wall")
-            maker.setFrame(-25, 65, -1, 18)
+        # Стены. Каждая стена — простая плоскость.
+        for row, line in enumerate(self.level):
+            for col, char in enumerate(line):
+                if char != "#":
+                    continue
 
-            side = self.render.attachNewNode(maker.generate())
-            side.setP(-90)
-            side.setPos(x, 15, 0)
-            side.setColor(0.045, 0.065, 0.11, 1)
+                x = col * self.cell + self.cell / 2
+                y = (self.map_h - 1 - row) * self.cell + self.cell / 2
 
-        # Разметка пола
-        for x in range(-30, 31, 5):
-            self.add_line(
-                (x, -10, 0.025),
-                (x, 55, 0.025),
-                (0.12, 0.24, 0.36, 1),
-            )
+                color = random.choice([
+                    (0.34, 0.12, 0.10, 1),
+                    (0.28, 0.10, 0.09, 1),
+                    (0.38, 0.16, 0.12, 1),
+                ])
 
-        for y in range(-10, 56, 5):
-            self.add_line(
-                (-35, y, 0.025),
-                (35, y, 0.025),
-                (0.12, 0.24, 0.36, 1),
-            )
+                # Четыре стороны стены.
+                self.make_card(
+                    "wall_front",
+                    -self.cell / 2, self.cell / 2,
+                    0, 3.5,
+                    color,
+                    x, y - self.cell / 2, 0,
+                    pitch=90,
+                )
 
-        # Светящиеся акценты
-        for x in range(-30, 31, 10):
-            self.add_line(
-                (x, 54.8, 1),
-                (x, 54.8, 10),
-                (0.05, 0.65, 1, 1),
-            )
+                self.make_card(
+                    "wall_back",
+                    -self.cell / 2, self.cell / 2,
+                    0, 3.5,
+                    color,
+                    x, y + self.cell / 2, 0,
+                    pitch=90,
+                )
 
-    def add_line(self, start, end, color):
-        lines = LineSegs()
-        lines.setThickness(1.5)
-        lines.setColor(*color)
-        lines.moveTo(*start)
-        lines.drawTo(*end)
+                self.make_card(
+                    "wall_left",
+                    -self.cell / 2, self.cell / 2,
+                    0, 3.5,
+                    color,
+                    x - self.cell / 2, y, 0,
+                    heading=90,
+                    pitch=90,
+                )
 
-        return self.render.attachNewNode(lines.create())
+                self.make_card(
+                    "wall_right",
+                    -self.cell / 2, self.cell / 2,
+                    0, 3.5,
+                    color,
+                    x + self.cell / 2, y, 0,
+                    heading=90,
+                    pitch=90,
+                )
 
-    # ==================================================
+    # =================================================
     # ИНТЕРФЕЙС
-    # ==================================================
+    # =================================================
 
     def create_ui(self):
-        self.score_text = OnscreenText(
-            text="0000",
-            pos=(-1.28, 0.88),
-            scale=0.09,
-            fg=(0.25, 0.85, 1, 1),
+        self.hud = OnscreenText(
+            text="",
+            pos=(-1.30, 0.91),
+            scale=0.055,
+            fg=(1, 0.72, 0.35, 1),
             align=TextNode.ALeft,
             mayChange=True,
         )
 
-        OnscreenText(
-            text="SCORE",
-            pos=(-1.28, 0.79),
-            scale=0.04,
-            fg=(0.65, 0.75, 0.9, 1),
-            align=TextNode.ALeft,
-        )
-
-        self.stats_text = OnscreenText(
-            text="HITS 0 | SHOTS 0 | ACC 0%",
-            pos=(-1.28, 0.68),
-            scale=0.042,
-            fg=(0.85, 0.9, 1, 1),
-            align=TextNode.ALeft,
+        self.message = OnscreenText(
+            text="",
+            pos=(0, 0.2),
+            scale=0.12,
+            fg=(1, 0.15, 0.1, 1),
+            align=TextNode.ACenter,
             mayChange=True,
-        )
-
-        self.targets_text = OnscreenText(
-            text="TARGETS 0/8",
-            pos=(1.27, 0.88),
-            scale=0.052,
-            fg=(0.3, 1, 0.7, 1),
-            align=TextNode.ARight,
-            mayChange=True,
-        )
-
-        OnscreenText(
-            text="A I M   T R A I N E R",
-            pos=(0, 0.93),
-            scale=0.045,
-            fg=(0.65, 0.78, 1, 1),
-        )
-
-        OnscreenText(
-            text="LMB SHOOT     |     R RESTART     |     ESC EXIT",
-            pos=(0, -0.92),
-            scale=0.04,
-            fg=(0.65, 0.73, 0.85, 1),
         )
 
         self.crosshair = OnscreenText(
             text="+",
             pos=(0, 0),
             scale=0.075,
-            fg=(0.3, 1, 0.75, 1),
-            mayChange=True,
+            fg=(1, 0.85, 0.65, 1),
         )
 
-        self.hit_text = OnscreenText(
-            text="",
-            pos=(0, -0.12),
-            scale=0.065,
-            fg=(0.3, 1, 0.75, 1),
-            mayChange=True,
+        self.weapon = OnscreenText(
+            text="     /====\\\n    /______\\",
+            pos=(0, -0.72),
+            scale=0.10,
+            fg=(0.75, 0.72, 0.65, 1),
+            align=TextNode.ACenter,
         )
 
-    def update_ui(self):
-        accuracy = self.hits / self.shots * 100 if self.shots else 0
-
-        self.score_text.setText(f"{self.score:04d}")
-        self.stats_text.setText(
-            f"HITS {self.hits} | SHOTS {self.shots} | ACC {accuracy:.1f}%"
-        )
-        self.targets_text.setText(
-            f"TARGETS {len(self.targets)}/{self.max_targets}"
+        self.help = OnscreenText(
+            text="WASD: MOVE   |   MOUSE: AIM   |   LMB: FIRE   |   R: RESTART",
+            pos=(0, -0.94),
+            scale=0.035,
+            fg=(0.75, 0.7, 0.65, 1),
         )
 
-    # ==================================================
-    # КАМЕРА И МЫШЬ
-    # ==================================================
+        self.update_hud()
 
-    def update_camera(self, task):
-        if self.win is None:
-            return task.cont
+    def update_hud(self):
+        self.hud.setText(
+            f"HEALTH {self.health:03d}    "
+            f"AMMO {self.ammo:03d}    "
+            f"KILLS {self.kills:02d}    "
+            f"SCORE {self.score:04d}"
+        )
 
+    # =================================================
+    # КОЛЛИЗИИ С КАРТОЙ
+    # =================================================
+
+    def is_wall(self, x, y):
+        col = int(x // self.cell)
+        row = self.map_h - 1 - int(y // self.cell)
+
+        if row < 0 or row >= self.map_h:
+            return True
+
+        if col < 0 or col >= self.map_w:
+            return True
+
+        return self.level[row][col] == "#"
+
+    def can_move(self, x, y):
+        radius = 0.28
+
+        return (
+            not self.is_wall(x - radius, y - radius)
+            and not self.is_wall(x + radius, y - radius)
+            and not self.is_wall(x - radius, y + radius)
+            and not self.is_wall(x + radius, y + radius)
+        )
+
+    # =================================================
+    # УПРАВЛЕНИЕ ИГРОКОМ
+    # =================================================
+
+    def update_mouse(self):
         if not self.mouseWatcherNode.hasMouse():
             self.mouse_ready = False
-            return task.cont
+            return
 
         pointer = self.win.getPointer(0)
         width = self.win.getXSize()
         height = self.win.getYSize()
 
         if width <= 0 or height <= 0:
-            return task.cont
+            return
 
-        center_x = width // 2
-        center_y = height // 2
+        cx = width // 2
+        cy = height // 2
 
         if not self.mouse_ready:
-            self.win.movePointer(0, center_x, center_y)
+            self.win.movePointer(0, cx, cy)
             self.mouse_ready = True
-            return task.cont
+            return
 
-        dx = pointer.getX() - center_x
-        dy = pointer.getY() - center_y
+        dx = pointer.getX() - cx
+        dy = pointer.getY() - cy
 
-        self.heading -= dx * self.sensitivity
-        self.pitch += dy * self.sensitivity
-        self.pitch = max(-75, min(75, self.pitch))
+        self.heading -= dx * self.mouse_sensitivity
+        self.pitch = max(
+            -65,
+            min(65, self.pitch + dy * self.mouse_sensitivity),
+        )
 
         self.camera.setHpr(self.heading, self.pitch, 0)
+        self.win.movePointer(0, cx, cy)
 
-        # Сбрасываем положение курсора, не перемещая камеру.
-        self.win.movePointer(0, center_x, center_y)
+    def update_player(self, dt):
+        forward = 0
+        sideways = 0
 
-        return task.cont
+        if self.mouseWatcherNode.isButtonDown("w"):
+            forward += 1
 
-    # ==================================================
-    # МИШЕНИ
-    # ==================================================
+        if self.mouseWatcherNode.isButtonDown("s"):
+            forward -= 1
 
-    def spawn_initial_targets(self):
-        for _ in range(self.max_targets):
-            self.create_target()
+        if self.mouseWatcherNode.isButtonDown("d"):
+            sideways += 1
 
-    def create_target(self):
-        self.target_id += 1
+        if self.mouseWatcherNode.isButtonDown("a"):
+            sideways -= 1
 
-        target = self.loader.loadModel("models/smiley")
-        target.setColor(1, 0.16, 0.20, 1)
-        target.setScale(random.uniform(0.85, 1.2))
+        if forward == 0 and sideways == 0:
+            return
 
-        target.setPos(
-            random.uniform(-14, 14),
-            random.uniform(12, 38),
-            random.uniform(2, 9),
+        length = math.sqrt(
+            forward * forward + sideways * sideways
         )
 
-        target.reparentTo(self.render)
+        forward /= length
+        sideways /= length
 
-        # Запоминаем исходную высоту для движения без накопления смещения.
-        target.setPythonTag("base_z", target.getZ())
+        angle = math.radians(self.heading)
 
-        # Отдельная сфера коллизии гарантирует корректную регистрацию попаданий.
-        collision = CollisionNode(f"target_collision_{self.target_id}")
-        collision.addSolid(CollisionSphere(0, 0, 0, 1.0))
-        collision.setIntoCollideMask(BitMask32.bit(1))
-        collision.setFromCollideMask(BitMask32.allOff())
+        dx = (
+            -math.sin(angle) * forward
+            + math.cos(angle) * sideways
+        ) * self.player_speed * dt
 
-        collision_np = target.attachNewNode(collision)
-        collision_np.setPythonTag("target", target)
+        dy = (
+            math.cos(angle) * forward
+            + math.sin(angle) * sideways
+        ) * self.player_speed * dt
 
-        self.targets.append(target)
-        self.update_ui()
+        new_x = self.player_x + dx
+        new_y = self.player_y + dy
 
-    def spawn_targets(self, task):
-        dt = ClockObject.getGlobalClock().getDt()
-        self.spawn_timer += dt
+        # Раздельное движение позволяет скользить вдоль стен.
+        if self.can_move(new_x, self.player_y):
+            self.player_x = new_x
 
-        if (
-            len(self.targets) < self.max_targets
-            and self.spawn_timer >= 0.4
-        ):
-            self.spawn_timer = 0.0
-            self.create_target()
+        if self.can_move(self.player_x, new_y):
+            self.player_y = new_y
 
-        return task.cont
+        self.camera.setPos(
+            self.player_x,
+            self.player_y,
+            1.55,
+        )
 
-    def update_targets(self, task):
-        self.game_time += ClockObject.getGlobalClock().getDt()
+    # =================================================
+    # ВРАГИ
+    # =================================================
 
-        for index, target in enumerate(self.targets):
-            base_z = target.getPythonTag("base_z")
-            phase = self.game_time * 1.2 + index * 1.7
+    def spawn_enemies(self, count):
+        for _ in range(count):
+            for attempt in range(100):
+                x = random.uniform(
+                    self.cell,
+                    (self.map_w - 1) * self.cell,
+                )
+                y = random.uniform(
+                    self.cell,
+                    (self.map_h - 1) * self.cell,
+                )
 
-            target.setZ(base_z + math.sin(phase) * 0.35)
+                distance = math.hypot(
+                    x - self.player_x,
+                    y - self.player_y,
+                )
 
-        return task.cont
-
-    # ==================================================
-    # СТРЕЛЬБА
-    # ==================================================
-
-    def shoot(self):
-        self.shots += 1
-        self.hit_text.setText("")
-
-        self.queue.clearEntries()
-        self.cTrav.traverse(self.render)
-
-        hit = False
-
-        if self.queue.getNumEntries() > 0:
-            self.queue.sortEntries()
-
-            for index in range(self.queue.getNumEntries()):
-                entry = self.queue.getEntry(index)
-                hit_node = entry.getIntoNodePath()
-
-                if not hit_node.hasPythonTag("target"):
+                if self.is_wall(x, y) or distance < 10:
                     continue
 
-                target = hit_node.getPythonTag("target")
+                enemy = self.loader.loadModel("models/smiley")
+                enemy.setScale(0.85)
+                enemy.setColor(0.85, 0.08, 0.05, 1)
+                enemy.setPos(x, y, 1.1)
+                enemy.reparentTo(self.render)
 
-                if target not in self.targets:
-                    continue
-
-                self.targets.remove(target)
-                target.removeNode()
-
-                self.score += 100
-                self.hits += 1
-                hit = True
-
-                self.hit_text.setText("HIT  +100")
+                self.enemies.append({
+                    "node": enemy,
+                    "hp": 2,
+                    "attack": random.uniform(0.0, 0.5),
+                })
                 break
 
-        if hit:
-            self.crosshair.setFg((1, 0.85, 0.25, 1))
-        else:
-            self.crosshair.setFg((1, 0.3, 0.3, 1))
+    def update_enemies(self, dt):
+        for enemy in self.enemies[:]:
+            node = enemy["node"]
 
-        self.taskMgr.remove("reset_crosshair")
-        self.taskMgr.doMethodLater(
-            0.12,
-            self.reset_crosshair,
-            "reset_crosshair",
+            x = node.getX()
+            y = node.getY()
+
+            dx = self.player_x - x
+            dy = self.player_y - y
+            distance = math.hypot(dx, dy)
+
+            if distance > 1.2:
+                speed = 1.5
+
+                move_x = dx / max(distance, 0.001) * speed * dt
+                move_y = dy / max(distance, 0.001) * speed * dt
+
+                if self.can_move(x + move_x, y):
+                    node.setX(x + move_x)
+
+                if self.can_move(node.getX(), y + move_y):
+                    node.setY(y + move_y)
+
+            # Поворачиваем лицо врага к игроку.
+            node.lookAt(
+                self.camera.getPos(self.render)
+            )
+
+            enemy["attack"] -= dt
+
+            if distance < 1.5 and enemy["attack"] <= 0:
+                self.health -= 10
+                enemy["attack"] = 1.0
+                self.update_hud()
+
+                if self.health <= 0:
+                    self.health = 0
+                    self.end_game()
+
+    # =================================================
+    # СТРЕЛЬБА
+    # =================================================
+
+    def shoot(self):
+        if self.game_over or self.shoot_cooldown > 0:
+            return
+
+        if self.ammo <= 0:
+            self.message.setText("OUT OF AMMO")
+            return
+
+        self.ammo -= 1
+        self.shoot_cooldown = 0.25
+
+        # Проверяем направление взгляда и ближайшего видимого врага.
+        angle = math.radians(self.heading)
+        dir_x = -math.sin(angle)
+        dir_y = math.cos(angle)
+
+        best_enemy = None
+        best_distance = 999999
+
+        for enemy in self.enemies:
+            node = enemy["node"]
+
+            dx = node.getX() - self.player_x
+            dy = node.getY() - self.player_y
+            distance = math.hypot(dx, dy)
+
+            if distance > 30 or distance < 0.1:
+                continue
+
+            dot = (
+                dx / distance * dir_x
+                + dy / distance * dir_y
+            )
+
+            # Чем меньше число, тем точнее надо прицелиться.
+            if dot < 0.985:
+                continue
+
+            # Не стреляем сквозь стены.
+            steps = max(1, int(distance / 0.2))
+            blocked = False
+
+            for i in range(1, steps):
+                t = i / steps
+
+                check_x = self.player_x + dx * t
+                check_y = self.player_y + dy * t
+
+                if self.is_wall(check_x, check_y):
+                    blocked = True
+                    break
+
+            if blocked:
+                continue
+
+            if distance < best_distance:
+                best_distance = distance
+                best_enemy = enemy
+
+        if best_enemy is not None:
+            best_enemy["hp"] -= 1
+            self.message.setText("HIT!")
+
+            if best_enemy["hp"] <= 0:
+                best_enemy["node"].removeNode()
+                self.enemies.remove(best_enemy)
+
+                self.score += 100
+                self.kills += 1
+
+                if len(self.enemies) == 0:
+                    self.spawn_enemies(5)
+        else:
+            self.message.setText("")
+
+        self.update_hud()
+
+    # =================================================
+    # ИГРОВОЙ ЦИКЛ
+    # =================================================
+
+    def update(self, task):
+        dt = min(
+            ClockObject.getGlobalClock().getDt(),
+            0.05,
         )
 
-        self.update_ui()
+        if self.game_over:
+            return task.cont
 
-    def reset_crosshair(self, task):
-        self.crosshair.setFg((0.3, 1, 0.75, 1))
-        return task.done
+        self.shoot_cooldown = max(
+            0,
+            self.shoot_cooldown - dt,
+        )
 
-    # ==================================================
-    # ПЕРЕЗАПУСК
-    # ==================================================
+        self.damage_cooldown = max(
+            0,
+            self.damage_cooldown - dt,
+        )
+
+        self.update_mouse()
+        self.update_player(dt)
+        self.update_enemies(dt)
+
+        return task.cont
+
+    # =================================================
+    # ЗАВЕРШЕНИЕ И ПЕРЕЗАПУСК
+    # =================================================
+
+    def end_game(self):
+        self.game_over = True
+        self.message.setText(
+            "YOU DIED\n\n"
+            f"SCORE: {self.score}\n"
+            f"KILLS: {self.kills}\n\n"
+            "PRESS R TO RESTART"
+        )
 
     def restart(self):
-        for target in self.targets:
-            target.removeNode()
+        for enemy in self.enemies:
+            enemy["node"].removeNode()
 
-        self.targets.clear()
+        self.enemies.clear()
 
+        self.health = 100
+        self.ammo = 50
         self.score = 0
-        self.shots = 0
-        self.hits = 0
-        self.game_time = 0.0
-        self.spawn_timer = 0.0
+        self.kills = 0
 
-        self.heading = 0.0
-        self.pitch = 0.0
-        self.camera.setHpr(0, 0, 0)
+        self.game_over = False
+        self.shoot_cooldown = 0
+        self.message.setText("")
+
+        self.player_x = 6 * self.cell + 2
+        self.player_y = 9 * self.cell + 2
+
+        self.heading = 180
+        self.pitch = 0
         self.mouse_ready = False
 
-        self.hit_text.setText("")
-        self.crosshair.setFg((0.3, 1, 0.75, 1))
+        self.camera.setPos(
+            self.player_x,
+            self.player_y,
+            1.55,
+        )
+        self.camera.setHpr(self.heading, self.pitch, 0)
 
-        self.spawn_initial_targets()
-        self.update_ui()
+        self.spawn_enemies(5)
+        self.update_hud()
 
 
-app = ShooterGame()
-app.run()
+game = RetroDoom()
+game.run()
