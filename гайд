@@ -1,4 +1,3 @@
-
 from direct.showbase.ShowBase import ShowBase
 from direct.gui.OnscreenText import OnscreenText
 from panda3d.core import (
@@ -8,11 +7,7 @@ from panda3d.core import (
     AmbientLight,
     DirectionalLight,
     Vec4,
-    CollisionTraverser,
-    CollisionHandlerQueue,
-    CollisionNode,
-    CollisionRay,
-    BitMask32,
+    ClockObject,
     loadPrcFileData,
 )
 import random
@@ -30,6 +25,8 @@ loadPrcFileData("", "textures-power-2 none")
 
 class RetroDoom(ShowBase):
     def __init__(self):
+        # Защита от вызова обработчиков до завершения инициализации.
+        self._ready = False
         self.enemies = []
         self.game_over = False
         super().__init__()
@@ -117,6 +114,9 @@ class RetroDoom(ShowBase):
         self.create_ui()
 
         # ---------------- СОБЫТИЯ ----------------
+
+        # Объект полностью подготовлен: теперь можно принимать события.
+        self._ready = True
 
         self.accept("escape", self.userExit)
         self.accept("mouse1", self.shoot)
@@ -589,10 +589,16 @@ class RetroDoom(ShowBase):
         )
 
     def restart(self):
-        for enemy in self.enemies:
-            enemy["node"].removeNode()
+        # Panda3D может вызвать событие во время инициализации.
+        if not getattr(self, "_ready", False):
+            return
 
-        self.enemies.clear()
+        enemies = getattr(self, "enemies", [])
+        for enemy in enemies[:]:
+            node = enemy.get("node")
+            if node is not None and not node.isEmpty():
+                node.removeNode()
+        enemies.clear()
 
         self.health = 100
         self.ammo = 50
