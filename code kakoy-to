@@ -1,0 +1,570 @@
+import math
+import random
+import sys
+
+from PySide6.QtCore import Qt, QTimer, QRectF, QPointF
+from PySide6.QtGui import QColor, QFont, QPainter, QPen, QBrush
+from PySide6.QtWidgets import (
+    QApplication,
+    QComboBox,
+    QFrame,
+    QGraphicsDropShadowEffect,
+    QHBoxLayout,
+    QLabel,
+    QMainWindow,
+    QMessageBox,
+    QPushButton,
+    QSizePolicy,
+    QVBoxLayout,
+    QWidget,
+)
+
+
+# ----------------------------- НАСТРОЙКИ ИГРЫ -----------------------------
+
+START_BALANCE = 1000
+BET_OPTIONS = (50, 100, 250, 500)
+
+MULTIPLIERS = {
+    "x1.5": {"value": 1.5, "chance": 70},
+    "x2": {"value": 2.0, "chance": 45},
+    "x5": {"value": 5.0, "chance": 20},
+    "x10": {"value": 10.0, "chance": 7},
+}
+
+BG = "#0b1020"
+PANEL = "#121a2d"
+PANEL_LIGHT = "#19243b"
+TEXT = "#f2f5ff"
+MUTED = "#8d9ab5"
+ACCENT = "#7c5cff"
+GREEN = "#2dd4a7"
+RED = "#ff5470"
+GOLD = "#ffcb70"
+
+
+def money(value: float) -> str:
+    """Форматирует игровую валюту."""
+    if float(value).is_integer():
+        return f"{int(value):,}".replace(",", " ")
+    return f"{value:,.2f}".replace(",", " ")
+
+
+class UpgradeWheel(QWidget):
+    """Самостоятельно рисуемое колесо: сектор успеха и неподвижная стрелка."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setMinimumSize(300, 300)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.angle = 0.0
+        self.chance = 70
+        self.spinning = False
+        self.setAttribute(Qt.WidgetAttribute.WA_OpaquePaintEvent, False)
+
+    def set_game_state(self, chance: int, angle: float, spinning: bool = False):
+        self.chance = max(1, min(99, int(chance)))
+        self.angle = float(angle)
+        self.spinning = spinning
+        self.update()
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        painter.setRenderHint(QPainter.RenderHint.TextAntialiasing, True)
+
+        # Весь рисунок помещается в доступную область, независимо от размера окна.
+        side = min(self.width(), self.height()) - 24
+        if side < 20:
+            painter.end()
+            return
+
+        center = QPointF(self.width() / 2, self.height() / 2)
+        radius = side / 2
+        outer = QRectF(center.x() - radius, center.y() - radius, side, side)
+
+        # Мягкое внешнее свечение и обод.
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QColor("#1d2b49"))
+        painter.drawEllipse(outer.adjusted(-4, -4, 4, 4))
+
+        painter.setPen(QPen(QColor("#314467"), max(2, side * 0.018)))
+        painter.setBrush(QColor("#10182a"))
+        painter.drawEllipse(outer)
+
+        # Колесо целиком вращается; зелёный сектор показывает вероятность успеха.
+        wheel_rect = outer.adjusted(side * 0.07, side * 0.07, -side * 0.07, -side * 0.07)
+        span = int(360 * 16 * self.chance / 100)
+        start = int((90 + self.angle) * 16)
+
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(QColor("#24314b"))
+        painter.drawPie(wheel_rect, 0, 360 * 16)
+
+        painter.setBrush(QColor(GREEN))
+        painter.drawPie(wheel_rect, start, span)
+
+        # Тонкие отметки по окружности.
+        tick_radius = radius * 0.88
+        for i in range(40):
+            a = math.radians(i * 9 + self.angle)
+            inner_r = tick_radius - (9 if i % 5 == 0 else 4)
+            x1 = center.x() + math.cos(a) * inner_r
+            y1 = center.y() - math.sin(a) * inner_r
+            x2 = center.x() + math.cos(a) * tick_radius
+            y2 = center.y() - math.sin(a) * tick_radius
+            pen = QPen(QColor("#dce5ff" if i % 5 == 0 else "#7182a5"))
+            pen.setWidthF(2.4 if i % 5 == 0 else 1.2)
+            pen.setCapStyle(Qt.PenCapStyle.FlatCap)
+            painter.setPen(pen)
+            painter.drawLine(QPointF(x1, y1), QPointF(x2, y2))
+
+        # Подпись вероятности в центре.
+        painter.setPen(QPen(QColor("#0b342c") if self.chance >= 50 else QColor(TEXT)))
+        font = QFont("Segoe UI", max(15, int(side * 0.085)), QFont.Weight.Bold)
+        painter.setFont(font)
+        painter.drawText(wheel_rect, Qt.AlignmentFlag.AlignCenter, f"{self.chance}%")
+
+        # Центральная втулка.
+        hub_size = side * 0.18
+        hub = QRectF(center.x() - hub_size / 2, center.y() - hub_size / 2, hub_size, hub_size)
+        painter.setPen(QPen(QColor("#3c4d70"), 2))
+        painter.setBrush(QColor("#111a2c"))
+        painter.drawEllipse(hub)
+        painter.setPen(QPen(QColor(TEXT)))
+        painter.setFont(QFont("Segoe UI", max(8, int(side * 0.027)), QFont.Weight.DemiBold))
+        painter.drawText(hub, Qt.AlignmentFlag.AlignCenter, "UP")
+
+        # Стрелка в верхней части колеса.
+        tip_y = center.y() - radius + side * 0.025
+        base_y = tip_y + side * 0.105
+        tip = QPointF(center.x(), tip_y)
+        left = QPointF(center.x() - side * 0.045, base_y)
+        right = QPointF(center.x() + side * 0.045, base_y)
+        painter.setPen(QPen(QColor("#0a1020"), 2))
+        painter.setBrush(QColor(GOLD))
+        from PySide6.QtGui import QPolygonF
+        painter.drawPolygon(QPolygonF([tip, left, right]))
+
+        painter.end()
+
+
+class UpgraderWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("UPGRADER  /  Arcade")
+        self.resize(1040, 720)
+        self.setMinimumSize(800, 600)
+
+        self.balance = START_BALANCE
+        self.bet = BET_OPTIONS[0]
+        self.multiplier_key = "x2"
+        self.is_spinning = False
+        self.spin_start_angle = 0.0
+        self.spin_target_angle = 0.0
+        self.spin_elapsed = 0
+        self.spin_duration = 2600
+        self.spin_timer = QTimer(self)
+        self.spin_timer.setInterval(16)
+        self.spin_timer.timeout.connect(self._animate_spin)
+
+        self._build_ui()
+        self._update_ui()
+
+    def _build_ui(self):
+        central = QWidget()
+        central.setObjectName("central")
+        self.setCentralWidget(central)
+
+        root = QVBoxLayout(central)
+        root.setContentsMargins(28, 22, 28, 24)
+        root.setSpacing(18)
+
+        header = QHBoxLayout()
+        brand_col = QVBoxLayout()
+        title = QLabel("UPGRADER")
+        title.setObjectName("title")
+        subtitle = QLabel("ARCADE  /  RISK & REWARD")
+        subtitle.setObjectName("subtitle")
+        brand_col.addWidget(title)
+        brand_col.addWidget(subtitle)
+        header.addLayout(brand_col)
+        header.addStretch(1)
+
+        balance_card = QFrame()
+        balance_card.setObjectName("balanceCard")
+        balance_layout = QVBoxLayout(balance_card)
+        balance_layout.setContentsMargins(20, 10, 20, 10)
+        balance_caption = QLabel("ВАШ БАЛАНС")
+        balance_caption.setObjectName("caption")
+        self.balance_label = QLabel()
+        self.balance_label.setObjectName("balance")
+        balance_layout.addWidget(balance_caption)
+        balance_layout.addWidget(self.balance_label)
+        header.addWidget(balance_card)
+        root.addLayout(header)
+
+        content = QHBoxLayout()
+        content.setSpacing(18)
+        root.addLayout(content, 1)
+
+        # Левая панель с большим, расширяемым колесом.
+        wheel_panel = QFrame()
+        wheel_panel.setObjectName("panel")
+        wheel_layout = QVBoxLayout(wheel_panel)
+        wheel_layout.setContentsMargins(18, 18, 18, 16)
+        wheel_layout.setSpacing(10)
+
+        wheel_heading = QHBoxLayout()
+        wheel_title = QLabel("КОЛЕСО АПГРЕЙДА")
+        wheel_title.setObjectName("sectionTitle")
+        self.status_label = QLabel("ГОТОВ К ИГРЕ")
+        self.status_label.setObjectName("status")
+        wheel_heading.addWidget(wheel_title)
+        wheel_heading.addStretch(1)
+        wheel_heading.addWidget(self.status_label)
+        wheel_layout.addLayout(wheel_heading)
+
+        self.wheel = UpgradeWheel()
+        wheel_layout.addWidget(self.wheel, 1)
+
+        legend = QHBoxLayout()
+        dot = QLabel("●")
+        dot.setStyleSheet(f"color: {GREEN}; font-size: 16px;")
+        legend.addWidget(dot)
+        legend_text = QLabel("ЗЕЛЁНЫЙ СЕКТОР — УСПЕХ")
+        legend_text.setObjectName("caption")
+        legend.addWidget(legend_text)
+        legend.addStretch(1)
+        wheel_layout.addLayout(legend)
+        content.addWidget(wheel_panel, 3)
+
+        # Правая панель управления.
+        controls = QFrame()
+        controls.setObjectName("panel")
+        controls.setMinimumWidth(245)
+        controls.setMaximumWidth(320)
+        control_layout = QVBoxLayout(controls)
+        control_layout.setContentsMargins(20, 20, 20, 20)
+        control_layout.setSpacing(13)
+
+        control_title = QLabel("ПАРАМЕТРЫ")
+        control_title.setObjectName("sectionTitle")
+        control_layout.addWidget(control_title)
+
+        bet_caption = QLabel("СУММА СТАВКИ")
+        bet_caption.setObjectName("caption")
+        control_layout.addWidget(bet_caption)
+
+        self.bet_combo = QComboBox()
+        for amount in BET_OPTIONS:
+            self.bet_combo.addItem(f"{money(amount)} кредитов", amount)
+        self.bet_combo.currentIndexChanged.connect(self._on_bet_changed)
+        control_layout.addWidget(self.bet_combo)
+
+        mult_caption = QLabel("МНОЖИТЕЛЬ")
+        mult_caption.setObjectName("caption")
+        control_layout.addWidget(mult_caption)
+
+        self.mult_combo = QComboBox()
+        for key, data in MULTIPLIERS.items():
+            self.mult_combo.addItem(
+                f"{key}   ·   шанс {data['chance']}%",
+                key,
+            )
+        self.mult_combo.setCurrentIndex(list(MULTIPLIERS).index(self.multiplier_key))
+        self.mult_combo.currentIndexChanged.connect(self._on_multiplier_changed)
+        control_layout.addWidget(self.mult_combo)
+
+        self.payout_label = QLabel()
+        self.payout_label.setObjectName("payout")
+        self.payout_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        control_layout.addWidget(self.payout_label)
+
+        self.spin_button = QPushButton("▲   АПГРЕЙД")
+        self.spin_button.setObjectName("primaryButton")
+        self.spin_button.setMinimumHeight(54)
+        self.spin_button.clicked.connect(self._start_spin)
+        control_layout.addWidget(self.spin_button)
+
+        self.deposit_button = QPushButton("+   Получить 1 000 кредитов")
+        self.deposit_button.setObjectName("secondaryButton")
+        self.deposit_button.setMinimumHeight(42)
+        self.deposit_button.clicked.connect(self._add_demo_balance)
+        control_layout.addWidget(self.deposit_button)
+
+        control_layout.addStretch(1)
+
+        info = QFrame()
+        info.setObjectName("infoCard")
+        info_layout = QVBoxLayout(info)
+        info_layout.setContentsMargins(13, 12, 13, 12)
+        info_title = QLabel("КАК ЭТО РАБОТАЕТ")
+        info_title.setObjectName("caption")
+        info_text = QLabel(
+            "Выбери ставку и множитель.\n"
+            "При успехе ставка умножается.\n"
+            "При неудаче ставка теряется."
+        )
+        info_text.setObjectName("infoText")
+        info_text.setWordWrap(True)
+        info_layout.addWidget(info_title)
+        info_layout.addWidget(info_text)
+        control_layout.addWidget(info)
+        content.addWidget(controls, 2)
+
+        self.result_label = QLabel("Выбери параметры и нажми «АПГРЕЙД».")
+        self.result_label.setObjectName("result")
+        self.result_label.setWordWrap(True)
+        root.addWidget(self.result_label)
+
+        self.setStyleSheet(f"""
+            QWidget {{
+                color: {TEXT};
+                font-family: "Segoe UI";
+                font-size: 13px;
+            }}
+            QWidget#central {{
+                background: {BG};
+            }}
+            QLabel#title {{
+                font-size: 30px;
+                font-weight: 900;
+                letter-spacing: 2px;
+                color: {TEXT};
+            }}
+            QLabel#subtitle {{
+                color: {MUTED};
+                font-size: 10px;
+                font-weight: 700;
+                letter-spacing: 2px;
+            }}
+            QFrame#balanceCard {{
+                background: {PANEL_LIGHT};
+                border: 1px solid #2a3857;
+                border-radius: 14px;
+            }}
+            QLabel#caption {{
+                color: {MUTED};
+                font-size: 10px;
+                font-weight: 800;
+                letter-spacing: 1px;
+            }}
+            QLabel#balance {{
+                color: {GREEN};
+                font-size: 23px;
+                font-weight: 800;
+            }}
+            QFrame#panel {{
+                background: {PANEL};
+                border: 1px solid #202d47;
+                border-radius: 18px;
+            }}
+            QLabel#sectionTitle {{
+                color: {TEXT};
+                font-size: 14px;
+                font-weight: 900;
+                letter-spacing: 1px;
+            }}
+            QLabel#status {{
+                color: {GREEN};
+                background: #14392f;
+                border-radius: 8px;
+                padding: 6px 9px;
+                font-size: 9px;
+                font-weight: 800;
+            }}
+            QComboBox {{
+                background: #0d1527;
+                border: 1px solid #2b3956;
+                border-radius: 9px;
+                padding: 11px 12px;
+                min-height: 20px;
+                color: {TEXT};
+                font-weight: 600;
+            }}
+            QComboBox:hover {{
+                border-color: {ACCENT};
+            }}
+            QComboBox QAbstractItemView {{
+                background: {PANEL_LIGHT};
+                color: {TEXT};
+                selection-background-color: {ACCENT};
+                border: 1px solid #344361;
+                outline: 0;
+            }}
+            QLabel#payout {{
+                background: #0d1527;
+                border: 1px solid #263653;
+                border-radius: 10px;
+                padding: 13px;
+                color: {GOLD};
+                font-size: 18px;
+                font-weight: 900;
+            }}
+            QPushButton {{
+                border: 0;
+                border-radius: 10px;
+                font-weight: 800;
+            }}
+            QPushButton#primaryButton {{
+                background: {ACCENT};
+                color: white;
+                font-size: 14px;
+            }}
+            QPushButton#primaryButton:hover {{
+                background: #927cff;
+            }}
+            QPushButton#primaryButton:disabled {{
+                background: #39425a;
+                color: #8791a8;
+            }}
+            QPushButton#secondaryButton {{
+                background: #202c45;
+                color: #dce5ff;
+                border: 1px solid #334361;
+            }}
+            QPushButton#secondaryButton:hover {{
+                background: #2b3a59;
+            }}
+            QFrame#infoCard {{
+                background: #0d1527;
+                border: 1px solid #202d47;
+                border-radius: 12px;
+            }}
+            QLabel#infoText {{
+                color: #c1cbe0;
+                font-size: 11px;
+                line-height: 1.4;
+            }}
+            QLabel#result {{
+                color: #c1cbe0;
+                background: #111a2c;
+                border: 1px solid #202d47;
+                border-radius: 10px;
+                padding: 12px 15px;
+                min-height: 20px;
+            }}
+        """)
+
+    def _on_bet_changed(self, index):
+        value = self.bet_combo.itemData(index)
+        if value is not None:
+            self.bet = int(value)
+        self._update_ui()
+
+    def _on_multiplier_changed(self, index):
+        key = self.mult_combo.itemData(index)
+        if key in MULTIPLIERS:
+            self.multiplier_key = key
+        chance = MULTIPLIERS[self.multiplier_key]["chance"]
+        self.wheel.set_game_state(chance, self.wheel.angle, self.is_spinning)
+        self._update_ui()
+
+    def _update_ui(self):
+        self.balance_label.setText(f"{money(self.balance)} CR")
+        data = MULTIPLIERS[self.multiplier_key]
+        payout = self.bet * data["value"]
+        self.payout_label.setText(f"×{data['value']:g}  →  {money(payout)} CR")
+        self.wheel.set_game_state(data["chance"], self.wheel.angle, self.is_spinning)
+
+        if self.balance < self.bet:
+            self.spin_button.setEnabled(False)
+            if not self.is_spinning:
+                self.status_label.setText("НЕ ХВАТАЕТ СРЕДСТВ")
+                self.status_label.setStyleSheet("color: #ff8b9e; background: #421e2a;")
+        elif not self.is_spinning:
+            self.spin_button.setEnabled(True)
+            self.status_label.setText("ИДЁТ ИГРА" if self.is_spinning else "ГОТОВ К ИГРЕ")
+            self.status_label.setStyleSheet("")
+
+    def _start_spin(self):
+        if self.is_spinning:
+            return
+        data = MULTIPLIERS[self.multiplier_key]
+        if self.balance < self.bet:
+            QMessageBox.warning(self, "Недостаточно средств", "Выбери меньшую ставку или получи демонстрационные кредиты.")
+            return
+
+        self.balance -= self.bet
+        self.is_spinning = True
+        self.spin_elapsed = 0
+        self.spin_start_angle = self.wheel.angle
+        # Визуально вращаем несколько оборотов; исход определяется заданным шансом.
+        self.spin_target_angle = self.spin_start_angle + 360 * 5 + random.uniform(0, 359)
+        self.spin_success = random.random() < data["chance"] / 100
+        self.spin_timer.start()
+        self.spin_button.setEnabled(False)
+        self.bet_combo.setEnabled(False)
+        self.mult_combo.setEnabled(False)
+        self.deposit_button.setEnabled(False)
+        self.status_label.setText("ВРАЩЕНИЕ…")
+        self.status_label.setStyleSheet("color: #ffd58a; background: #42351e;")
+        self.result_label.setText("Колесо вращается…")
+        self._update_ui()
+
+    def _animate_spin(self):
+        self.spin_elapsed += self.spin_timer.interval()
+        progress = min(1.0, self.spin_elapsed / self.spin_duration)
+        eased = 1 - (1 - progress) ** 4
+        angle = self.spin_start_angle + (self.spin_target_angle - self.spin_start_angle) * eased
+        self.wheel.set_game_state(
+            MULTIPLIERS[self.multiplier_key]["chance"],
+            angle,
+            True,
+        )
+
+        if progress >= 1:
+            self.spin_timer.stop()
+            self.is_spinning = False
+            data = MULTIPLIERS[self.multiplier_key]
+            if self.spin_success:
+                winnings = self.bet * data["value"]
+                self.balance += winnings
+                self.result_label.setText(
+                    f"УСПЕХ! Выпало {data['chance']}% шанса. "
+                    f"Начислено {money(winnings)} CR (включая ставку)."
+                )
+                self.result_label.setStyleSheet(
+                    "color: #8cf0d4; background: #10352d; border: 1px solid #216653; "
+                    "border-radius: 10px; padding: 12px 15px;"
+                )
+                self.status_label.setText("УСПЕШНО")
+                self.status_label.setStyleSheet("color: #8cf0d4; background: #14392f;")
+            else:
+                self.result_label.setText(
+                    f"НЕУДАЧА. Ставка {money(self.bet)} CR потеряна. Попробуй ещё раз."
+                )
+                self.result_label.setStyleSheet(
+                    "color: #ff9aa9; background: #3b1b28; border: 1px solid #693044; "
+                    "border-radius: 10px; padding: 12px 15px;"
+                )
+                self.status_label.setText("НЕУДАЧА")
+                self.status_label.setStyleSheet("color: #ff9aa9; background: #421e2a;")
+
+            self.bet_combo.setEnabled(True)
+            self.mult_combo.setEnabled(True)
+            self.deposit_button.setEnabled(True)
+            self.spin_button.setEnabled(True)
+            self.wheel.set_game_state(data["chance"], angle, False)
+            self._update_ui()
+
+    def _add_demo_balance(self):
+        if self.is_spinning:
+            return
+        self.balance += 1000
+        self.result_label.setText("На баланс добавлено 1 000 демонстрационных кредитов.")
+        self.result_label.setStyleSheet("")
+        self._update_ui()
+
+
+def main():
+    app = QApplication(sys.argv)
+    app.setStyle("Fusion")
+    window = UpgraderWindow()
+    window.show()
+    sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    main()
