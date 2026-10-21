@@ -16,15 +16,16 @@ from panda3d.core import (
     CollisionSphere,
     BitMask32,
     CardMaker,
-    TransparencyAttrib,
+    LineSegs,
     loadPrcFileData,
+    ClockObject,
 )
-from panda3d.core import ClockObject
 import random
 import math
 
 
-# ---------- НАСТРОЙКИ ОКНА ----------
+# ---------------- НАСТРОЙКИ ----------------
+
 loadPrcFileData("", "window-title Aim Trainer")
 loadPrcFileData("", "win-size 1280 720")
 loadPrcFileData("", "fullscreen false")
@@ -41,7 +42,8 @@ class ShooterGame(ShowBase):
         self.disableMouse()
         self.setBackgroundColor(0.025, 0.035, 0.065, 1)
 
-        # ---------- МЫШЬ И КАМЕРА ----------
+        # ---------------- КАМЕРА ----------------
+
         props = WindowProperties()
         props.setCursorHidden(True)
         props.setMouseMode(WindowProperties.M_absolute)
@@ -49,16 +51,17 @@ class ShooterGame(ShowBase):
 
         self.heading = 0.0
         self.pitch = 0.0
-        self.sensitivity = 90.0
+        self.sensitivity = 0.12
+        self.mouse_ready = False
 
-        # Камера закреплена в одной точке.
+        # Камера не перемещается, только поворачивается.
         self.camera.setPos(0, -18, 3)
         self.camera.setHpr(0, 0, 0)
 
-        self.mouse_ready = False
         self.taskMgr.add(self.update_camera, "update_camera")
 
-        # ---------- СОСТОЯНИЕ ИГРЫ ----------
+        # ---------------- ИГРА ----------------
+
         self.score = 0
         self.shots = 0
         self.hits = 0
@@ -66,10 +69,12 @@ class ShooterGame(ShowBase):
         self.targets = []
         self.target_id = 0
         self.game_time = 0.0
+        self.spawn_timer = 0.0
 
-        # ---------- ОСВЕЩЕНИЕ ----------
+        # ---------------- ОСВЕЩЕНИЕ ----------------
+
         ambient = AmbientLight("ambient")
-        ambient.setColor(Vec4(0.30, 0.34, 0.46, 1))
+        ambient.setColor(Vec4(0.35, 0.38, 0.48, 1))
         ambient_np = self.render.attachNewNode(ambient)
         self.render.setLight(ambient_np)
 
@@ -86,10 +91,12 @@ class ShooterGame(ShowBase):
         point_np.setPos(0, 12, 9)
         self.render.setLight(point_np)
 
-        # ---------- АРЕНА ----------
+        # ---------------- ОКРУЖЕНИЕ ----------------
+
         self.build_arena()
 
-        # ---------- СИСТЕМА ПОПАДАНИЙ ----------
+        # ---------------- СТРЕЛЬБА ----------------
+
         self.cTrav = CollisionTraverser()
         self.queue = CollisionHandlerQueue()
 
@@ -104,35 +111,36 @@ class ShooterGame(ShowBase):
         self.ray_np = self.camera.attachNewNode(ray_node)
         self.cTrav.addCollider(self.ray_np, self.queue)
 
-        # ---------- ИНТЕРФЕЙС ----------
+        # ---------------- ИНТЕРФЕЙС ----------------
+
         self.create_ui()
 
-        # ---------- УПРАВЛЕНИЕ ----------
+        # ---------------- УПРАВЛЕНИЕ ----------------
+
         self.accept("mouse1", self.shoot)
         self.accept("escape", self.userExit)
         self.accept("r", self.restart)
 
-        # ---------- ИГРОВОЙ ЦИКЛ ----------
+        # ---------------- ЦИКЛ ИГРЫ ----------------
+
         self.taskMgr.add(self.spawn_targets, "spawn_targets")
         self.taskMgr.add(self.update_targets, "update_targets")
 
         self.spawn_initial_targets()
 
     # ==================================================
-    # АРЕНА
+    # ОКРУЖЕНИЕ
     # ==================================================
 
     def build_arena(self):
-        # Основной пол
         floor_maker = CardMaker("floor")
         floor_maker.setFrame(-35, 35, -25, 65)
 
-        self.floor = self.render.attachNewNode(floor_maker.generate())
-        self.floor.setP(-90)
-        self.floor.setPos(0, 15, 0)
-        self.floor.setColor(0.055, 0.075, 0.12, 1)
+        floor = self.render.attachNewNode(floor_maker.generate())
+        floor.setP(-90)
+        floor.setPos(0, 15, 0)
+        floor.setColor(0.055, 0.075, 0.12, 1)
 
-        # Дальняя стена
         wall_maker = CardMaker("back_wall")
         wall_maker.setFrame(-35, 35, -1, 18)
 
@@ -142,10 +150,10 @@ class ShooterGame(ShowBase):
 
         # Боковые стены
         for x in (-35, 35):
-            side_maker = CardMaker("side_wall")
-            side_maker.setFrame(-25, 65, -1, 18)
+            maker = CardMaker("side_wall")
+            maker.setFrame(-25, 65, -1, 18)
 
-            side = self.render.attachNewNode(side_maker.generate())
+            side = self.render.attachNewNode(maker.generate())
             side.setP(-90)
             side.setPos(x, 15, 0)
             side.setColor(0.045, 0.065, 0.11, 1)
@@ -165,7 +173,7 @@ class ShooterGame(ShowBase):
                 (0.12, 0.24, 0.36, 1),
             )
 
-        # Светящиеся акценты по дальней стене
+        # Светящиеся акценты
         for x in range(-30, 31, 10):
             self.add_line(
                 (x, 54.8, 1),
@@ -174,16 +182,13 @@ class ShooterGame(ShowBase):
             )
 
     def add_line(self, start, end, color):
-        from panda3d.core import LineSegs
-
         lines = LineSegs()
         lines.setThickness(1.5)
         lines.setColor(*color)
         lines.moveTo(*start)
         lines.drawTo(*end)
 
-        node = self.render.attachNewNode(lines.create())
-        return node
+        return self.render.attachNewNode(lines.create())
 
     # ==================================================
     # ИНТЕРФЕЙС
@@ -199,7 +204,7 @@ class ShooterGame(ShowBase):
             mayChange=True,
         )
 
-        self.score_label = OnscreenText(
+        OnscreenText(
             text="SCORE",
             pos=(-1.28, 0.79),
             scale=0.04,
@@ -208,7 +213,7 @@ class ShooterGame(ShowBase):
         )
 
         self.stats_text = OnscreenText(
-            text="HITS 0  |  SHOTS 0  |  ACC 0%",
+            text="HITS 0 | SHOTS 0 | ACC 0%",
             pos=(-1.28, 0.68),
             scale=0.042,
             fg=(0.85, 0.9, 1, 1),
@@ -225,22 +230,20 @@ class ShooterGame(ShowBase):
             mayChange=True,
         )
 
-        self.title_text = OnscreenText(
+        OnscreenText(
             text="A I M   T R A I N E R",
             pos=(0, 0.93),
             scale=0.045,
             fg=(0.65, 0.78, 1, 1),
-            mayChange=True,
         )
 
-        self.help_text = OnscreenText(
-            text="LMB  SHOOT     |     R  RESTART     |     ESC  EXIT",
+        OnscreenText(
+            text="LMB SHOOT     |     R RESTART     |     ESC EXIT",
             pos=(0, -0.92),
             scale=0.04,
             fg=(0.65, 0.73, 0.85, 1),
         )
 
-        # Центральный прицел
         self.crosshair = OnscreenText(
             text="+",
             pos=(0, 0),
@@ -258,59 +261,54 @@ class ShooterGame(ShowBase):
         )
 
     def update_ui(self):
-        accuracy = (
-            self.hits / self.shots * 100
-            if self.shots > 0
-            else 0
-        )
+        accuracy = self.hits / self.shots * 100 if self.shots else 0
 
         self.score_text.setText(f"{self.score:04d}")
         self.stats_text.setText(
-            f"HITS {self.hits}  |  SHOTS {self.shots}  |  ACC {accuracy:.1f}%"
+            f"HITS {self.hits} | SHOTS {self.shots} | ACC {accuracy:.1f}%"
         )
         self.targets_text.setText(
             f"TARGETS {len(self.targets)}/{self.max_targets}"
         )
 
     # ==================================================
-    # КАМЕРА
+    # КАМЕРА И МЫШЬ
     # ==================================================
 
     def update_camera(self, task):
         if self.win is None:
             return task.cont
 
-        if self.mouseWatcherNode.hasMouse():
-            pointer = self.win.getPointer(0)
-            width = self.win.getXSize()
-            height = self.win.getYSize()
-
-            if width <= 0 or height <= 0:
-                return task.cont
-
-            center_x = width // 2
-            center_y = height // 2
-
-            if not self.mouse_ready:
-                self.win.movePointer(0, center_x, center_y)
-                self.mouse_ready = True
-                return task.cont
-
-            dx = pointer.getX() - center_x
-            dy = pointer.getY() - center_y
-
-            self.heading -= dx * self.sensitivity * 0.01
-            self.pitch += dy * self.sensitivity * 0.01
-
-            self.pitch = max(-75, min(75, self.pitch))
-
-            self.camera.setHpr(self.heading, self.pitch, 0)
-
-            # Возвращаем курсор в центр, чтобы не было уплывания
-            self.win.movePointer(0, center_x, center_y)
-
-        else:
+        if not self.mouseWatcherNode.hasMouse():
             self.mouse_ready = False
+            return task.cont
+
+        pointer = self.win.getPointer(0)
+        width = self.win.getXSize()
+        height = self.win.getYSize()
+
+        if width <= 0 or height <= 0:
+            return task.cont
+
+        center_x = width // 2
+        center_y = height // 2
+
+        if not self.mouse_ready:
+            self.win.movePointer(0, center_x, center_y)
+            self.mouse_ready = True
+            return task.cont
+
+        dx = pointer.getX() - center_x
+        dy = pointer.getY() - center_y
+
+        self.heading -= dx * self.sensitivity
+        self.pitch += dy * self.sensitivity
+        self.pitch = max(-75, min(75, self.pitch))
+
+        self.camera.setHpr(self.heading, self.pitch, 0)
+
+        # Сбрасываем положение курсора, не перемещая камеру.
+        self.win.movePointer(0, center_x, center_y)
 
         return task.cont
 
@@ -325,54 +323,54 @@ class ShooterGame(ShowBase):
     def create_target(self):
         self.target_id += 1
 
-        # Модель из стандартного комплекта Panda3D
         target = self.loader.loadModel("models/smiley")
-        target.setScale(1.0)
         target.setColor(1, 0.16, 0.20, 1)
+        target.setScale(random.uniform(0.85, 1.2))
+
         target.setPos(
             random.uniform(-14, 14),
             random.uniform(12, 38),
             random.uniform(2, 9),
         )
+
         target.reparentTo(self.render)
 
-        # Не полагаемся на встроенные коллизии модели.
-        # Создаём собственную сферу попадания.
+        # Запоминаем исходную высоту для движения без накопления смещения.
+        target.setPythonTag("base_z", target.getZ())
+
+        # Отдельная сфера коллизии гарантирует корректную регистрацию попаданий.
         collision = CollisionNode(f"target_collision_{self.target_id}")
         collision.addSolid(CollisionSphere(0, 0, 0, 1.0))
         collision.setIntoCollideMask(BitMask32.bit(1))
         collision.setFromCollideMask(BitMask32.allOff())
 
         collision_np = target.attachNewNode(collision)
-        collision_np.setScale(1.0)
-
-        # Сохраняем связь узла коллизии с мишенью
         collision_np.setPythonTag("target", target)
-
-        # Лёгкое различие размеров и положения
-        target.setScale(random.uniform(0.85, 1.2))
 
         self.targets.append(target)
         self.update_ui()
 
     def spawn_targets(self, task):
-        # Заполняем освободившиеся места с небольшой задержкой
-        if len(self.targets) < self.max_targets:
-            self.create_target()
-            return task.again
+        dt = ClockObject.getGlobalClock().getDt()
+        self.spawn_timer += dt
 
-        return task.again
+        if (
+            len(self.targets) < self.max_targets
+            and self.spawn_timer >= 0.4
+        ):
+            self.spawn_timer = 0.0
+            self.create_target()
+
+        return task.cont
 
     def update_targets(self, task):
-        dt = ClockObject.getGlobalClock().getDt()
-        self.game_time += dt
+        self.game_time += ClockObject.getGlobalClock().getDt()
 
-        # Небольшое движение мишеней в пространстве.
-        # Камера при этом остаётся полностью неподвижной.
         for index, target in enumerate(self.targets):
-            base_pos = target.getPos()
+            base_z = target.getPythonTag("base_z")
             phase = self.game_time * 1.2 + index * 1.7
-            target.setZ(base_pos.z + math.sin(phase) * dt * 0.35)
+
+            target.setZ(base_z + math.sin(phase) * 0.35)
 
         return task.cont
 
@@ -386,6 +384,8 @@ class ShooterGame(ShowBase):
 
         self.queue.clearEntries()
         self.cTrav.traverse(self.render)
+
+        hit = False
 
         if self.queue.getNumEntries() > 0:
             self.queue.sortEntries()
@@ -407,25 +407,22 @@ class ShooterGame(ShowBase):
 
                 self.score += 100
                 self.hits += 1
+                hit = True
 
                 self.hit_text.setText("HIT  +100")
-                self.crosshair.setFg((1, 0.85, 0.25, 1))
-
-                self.taskMgr.doMethodLater(
-                    0.12,
-                    self.reset_crosshair,
-                    "reset_crosshair",
-                )
-
                 break
+
+        if hit:
+            self.crosshair.setFg((1, 0.85, 0.25, 1))
         else:
             self.crosshair.setFg((1, 0.3, 0.3, 1))
 
-            self.taskMgr.doMethodLater(
-                0.12,
-                self.reset_crosshair,
-                "reset_crosshair",
-            )
+        self.taskMgr.remove("reset_crosshair")
+        self.taskMgr.doMethodLater(
+            0.12,
+            self.reset_crosshair,
+            "reset_crosshair",
+        )
 
         self.update_ui()
 
@@ -442,13 +439,15 @@ class ShooterGame(ShowBase):
             target.removeNode()
 
         self.targets.clear()
+
         self.score = 0
         self.shots = 0
         self.hits = 0
-        self.game_time = 0
+        self.game_time = 0.0
+        self.spawn_timer = 0.0
 
-        self.heading = 0
-        self.pitch = 0
+        self.heading = 0.0
+        self.pitch = 0.0
         self.camera.setHpr(0, 0, 0)
         self.mouse_ready = False
 
