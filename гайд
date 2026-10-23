@@ -1,32 +1,12 @@
 
-import sys
-import subprocess
 import os
 
-project_folder = r"D:\ЗАГРУЗКИ\Depix"
+folder = r"D:\ЗАГРУЗКИ\Depix"
 
-requirements = os.path.join(
-    project_folder,
-    "requirements.txt"
-)
+for name in os.listdir(folder):
+    path = os.path.join(folder, name)
 
-if not os.path.isfile(requirements):
-    print("Не найден requirements.txt")
-    print("Проверь, распакован ли архив в правильную папку.")
-else:
-    result = subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "pip",
-            "install",
-            "-r",
-            requirements
-        ],
-        capture_output=True,
-        text=True
-    )
-
-    print(result.stdout)
-    print(result.stderr)
-    print("Код завершения:", result.returncode)
+    if os.path.isfile(path):
+        print("Файл:", name)
+    else:
+        print("Папка:", name)
