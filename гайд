@@ -1,16 +1,5 @@
-
-from PIL import Image
-import os
-
-path = r"D:\ЗАГРУЗКИ\Depix\images\eto_silno_bro.png"
-
-if not os.path.isfile(path):
-    print("Файл не найден:", path)
-else:
-    image = Image.open(path)
-    print("Размер:", image.size)
-    print("Режим:", image.mode)
-    print("Формат:", image.format)
-    print("Размер файла:", round(os.path.getsize(path) / 1024, 1), "КБ")
-
-input("Нажми Enter для выхода")
+Размер: (1946, 970)
+Режим: RGBA
+Формат: PNG
+Размер файла: 24.5 КБ
+Нажми Enter для выхода
