@@ -1,15 +1,52 @@
-import os
+Depix
+    .gitignore
+    depix.py
+    depix_static.py
+    LICENSE
+    README.md
+    tool_gen_pixelated.py
+    tool_show_boxes.py
+    ~$README.md
 
-folder = r"D:\ЗАГРУЗКИ\Depix"
+    Depixelization_poc-main
 
-for root, dirs, files in os.walk(folder):
-    level = root.replace(folder, "").count(os.sep)
+    depixlib
+        functions.py
+        helpers.py
+        LoadedImage.py
+        Rectangle.py
+        __init__.py
 
-    if level > 3:
-        dirs[:] = []
-        continue
+    docs
 
-    print("\n" + "    " * level + os.path.basename(root))
+        img
+            example_output_multiline.png
+            example_output_multiword.png
+            example_output_randomchars.png
+            example_output_singleword.png
+            linear_box_filter_example.png
+            output_depixelizedExample_linear.png
+            Recovering_prototype_latest.png
+            search_issue.png
 
-    for filename in files:
-        print("    " * (level + 1) + filename)
+    images
+        stars.png
+
+        searchimages
+            debruinseq.txt
+            debruinseq_notepad_Windows10_close.png
+            debruinseq_notepad_Windows10_closeAndSpaced.png
+            debruinseq_notepad_Windows10_spaced.png
+            debruinseq_notepad_Windows7_close.png
+            debruin_sublime_Linux_small.png
+
+        testimages
+            sublime_screenshot.png
+            sublime_screenshot_pixels_gimp.png
+            testimage1.png
+            testimage1_pixels.png
+            testimage2.png
+            testimage2_pixels.png
+            testimage3.png
+            testimage3_pixels.png
+>>> 
