@@ -3,16 +3,10 @@ import os
 import sys
 import traceback
 
-# Папка, в которой находится Depix
-DEP​IX_FOLDER = r"D:\ЗАГРУЗКИ\Depix"
-
-# Укажи полный путь к исходной пикселизированной картинке
+DEPIX_FOLDER = r"D:\ЗАГРУЗКИ\Depix"
 INPUT_IMAGE = r"D:\ЗАГРУЗКИ\pixelated.png"
-
-# Файл для результата
 OUTPUT_IMAGE = r"D:\ЗАГРУЗКИ\depix_result.png"
 
-# Изображение с образцом шрифта из комплекта Depix
 SEARCH_IMAGE = os.path.join(
     DEPIX_FOLDER,
     "images",
