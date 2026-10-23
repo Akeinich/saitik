@@ -1,11 +1,28 @@
 
 import os
+import ast
 
-folder = "D:\\ЗАГРУЗКИ\\Depix"
+path = r"D:\ЗАГРУЗКИ\Depix\depix.py"
 
-print("Папка существует:", os.path.isdir(folder))
-print("Файл запуска существует:", os.path.isfile(
-    os.path.join(folder, "depix.py")
-))
+with open(path, "r", encoding="utf-8-sig") as file:
+    source = file.read()
 
-input("Нажми Enter для выхода")
+tree = ast.parse(source, filename=path)
+
+print("Функции верхнего уровня:")
+for node in tree.body:
+    if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+        print("  ", node.name)
+
+print("\nТочка запуска:")
+for node in tree.body:
+    if isinstance(node, ast.If):
+        try:
+            condition = ast.unparse(node.test)
+        except AttributeError:
+            condition = "условие if"
+        if "__name__" in condition:
+            print("  ", condition)
+
+print("\nПроверка синтаксиса: успешно")
+input("\nНажми Enter для выхода")
