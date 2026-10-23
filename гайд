@@ -1,1 +1,34 @@
-def check_color(s: Optional[str]) -> Optional[tuple[int, int, int]]:
+
+import os
+
+folder = r"D:\ЗАГРУЗКИ\Depix"
+
+for root, dirs, files in os.walk(folder):
+    dirs[:] = [
+        d for d in dirs
+        if d not in ("__pycache__", ".git")
+    ]
+
+    for filename in files:
+        if not filename.endswith(".py"):
+            continue
+
+        path = os.path.join(root, filename)
+
+        try:
+            with open(path, "r", encoding="utf-8-sig") as f:
+                for number, line in enumerate(f, 1):
+                    if " | " in line and (
+                        "def " in line
+                        or "->" in line
+                        or ":" in line
+                    ):
+                        print(
+                            os.path.relpath(path, folder),
+                            "строка", number,
+                        )
+                        print("   ", line.strip())
+        except Exception as error:
+            print("Ошибка:", path, error)
+
+input("\nПроверка завершена. Нажми Enter.")
