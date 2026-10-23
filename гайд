@@ -1,13 +1,1 @@
-Код завершения: 1
-
-ВЫВОД ПРОГРАММЫ:
-
-
-ОШИБКИ:
-Traceback (most recent call last):
-  File "D:\ЗАГРУЗКИ\Depix\depix.py", line 8, in <module>
-    from depixlib.helpers import (
-  File "D:\ЗАГРУЗКИ\Depix\depixlib\helpers.py", line 13, in <module>
-    def check_color(s: str | None) -> tuple[int, int, int] | None:
-TypeError: unsupported operand type(s) for |: 'type' and 'NoneType'
-
+def check_color(s: Optional[str]) -> Optional[tuple[int, int, int]]:
