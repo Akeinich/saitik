@@ -1,1 +1,1 @@
-editorBackgroundColor: Optional[tuple[int, int, int]] = args.backgroundcolor
+editorBackgroundColor: Optional[tuple[int, int, int]],
