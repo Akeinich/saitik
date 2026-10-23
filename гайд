@@ -1,22 +1,26 @@
+usage: depix.py [-h] -p PATH -s PATH [-a TYPE] [-b RGB] [-o PATH]
 
-import subprocess
-import sys
-import os
+This command recovers passwords from pixelized screenshots.
 
-folder = r"D:\ЗАГРУЗКИ\Depix"
-script = os.path.join(folder, "depix.py")
+optional arguments:
+  -h, --help            show this help message and exit
+  -p PATH, --pixelimage PATH
+                        path to image with pixelated rectangle
+  -s PATH, --searchimage PATH
+                        path to image with patterns to search
+  -a TYPE, --averagetype TYPE
+                        type of RGB average to use
+  -b RGB, --backgroundcolor RGB
+                        original editor background color in format r,g,b
+                        (color to ignore)
+  -o PATH, --outputimage PATH
+                        path to output image
 
-result = subprocess.run(
-    [sys.executable, script, "--help"],
-    cwd=folder,
-    capture_output=True,
-    text=True,
-    errors="replace",
-    timeout=15
-)
+note: The pixelated rectangle must be cut out to only include the pixelated
+rectangles. The pattern search image is generally a screenshot of a De Bruijn
+sequence of expected characters, made on a machine with the same editor and
+text size as the original screenshot that was pixelated.
 
-print(result.stdout)
-print(result.stderr)
-print("Код завершения:", result.returncode)
 
-input("Нажми Enter для выхода")
+Код завершения: 0
+Нажми Enter для выхода
