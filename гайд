@@ -1,34 +1,18 @@
-
-import os
-
-folder = r"D:\ЗАГРУЗКИ\Depix"
-
-for root, dirs, files in os.walk(folder):
-    dirs[:] = [
-        d for d in dirs
-        if d not in ("__pycache__", ".git")
-    ]
-
-    for filename in files:
-        if not filename.endswith(".py"):
-            continue
-
-        path = os.path.join(root, filename)
-
-        try:
-            with open(path, "r", encoding="utf-8-sig") as f:
-                for number, line in enumerate(f, 1):
-                    if " | " in line and (
-                        "def " in line
-                        or "->" in line
-                        or ":" in line
-                    ):
-                        print(
-                            os.path.relpath(path, folder),
-                            "строка", number,
-                        )
-                        print("   ", line.strip())
-        except Exception as error:
-            print("Ошибка:", path, error)
-
-input("\nПроверка завершена. Нажми Enter.")
+depix.py строка 89
+    editorBackgroundColor: tuple[int, int, int] | None = args.backgroundcolor
+tool_show_boxes.py строка 90
+    editorBackgroundColor: tuple[int, int, int] | None = args.backgroundcolor
+depixlib\functions.py строка 94
+    editorBackgroundColor: tuple[int, int, int] | None,
+depixlib\functions.py строка 157
+    r: int | float
+depixlib\functions.py строка 158
+    rr: int | float
+depixlib\functions.py строка 159
+    g: int | float
+depixlib\functions.py строка 160
+    gg: int | float
+depixlib\functions.py строка 161
+    b: int | float
+depixlib\functions.py строка 162
+    bb: int | float
