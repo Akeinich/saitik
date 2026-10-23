@@ -1,80 +1,13 @@
+Запускаю Depix...
+Входное изображение: D:\ЗАГРУЗКИ\Depix\images\eto_silno_bro.png
+Выходное изображение: D:\ЗАГРУЗКИ\Depix\images\depix_result.png
 
-import os
-import sys
-import subprocess
-import traceback
+СООБЩЕНИЯ ПРОГРАММЫ:
+  File "D:\ЗАГРУЗКИ\Depix\depix.py", line 2
+    from __future__ import annotations
+    ^
+SyntaxError: from __future__ imports must occur at the beginning of the file
 
-# Папка Depix
-DEPIX_FOLDER = r"D:\ЗАГРУЗКИ\Depix"
 
-# ПУТЬ К ТВОЕЙ ПИКСЕЛИЗИРОВАННОЙ КАРТИНКЕ
-INPUT_IMAGE = r"D:\ЗАГРУЗКИ\pixelated.png"
-
-# Куда сохранить результат
-OUTPUT_IMAGE = r"D:\ЗАГРУЗКИ\depix_result.png"
-
-# Образец для поиска совпадений
-SEARCH_IMAGE = os.path.join(
-    DEPIX_FOLDER,
-    "images",
-    "searchimages",
-    "debruinseq_notepad_Windows10_closeAndSpaced.png"
-)
-
-def main():
-    if not os.path.isfile(INPUT_IMAGE):
-        print("ОШИБКА: не найдена исходная картинка:")
-        print(INPUT_IMAGE)
-        return
-
-    if not os.path.isfile(SEARCH_IMAGE):
-        print("ОШИБКА: не найден образец Depix:")
-        print(SEARCH_IMAGE)
-        return
-
-    if not os.path.isfile(os.path.join(DEPIX_FOLDER, "depix.py")):
-        print("ОШИБКА: не найден depix.py")
-        return
-
-    command = [
-        sys.executable,
-        os.path.join(DEPIX_FOLDER, "depix.py"),
-        "-p", INPUT_IMAGE,
-        "-s", SEARCH_IMAGE,
-        "-o", OUTPUT_IMAGE
-    ]
-
-    print("Запускаю Depix...")
-    print("Входное изображение:", INPUT_IMAGE)
-    print("Выходное изображение:", OUTPUT_IMAGE)
-
-    result = subprocess.run(
-        command,
-        cwd=DEPIX_FOLDER,
-        capture_output=True,
-        text=True,
-        errors="replace"
-    )
-
-    if result.stdout:
-        print("\nВЫВОД:")
-        print(result.stdout)
-
-    if result.stderr:
-        print("\nСООБЩЕНИЯ ПРОГРАММЫ:")
-        print(result.stderr)
-
-    if result.returncode == 0 and os.path.isfile(OUTPUT_IMAGE):
-        print("\nГотово! Результат сохранён:")
-        print(OUTPUT_IMAGE)
-    else:
-        print("\nDepix завершился с ошибкой.")
-        print("Код завершения:", result.returncode)
-
-if __name__ == "__main__":
-    try:
-        main()
-    except Exception:
-        traceback.print_exc()
-
-    input("\nНажми Enter для выхода.")
+Depix завершился с ошибкой.
+Код завершения: 1
