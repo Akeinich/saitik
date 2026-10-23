@@ -1,1 +1,6 @@
-editorBackgroundColor: Optional[tuple[int, int, int]],
+r: Union[int, float]
+rr: Union[int, float]
+g: Union[int, float]
+gg: Union[int, float]
+b: Union[int, float]
+bb: Union[int, float]
