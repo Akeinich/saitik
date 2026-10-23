@@ -1,6 +1,80 @@
-r: Union[int, float]
-rr: Union[int, float]
-g: Union[int, float]
-gg: Union[int, float]
-b: Union[int, float]
-bb: Union[int, float]
+
+import os
+import sys
+import subprocess
+import traceback
+
+# Папка Depix
+DEPIX_FOLDER = r"D:\ЗАГРУЗКИ\Depix"
+
+# ПУТЬ К ТВОЕЙ ПИКСЕЛИЗИРОВАННОЙ КАРТИНКЕ
+INPUT_IMAGE = r"D:\ЗАГРУЗКИ\pixelated.png"
+
+# Куда сохранить результат
+OUTPUT_IMAGE = r"D:\ЗАГРУЗКИ\depix_result.png"
+
+# Образец для поиска совпадений
+SEARCH_IMAGE = os.path.join(
+    DEPIX_FOLDER,
+    "images",
+    "searchimages",
+    "debruinseq_notepad_Windows10_closeAndSpaced.png"
+)
+
+def main():
+    if not os.path.isfile(INPUT_IMAGE):
+        print("ОШИБКА: не найдена исходная картинка:")
+        print(INPUT_IMAGE)
+        return
+
+    if not os.path.isfile(SEARCH_IMAGE):
+        print("ОШИБКА: не найден образец Depix:")
+        print(SEARCH_IMAGE)
+        return
+
+    if not os.path.isfile(os.path.join(DEPIX_FOLDER, "depix.py")):
+        print("ОШИБКА: не найден depix.py")
+        return
+
+    command = [
+        sys.executable,
+        os.path.join(DEPIX_FOLDER, "depix.py"),
+        "-p", INPUT_IMAGE,
+        "-s", SEARCH_IMAGE,
+        "-o", OUTPUT_IMAGE
+    ]
+
+    print("Запускаю Depix...")
+    print("Входное изображение:", INPUT_IMAGE)
+    print("Выходное изображение:", OUTPUT_IMAGE)
+
+    result = subprocess.run(
+        command,
+        cwd=DEPIX_FOLDER,
+        capture_output=True,
+        text=True,
+        errors="replace"
+    )
+
+    if result.stdout:
+        print("\nВЫВОД:")
+        print(result.stdout)
+
+    if result.stderr:
+        print("\nСООБЩЕНИЯ ПРОГРАММЫ:")
+        print(result.stderr)
+
+    if result.returncode == 0 and os.path.isfile(OUTPUT_IMAGE):
+        print("\nГотово! Результат сохранён:")
+        print(OUTPUT_IMAGE)
+    else:
+        print("\nDepix завершился с ошибкой.")
+        print("Код завершения:", result.returncode)
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception:
+        traceback.print_exc()
+
+    input("\nНажми Enter для выхода.")
