@@ -1,5 +1,22 @@
-Размер: (1946, 970)
-Режим: RGBA
-Формат: PNG
-Размер файла: 24.5 КБ
-Нажми Enter для выхода
+
+import subprocess
+import sys
+import os
+
+folder = r"D:\ЗАГРУЗКИ\Depix"
+script = os.path.join(folder, "depix.py")
+
+result = subprocess.run(
+    [sys.executable, script, "--help"],
+    cwd=folder,
+    capture_output=True,
+    text=True,
+    errors="replace",
+    timeout=15
+)
+
+print(result.stdout)
+print(result.stderr)
+print("Код завершения:", result.returncode)
+
+input("Нажми Enter для выхода")
