@@ -1,52 +1,33 @@
-Depix
-    .gitignore
-    depix.py
-    depix_static.py
-    LICENSE
-    README.md
-    tool_gen_pixelated.py
-    tool_show_boxes.py
-    ~$README.md
 
-    Depixelization_poc-main
+import os
+import ast
 
-    depixlib
-        functions.py
-        helpers.py
-        LoadedImage.py
-        Rectangle.py
-        __init__.py
+folder = r"D:\ЗАГРУЗКИ\Depix"
 
-    docs
+for root, dirs, files in os.walk(folder):
+    dirs[:] = [d for d in dirs if d != "__pycache__"]
 
-        img
-            example_output_multiline.png
-            example_output_multiword.png
-            example_output_randomchars.png
-            example_output_singleword.png
-            linear_box_filter_example.png
-            output_depixelizedExample_linear.png
-            Recovering_prototype_latest.png
-            search_issue.png
+    for filename in files:
+        if filename.endswith(".py"):
+            path = os.path.join(root, filename)
 
-    images
-        stars.png
+            try:
+                with open(path, "r", encoding="utf-8-sig") as file:
+                    tree = ast.parse(file.read())
 
-        searchimages
-            debruinseq.txt
-            debruinseq_notepad_Windows10_close.png
-            debruinseq_notepad_Windows10_closeAndSpaced.png
-            debruinseq_notepad_Windows10_spaced.png
-            debruinseq_notepad_Windows7_close.png
-            debruin_sublime_Linux_small.png
+                imports = []
+                for node in ast.walk(tree):
+                    if isinstance(node, ast.Import):
+                        imports.extend(alias.name for alias in node.names)
+                    elif isinstance(node, ast.ImportFrom) and node.module:
+                        imports.append(node.module)
 
-        testimages
-            sublime_screenshot.png
-            sublime_screenshot_pixels_gimp.png
-            testimage1.png
-            testimage1_pixels.png
-            testimage2.png
-            testimage2_pixels.png
-            testimage3.png
-            testimage3_pixels.png
->>> 
+                if imports:
+                    print("\n" + os.path.relpath(path, folder))
+                    for name in sorted(set(imports)):
+                        print("  ", name)
+
+            except Exception as error:
+                print("Ошибка чтения:", path, error)
+
+input("\nПроверка завершена. Нажми Enter.")
