@@ -1,26 +1,37 @@
 
+import os
 import sys
 import subprocess
 
-print("Python:", sys.executable)
-print("Устанавливаю зависимости...")
-
-result = subprocess.run(
-    [
-        sys.executable,
-        "-m",
-        "pip",
-        "install",
-        "Pillow"
-    ],
-    capture_output=True,
-    text=True
+project_folder = os.path.join(
+    os.path.expanduser("~"),
+    "Documents",
+    "Depix"
 )
 
-print(result.stdout)
-print(result.stderr)
+depix_file = os.path.join(project_folder, "depix.py")
 
-if result.returncode == 0:
-    print("Pillow установлен.")
+if not os.path.isfile(depix_file):
+    print("Не найден файл:", depix_file)
+    print("Проверь папку, куда распаковал Depix.")
 else:
-    print("Установка не удалась. Скопируй сообщение об ошибке.")
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "pip",
+            "install",
+            "-r",
+            os.path.join(project_folder, "requirements.txt")
+        ],
+        capture_output=True,
+        text=True
+    )
+
+    print(result.stdout)
+    print(result.stderr)
+
+    if result.returncode == 0:
+        print("Зависимости Depix установлены.")
+    else:
+        print("Ошибка установки. Скопируй текст ошибки.")
