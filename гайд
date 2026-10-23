@@ -1,8 +1,15 @@
-Python: 3.9.13 (tags/v3.9.13:6de2ca5, May 17 2022, 16:36:42) [MSC v.1929 64 bit (AMD64)]
-Путь к Python: C:\Program Files (x86)\Microsoft Visual Studio\Shared\Python39_64\pythonw.exe
-PIL — установлен
-numpy — установлен
-scipy — не установлен
-cv2 — не установлен
+import os
 
-Проверка pip:
+folder = r"D:\ЗАГРУЗКИ\Depix"
+
+for root, dirs, files in os.walk(folder):
+    level = root.replace(folder, "").count(os.sep)
+
+    if level > 3:
+        dirs[:] = []
+        continue
+
+    print("\n" + "    " * level + os.path.basename(root))
+
+    for filename in files:
+        print("    " * (level + 1) + filename)
