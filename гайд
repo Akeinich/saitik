@@ -1,18 +1,1 @@
-depix.py строка 89
-    editorBackgroundColor: tuple[int, int, int] | None = args.backgroundcolor
-tool_show_boxes.py строка 90
-    editorBackgroundColor: tuple[int, int, int] | None = args.backgroundcolor
-depixlib\functions.py строка 94
-    editorBackgroundColor: tuple[int, int, int] | None,
-depixlib\functions.py строка 157
-    r: int | float
-depixlib\functions.py строка 158
-    rr: int | float
-depixlib\functions.py строка 159
-    g: int | float
-depixlib\functions.py строка 160
-    gg: int | float
-depixlib\functions.py строка 161
-    b: int | float
-depixlib\functions.py строка 162
-    bb: int | float
+editorBackgroundColor: Optional[tuple[int, int, int]] = args.backgroundcolor
