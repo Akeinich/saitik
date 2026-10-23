@@ -1,33 +1,50 @@
+depix.py
+   __future__
+   argparse
+   depixlib.LoadedImage
+   depixlib.Rectangle
+   depixlib.functions
+   depixlib.helpers
+   logging
 
-import os
-import ast
+tool_gen_pixelated.py
+   LoadedImage
+   argparse
+   depix
+   logging
+   os
+   shutil
 
-folder = r"D:\ЗАГРУЗКИ\Depix"
+tool_show_boxes.py
+   PIL
+   __future__
+   argparse
+   depixlib.LoadedImage
+   depixlib.Rectangle
+   depixlib.functions
+   depixlib.helpers
+   logging
 
-for root, dirs, files in os.walk(folder):
-    dirs[:] = [d for d in dirs if d != "__pycache__"]
+depixlib\functions.py
+   PIL
+   __future__
+   depixlib.LoadedImage
+   depixlib.Rectangle
+   logging
+   random
+   typing
 
-    for filename in files:
-        if filename.endswith(".py"):
-            path = os.path.join(root, filename)
+depixlib\helpers.py
+   argparse
+   os
+   typing
 
-            try:
-                with open(path, "r", encoding="utf-8-sig") as file:
-                    tree = ast.parse(file.read())
+depixlib\LoadedImage.py
+   PIL
+   __future__
+   typing
 
-                imports = []
-                for node in ast.walk(tree):
-                    if isinstance(node, ast.Import):
-                        imports.extend(alias.name for alias in node.names)
-                    elif isinstance(node, ast.ImportFrom) and node.module:
-                        imports.append(node.module)
+depixlib\Rectangle.py
+   __future__
 
-                if imports:
-                    print("\n" + os.path.relpath(path, folder))
-                    for name in sorted(set(imports)):
-                        print("  ", name)
-
-            except Exception as error:
-                print("Ошибка чтения:", path, error)
-
-input("\nПроверка завершена. Нажми Enter.")
+Проверка завершена. Нажми Enter.
