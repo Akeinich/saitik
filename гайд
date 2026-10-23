@@ -1,21 +1,8 @@
-import os
-import sys
-import subprocess
-import importlib.util
+Python: 3.9.13 (tags/v3.9.13:6de2ca5, May 17 2022, 16:36:42) [MSC v.1929 64 bit (AMD64)]
+Путь к Python: C:\Program Files (x86)\Microsoft Visual Studio\Shared\Python39_64\pythonw.exe
+PIL — установлен
+numpy — установлен
+scipy — не установлен
+cv2 — не установлен
 
-print("Python:", sys.version)
-print("Путь к Python:", sys.executable)
-
-packages = ["PIL", "numpy", "scipy", "cv2"]
-
-for package in packages:
-    print(
-        package,
-        "— установлен" if importlib.util.find_spec(package)
-        else "— не установлен"
-    )
-
-print("\nПроверка pip:")
-subprocess.run([
-    sys.executable, "-m", "pip", "--version"
-])
+Проверка pip:
