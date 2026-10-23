@@ -1,50 +1,54 @@
-depix.py
-   __future__
-   argparse
-   depixlib.LoadedImage
-   depixlib.Rectangle
-   depixlib.functions
-   depixlib.helpers
-   logging
 
-tool_gen_pixelated.py
-   LoadedImage
-   argparse
-   depix
-   logging
-   os
-   shutil
+import os
+import sys
+import traceback
 
-tool_show_boxes.py
-   PIL
-   __future__
-   argparse
-   depixlib.LoadedImage
-   depixlib.Rectangle
-   depixlib.functions
-   depixlib.helpers
-   logging
+# Папка, в которой находится Depix
+DEP​IX_FOLDER = r"D:\ЗАГРУЗКИ\Depix"
 
-depixlib\functions.py
-   PIL
-   __future__
-   depixlib.LoadedImage
-   depixlib.Rectangle
-   logging
-   random
-   typing
+# Укажи полный путь к исходной пикселизированной картинке
+INPUT_IMAGE = r"D:\ЗАГРУЗКИ\pixelated.png"
 
-depixlib\helpers.py
-   argparse
-   os
-   typing
+# Файл для результата
+OUTPUT_IMAGE = r"D:\ЗАГРУЗКИ\depix_result.png"
 
-depixlib\LoadedImage.py
-   PIL
-   __future__
-   typing
+# Изображение с образцом шрифта из комплекта Depix
+SEARCH_IMAGE = os.path.join(
+    DEPIX_FOLDER,
+    "images",
+    "searchimages",
+    "debruinseq_notepad_Windows10_closeAndSpaced.png"
+)
 
-depixlib\Rectangle.py
-   __future__
+try:
+    if not os.path.isfile(INPUT_IMAGE):
+        raise FileNotFoundError(
+            "Не найдена исходная картинка: " + INPUT_IMAGE
+        )
 
-Проверка завершена. Нажми Enter.
+    if not os.path.isfile(SEARCH_IMAGE):
+        raise FileNotFoundError(
+            "Не найдено поисковое изображение: " + SEARCH_IMAGE
+        )
+
+    sys.path.insert(0, DEPIX_FOLDER)
+    os.chdir(DEPIX_FOLDER)
+
+    import depix
+
+    sys.argv = [
+        "depix.py",
+        "-p", INPUT_IMAGE,
+        "-s", SEARCH_IMAGE,
+        "-o", OUTPUT_IMAGE
+    ]
+
+    depix.main()
+
+    print("\nРабота завершена.")
+    print("Результат:", OUTPUT_IMAGE)
+
+except Exception:
+    traceback.print_exc()
+
+input("\nНажми Enter для выхода.")
