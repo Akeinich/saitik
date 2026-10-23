@@ -1,19 +1,18 @@
 
-import os
 import sys
 import subprocess
+import os
 
-project_folder = os.path.join(
-    os.path.expanduser("~"),
-    "Documents",
-    "Depix"
+project_folder = r"D:\ЗАГРУЗКИ\Depix"
+
+requirements = os.path.join(
+    project_folder,
+    "requirements.txt"
 )
 
-depix_file = os.path.join(project_folder, "depix.py")
-
-if not os.path.isfile(depix_file):
-    print("Не найден файл:", depix_file)
-    print("Проверь папку, куда распаковал Depix.")
+if not os.path.isfile(requirements):
+    print("Не найден requirements.txt")
+    print("Проверь, распакован ли архив в правильную папку.")
 else:
     result = subprocess.run(
         [
@@ -22,7 +21,7 @@ else:
             "pip",
             "install",
             "-r",
-            os.path.join(project_folder, "requirements.txt")
+            requirements
         ],
         capture_output=True,
         text=True
@@ -30,8 +29,4 @@ else:
 
     print(result.stdout)
     print(result.stderr)
-
-    if result.returncode == 0:
-        print("Зависимости Depix установлены.")
-    else:
-        print("Ошибка установки. Скопируй текст ошибки.")
+    print("Код завершения:", result.returncode)
