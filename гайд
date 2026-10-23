@@ -1,69 +1,16 @@
 
+from PIL import Image
 import os
-import sys
-import subprocess
-import time
 
-DEPIX_FOLDER = r"D:\ЗАГРУЗКИ\Depix"
-INPUT_IMAGE = r"D:\ЗАГРУЗКИ\Depix\images\eto_silno_bro.png"
-OUTPUT_IMAGE = r"D:\ЗАГРУЗКИ\Depix\images\depix_result.png"
+path = r"D:\ЗАГРУЗКИ\Depix\images\eto_silno_bro.png"
 
-SEARCH_IMAGE = os.path.join(
-    DEPIX_FOLDER,
-    "images",
-    "searchimages",
-    "debruinseq_notepad_Windows10_closeAndSpaced.png"
-)
+if not os.path.isfile(path):
+    print("Файл не найден:", path)
+else:
+    image = Image.open(path)
+    print("Размер:", image.size)
+    print("Режим:", image.mode)
+    print("Формат:", image.format)
+    print("Размер файла:", round(os.path.getsize(path) / 1024, 1), "КБ")
 
-def main():
-    script = os.path.join(DEPIX_FOLDER, "depix.py")
-
-    for path in (script, INPUT_IMAGE, SEARCH_IMAGE):
-        if not os.path.isfile(path):
-            print("Файл не найден:", path)
-            return
-
-    command = [
-        sys.executable,
-        "-u",
-        script,
-        "-p", INPUT_IMAGE,
-        "-s", SEARCH_IMAGE,
-        "-o", OUTPUT_IMAGE
-    ]
-
-    print("Запускаю Depix...", flush=True)
-    start = time.time()
-
-    try:
-        process = subprocess.Popen(
-            command,
-            cwd=DEPIX_FOLDER,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1,
-            errors="replace"
-        )
-
-        for line in process.stdout:
-            print(line, end="", flush=True)
-
-        code = process.wait()
-        print("\nВремя работы: {:.1f} сек.".format(
-            time.time() - start
-        ))
-        print("Код завершения:", code)
-
-        if code == 0 and os.path.isfile(OUTPUT_IMAGE):
-            print("Результат:", OUTPUT_IMAGE)
-        else:
-            print("Обработка не завершилась успешно.")
-
-    except Exception as error:
-        print("Ошибка запуска:", repr(error))
-
-    input("\nНажми Enter для выхода.")
-
-if __name__ == "__main__":
-    main()
+input("Нажми Enter для выхода")
