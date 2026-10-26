@@ -1,8 +1,2 @@
-11:57:26:871	No module named 'flask'
-11:57:26:871	Трассировка стека:
-11:57:26:871	 >  File "C:\Users\Student_22_02\source\repos\makaka_caZ\app.py", line 1, in <module> (Current frame)
-11:57:26:871	 >    from flask import Flask, render_template, jsonify, session, request
-11:57:26:871	 >ModuleNotFoundError: No module named 'flask'
-11:57:26:871	Модуль "__main__" загружен
-11:57:26:871	Модуль "runpy" загружен
-11:57:40:053	Программа "python.exe" завершилась с кодом 0 (0x0).
+import sys, subprocess
+subprocess.check_call([sys.executable, "-m", "pip", "install", "flask"])
