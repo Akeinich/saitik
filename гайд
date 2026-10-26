@@ -1,109 +1,180 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🎰 Казино-Симулятор</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-  <div class="background-glow"></div>
+const SYMBOLS = ["🍒", "🍋", "🍊", "🔔", "⭐", "💎"];
 
-  <header class="topbar">
-    <div class="logo">🎰 Казино-<span>Симулятор</span></div>
-    <div class="balance-box">
-      <span class="balance-label">Баланс</span>
-      <span id="balance" class="balance-value">1000</span>
-      <span class="chip-icon">🪙</span>
-    </div>
-    <button id="resetBtn" class="btn ghost">↻ Сброс</button>
-  </header>
+const state = {
+  slotBet: 10,
+  rouletteBet: 10,
+  rouletteType: "red",
+  busy: false,
+};
 
-  <main class="container">
-    <div class="notice">
-      <span>ℹ️</span>
-      <div>
-        <strong>Учебный симулятор.</strong>
-        Все фишки виртуальные и не имеют денежной ценности.
-        Игра создана для изучения Python и веб-разработки.
-      </div>
-    </div>
+const balanceEl = document.getElementById("balance");
 
-    <div class="tabs">
-      <button class="tab active" data-tab="slots">🎰 Слоты</button>
-      <button class="tab" data-tab="roulette">🎡 Рулетка</button>
-    </div>
+function setBalance(value) {
+  balanceEl.textContent = value;
+  balanceEl.classList.remove("pop");
+  void balanceEl.offsetWidth; // перезапуск анимации
+  balanceEl.classList.add("pop");
+}
 
-    <!-- ================= СЛОТЫ ================= -->
-    <section id="tab-slots" class="panel active">
-      <div class="machine">
-        <div class="reels">
-          <div class="reel" id="reel1">🍒</div>
-          <div class="reel" id="reel2">🍋</div>
-          <div class="reel" id="reel3">🍊</div>
-        </div>
-        <div class="message" id="slotMessage">Сделайте ставку и нажмите «Крутить»!</div>
-      </div>
+function showMessage(id, text, cls) {
+  const el = document.getElementById(id);
+  el.textContent = text;
+  el.className = "message" + (cls ? " " + cls : "");
+}
 
-      <div class="controls">
-        <div class="chips">
-          <button class="chip active" data-bet="10">10</button>
-          <button class="chip" data-bet="25">25</button>
-          <button class="chip" data-bet="50">50</button>
-          <button class="chip" data-bet="100">100</button>
-        </div>
-        <div class="bet-display">Ставка: <span id="slotBet">10</span> 🪙</div>
-        <button id="spinBtn" class="btn primary">Крутить!</button>
-      </div>
+async function api(path, body) {
+  const res = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body || {}),
+  });
+  return res.json();
+}
 
-      <div class="paytable">
-        <h3>Таблица выплат</h3>
-        <div class="paytable-grid">
-          <div><span>🍒🍒🍒</span> ×5</div>
-          <div><span>🍋🍋🍋</span> ×8</div>
-          <div><span>🍊🍊🍊</span> ×10</div>
-          <div><span>🔔🔔🔔</span> ×15</div>
-          <div><span>⭐⭐⭐</span> ×25</div>
-          <div><span>💎💎💎</span> ×50</div>
-        </div>
-      </div>
-    </section>
+/* ---------- Табы ---------- */
+document.querySelectorAll(".tab").forEach((tab) => {
+  tab.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+    tab.classList.add("active");
+    document.getElementById("tab-" + tab.dataset.tab).classList.add("active");
+  });
+});
 
-    <!-- ================= РУЛЕТКА ================= -->
-    <section id="tab-roulette" class="panel">
-      <div class="roulette-wrap">
-        <div class="wheel-result" id="wheelResult">?</div>
-        <div class="message" id="rouletteMessage">Выберите ставку и нажмите «Запустить»!</div>
-      </div>
+/* ---------- Выбор фишки ---------- */
+document.querySelectorAll(".chip").forEach((chip) => {
+  chip.addEventListener("click", () => {
+    const panel = chip.closest(".panel");
+    panel.querySelectorAll(".chip").forEach((c) => c.classList.remove("active"));
+    chip.classList.add("active");
 
-      <div class="controls">
-        <div class="bets">
-          <button class="bet-btn active" data-bet="red">🔴 Красное</button>
-          <button class="bet-btn" data-bet="black">⚫ Чёрное</button>
-          <button class="bet-btn" data-bet="even">Чёт</button>
-          <button class="bet-btn" data-bet="odd">Нечет</button>
-        </div>
-        <div class="number-bet">
-          <input type="number" id="numberBet" min="0" max="36" placeholder="0–36">
-          <button class="bet-btn" data-bet="number">На число (×36)</button>
-        </div>
-        <div class="chips">
-          <button class="chip active" data-bet="10">10</button>
-          <button class="chip" data-bet="25">25</button>
-          <button class="chip" data-bet="50">50</button>
-          <button class="chip" data-bet="100">100</button>
-        </div>
-        <div class="bet-display">Ставка: <span id="rouletteBet">10</span> 🪙</div>
-        <button id="rouletteBtn" class="btn primary">Запустить колесо!</button>
-      </div>
-    </section>
-  </main>
+    const val = parseInt(chip.dataset.bet, 10);
+    if (panel.id === "tab-slots") {
+      state.slotBet = val;
+      document.getElementById("slotBet").textContent = val;
+    } else {
+      state.rouletteBet = val;
+      document.getElementById("rouletteBet").textContent = val;
+    }
+  });
+});
 
-  <footer class="footer">
-    <p>⚠️ Это <strong>учебный симулятор</strong>. Виртуальные фишки не имеют реальной ценности.</p>
-    <p>Проект создан в образовательных целях (Python 3.9 + Flask).</p>
-  </footer>
+/* ---------- Тип ставки в рулетке ---------- */
+document.querySelectorAll(".bet-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".bet-btn").forEach((b) => b.classList.remove("active"));
+    btn.classList.add("active");
+    state.rouletteType = btn.dataset.bet;
+  });
+});
 
-  <script src="{{ url_for('static', filename='app.js') }}"></script>
-</body>
-</html>
+/* ---------- Сброс баланса ---------- */
+document.getElementById("resetBtn").addEventListener("click", async () => {
+  const data = await api("/api/reset");
+  setBalance(data.balance);
+  showMessage("slotMessage", "Баланс сброшен. Удачи!", "win");
+  showMessage("rouletteMessage", "Баланс сброшен. Удачи!", "win");
+});
+
+/* ---------- Слоты: спин ---------- */
+document.getElementById("spinBtn").addEventListener("click", async () => {
+  if (state.busy) return;
+  state.busy = true;
+  const btn = document.getElementById("spinBtn");
+  btn.disabled = true;
+
+  let data;
+  try {
+    data = await api("/api/spin", { bet: state.slotBet });
+  } catch (e) {
+    showMessage("slotMessage", "Ошибка сети", "lose");
+    state.busy = false; btn.disabled = false; return;
+  }
+
+  if (data.error) {
+    showMessage("slotMessage", data.error, "lose");
+    state.busy = false; btn.disabled = false; return;
+  }
+
+  const reels = ["reel1", "reel2", "reel3"].map((id) => document.getElementById(id));
+  reels.forEach((r) => r.classList.add("spinning"));
+
+  const interval = setInterval(() => {
+    reels.forEach((r) => (r.textContent = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)]));
+  }, 70);
+
+  setTimeout(() => {
+    clearInterval(interval);
+    reels.forEach((r, i) => {
+      r.classList.remove("spinning");
+      r.textContent = data.reels[i];
+    });
+    setBalance(data.balance);
+
+    if (data.multiplier > 0) {
+      showMessage("slotMessage", data.message, "win");
+      reels.forEach((r) => {
+        r.classList.add("win");
+        setTimeout(() => r.classList.remove("win"), 1200);
+      });
+    } else {
+      showMessage("slotMessage", data.message, "lose");
+    }
+    state.busy = false; btn.disabled = false;
+  }, 1300);
+});
+
+/* ---------- Рулетка: спин ---------- */
+document.getElementById("rouletteBtn").addEventListener("click", async () => {
+  if (state.busy) return;
+  state.busy = true;
+  const btn = document.getElementById("rouletteBtn");
+  btn.disabled = true;
+
+  const body = { bet: state.rouletteBet, type: state.rouletteType };
+
+  if (state.rouletteType === "number") {
+    const val = document.getElementById("numberBet").value;
+    if (val === "") {
+      showMessage("rouletteMessage", "Введите число от 0 до 36", "lose");
+      state.busy = false; btn.disabled = false; return;
+    }
+    body.value = val;
+  }
+
+  let data;
+  try {
+    data = await api("/api/roulette", body);
+  } catch (e) {
+    showMessage("rouletteMessage", "Ошибка сети", "lose");
+    state.busy = false; btn.disabled = false; return;
+  }
+
+  if (data.error) {
+    showMessage("rouletteMessage", data.error, "lose");
+    state.busy = false; btn.disabled = false; return;
+  }
+
+  const wheel = document.getElementById("wheelResult");
+  wheel.className = "wheel-result spinning";
+  wheel.textContent = "?";
+
+  const interval = setInterval(() => {
+    wheel.textContent = Math.floor(Math.random() * 37);
+  }, 70);
+
+  setTimeout(() => {
+    clearInterval(interval);
+    wheel.classList.remove("spinning");
+    wheel.textContent = data.number;
+    wheel.classList.add(data.color);
+    setBalance(data.balance);
+    showMessage("rouletteMessage", data.message, data.win ? "win" : "lose");
+    state.busy = false; btn.disabled = false;
+  }, 1400);
+});
+
+/* ---------- Старт ---------- */
+fetch("/api/balance")
+  .then((r) => r.json())
+  .then((d) => setBalance(d.balance));
