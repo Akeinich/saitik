@@ -1,145 +1,109 @@
-from flask import Flask, render_template, jsonify, session, request
-import random
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎰 Казино-Симулятор</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="background-glow"></div>
 
-app = Flask(__name__)
-# В продакшене замените на случайную строку!
-app.secret_key = "casino-simulator-secret-key-change-me"
+  <header class="topbar">
+    <div class="logo">🎰 Казино-<span>Симулятор</span></div>
+    <div class="balance-box">
+      <span class="balance-label">Баланс</span>
+      <span id="balance" class="balance-value">1000</span>
+      <span class="chip-icon">🪙</span>
+    </div>
+    <button id="resetBtn" class="btn ghost">↻ Сброс</button>
+  </header>
 
-START_BALANCE = 1000
+  <main class="container">
+    <div class="notice">
+      <span>ℹ️</span>
+      <div>
+        <strong>Учебный симулятор.</strong>
+        Все фишки виртуальные и не имеют денежной ценности.
+        Игра создана для изучения Python и веб-разработки.
+      </div>
+    </div>
 
-# Символы слотов: (символ, вес, множитель за 3 в ряд)
-SLOT_SYMBOLS = ["🍒", "🍋", "🍊", "🔔", "⭐", "💎"]
-SLOT_WEIGHTS = [30, 25, 20, 12, 8, 5]
-SLOT_PAYOUTS = {"🍒": 5, "🍋": 8, "🍊": 10, "🔔": 15, "⭐": 25, "💎": 50}
+    <div class="tabs">
+      <button class="tab active" data-tab="slots">🎰 Слоты</button>
+      <button class="tab" data-tab="roulette">🎡 Рулетка</button>
+    </div>
 
-RED_NUMBERS = {1, 3, 5, 7, 9, 12, 14, 16, 18,
-               19, 21, 23, 25, 27, 30, 32, 34, 36}
+    <!-- ================= СЛОТЫ ================= -->
+    <section id="tab-slots" class="panel active">
+      <div class="machine">
+        <div class="reels">
+          <div class="reel" id="reel1">🍒</div>
+          <div class="reel" id="reel2">🍋</div>
+          <div class="reel" id="reel3">🍊</div>
+        </div>
+        <div class="message" id="slotMessage">Сделайте ставку и нажмите «Крутить»!</div>
+      </div>
 
+      <div class="controls">
+        <div class="chips">
+          <button class="chip active" data-bet="10">10</button>
+          <button class="chip" data-bet="25">25</button>
+          <button class="chip" data-bet="50">50</button>
+          <button class="chip" data-bet="100">100</button>
+        </div>
+        <div class="bet-display">Ставка: <span id="slotBet">10</span> 🪙</div>
+        <button id="spinBtn" class="btn primary">Крутить!</button>
+      </div>
 
-def get_balance():
-    if "balance" not in session:
-        session["balance"] = START_BALANCE
-    return session["balance"]
+      <div class="paytable">
+        <h3>Таблица выплат</h3>
+        <div class="paytable-grid">
+          <div><span>🍒🍒🍒</span> ×5</div>
+          <div><span>🍋🍋🍋</span> ×8</div>
+          <div><span>🍊🍊🍊</span> ×10</div>
+          <div><span>🔔🔔🔔</span> ×15</div>
+          <div><span>⭐⭐⭐</span> ×25</div>
+          <div><span>💎💎💎</span> ×50</div>
+        </div>
+      </div>
+    </section>
 
+    <!-- ================= РУЛЕТКА ================= -->
+    <section id="tab-roulette" class="panel">
+      <div class="roulette-wrap">
+        <div class="wheel-result" id="wheelResult">?</div>
+        <div class="message" id="rouletteMessage">Выберите ставку и нажмите «Запустить»!</div>
+      </div>
 
-@app.route("/")
-def index():
-    return render_template("index.html")
+      <div class="controls">
+        <div class="bets">
+          <button class="bet-btn active" data-bet="red">🔴 Красное</button>
+          <button class="bet-btn" data-bet="black">⚫ Чёрное</button>
+          <button class="bet-btn" data-bet="even">Чёт</button>
+          <button class="bet-btn" data-bet="odd">Нечет</button>
+        </div>
+        <div class="number-bet">
+          <input type="number" id="numberBet" min="0" max="36" placeholder="0–36">
+          <button class="bet-btn" data-bet="number">На число (×36)</button>
+        </div>
+        <div class="chips">
+          <button class="chip active" data-bet="10">10</button>
+          <button class="chip" data-bet="25">25</button>
+          <button class="chip" data-bet="50">50</button>
+          <button class="chip" data-bet="100">100</button>
+        </div>
+        <div class="bet-display">Ставка: <span id="rouletteBet">10</span> 🪙</div>
+        <button id="rouletteBtn" class="btn primary">Запустить колесо!</button>
+      </div>
+    </section>
+  </main>
 
+  <footer class="footer">
+    <p>⚠️ Это <strong>учебный симулятор</strong>. Виртуальные фишки не имеют реальной ценности.</p>
+    <p>Проект создан в образовательных целях (Python 3.9 + Flask).</p>
+  </footer>
 
-@app.route("/api/balance")
-def api_balance():
-    return jsonify(balance=get_balance())
-
-
-@app.route("/api/reset", methods=["POST"])
-def api_reset():
-    session["balance"] = START_BALANCE
-    return jsonify(balance=START_BALANCE)
-
-
-@app.route("/api/spin", methods=["POST"])
-def api_spin():
-    data = request.get_json(silent=True) or {}
-    try:
-        bet = int(data.get("bet", 0))
-    except (TypeError, ValueError):
-        return jsonify(error="Некорректная ставка"), 400
-
-    balance = get_balance()
-    if bet <= 0:
-        return jsonify(error="Ставка должна быть больше нуля"), 400
-    if bet > balance:
-        return jsonify(error="Недостаточно фишек"), 400
-
-    balance -= bet
-    reels = random.choices(SLOT_SYMBOLS, weights=SLOT_WEIGHTS, k=3)
-
-    multiplier = 0
-    if reels[0] == reels[1] == reels[2]:
-        multiplier = SLOT_PAYOUTS[reels[0]]
-
-    winnings = bet * multiplier
-    balance += winnings
-    session["balance"] = balance
-
-    if multiplier > 0:
-        message = f"Выигрыш {winnings} 🪙 (×{multiplier})!"
-    else:
-        message = "Повезёт в следующий раз!"
-
-    return jsonify(
-        reels=reels,
-        multiplier=multiplier,
-        winnings=winnings,
-        balance=balance,
-        message=message,
-    )
-
-
-@app.route("/api/roulette", methods=["POST"])
-def api_roulette():
-    data = request.get_json(silent=True) or {}
-    try:
-        bet = int(data.get("bet", 0))
-    except (TypeError, ValueError):
-        return jsonify(error="Некорректная ставка"), 400
-
-    bet_type = data.get("type")
-    bet_value = data.get("value")
-
-    balance = get_balance()
-    if bet <= 0:
-        return jsonify(error="Ставка должна быть больше нуля"), 400
-    if bet > balance:
-        return jsonify(error="Недостаточно фишек"), 400
-    if bet_type not in {"red", "black", "even", "odd", "number"}:
-        return jsonify(error="Некорректный тип ставки"), 400
-
-    if bet_type == "number":
-        try:
-            bet_value = int(bet_value)
-        except (TypeError, ValueError):
-            return jsonify(error="Введите число от 0 до 36"), 400
-        if not 0 <= bet_value <= 36:
-            return jsonify(error="Число должно быть от 0 до 36"), 400
-
-    balance -= bet
-    number = random.randint(0, 36)
-
-    if number == 0:
-        color = "green"
-    elif number in RED_NUMBERS:
-        color = "red"
-    else:
-        color = "black"
-
-    win = False
-    multiplier = 0
-    if bet_type == "red" and color == "red":
-        win, multiplier = True, 2
-    elif bet_type == "black" and color == "black":
-        win, multiplier = True, 2
-    elif bet_type == "even" and number != 0 and number % 2 == 0:
-        win, multiplier = True, 2
-    elif bet_type == "odd" and number % 2 == 1:
-        win, multiplier = True, 2
-    elif bet_type == "number" and number == bet_value:
-        win, multiplier = True, 36
-
-    winnings = bet * multiplier if win else 0
-    balance += winnings
-    session["balance"] = balance
-
-    return jsonify(
-        number=number,
-        color=color,
-        win=win,
-        winnings=winnings,
-        balance=balance,
-        message=("Выигрыш +" + str(winnings) + " 🪙") if win else "Не повезло...",
-    )
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
