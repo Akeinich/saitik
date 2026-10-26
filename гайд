@@ -1,9 +1,127 @@
- * Serving Flask app 'app'
- * Debug mode: on
-WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
- * Running on http://127.0.0.1:5000
-Press CTRL+C to quit
- * Restarting with stat
- * Debugger is active!
- * Debugger PIN: 997-247-051
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎰 Казино-Симулятор</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="background-glow"></div>
+  <div class="floating-coins" id="floatingCoins"></div>
+  <canvas id="confettiCanvas"></canvas>
 
+  <header class="topbar">
+    <div class="logo">🎰 Казино-<span>Симулятор</span></div>
+    <div class="balance-box" id="balanceBox">
+      <span class="balance-label">Баланс</span>
+      <span id="balance" class="balance-value">1000</span>
+      <span class="chip-icon">🪙</span>
+    </div>
+    <button id="resetBtn" class="btn ghost">↻ Сброс</button>
+  </header>
+
+  <main class="container">
+    <div class="notice">
+      <span>ℹ️</span>
+      <div>
+        <strong>Учебный симулятор.</strong>
+        Все фишки виртуальные и не имеют денежной ценности.
+        Игра создана для изучения Python и веб-разработки.
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="slots">🎰 Слоты</button>
+      <button class="tab" data-tab="roulette">🎡 Рулетка</button>
+    </div>
+
+    <!-- ================= СЛОТЫ ================= -->
+    <section id="tab-slots" class="panel active">
+      <div class="machine">
+        <div class="reels" id="reels">
+          <div class="reel-wrap"><div class="reel" id="reel1">🍒</div></div>
+          <div class="reel-wrap"><div class="reel" id="reel2">🍋</div></div>
+          <div class="reel-wrap"><div class="reel" id="reel3">🍊</div></div>
+        </div>
+        <div class="message" id="slotMessage">Сделайте ставку и нажмите «Крутить»!</div>
+      </div>
+
+      <div class="controls">
+        <div class="chips">
+          <button class="chip active" data-bet="10">10</button>
+          <button class="chip" data-bet="25">25</button>
+          <button class="chip" data-bet="50">50</button>
+          <button class="chip" data-bet="100">100</button>
+        </div>
+        <div class="bet-display">Ставка: <span id="slotBet">10</span> 🪙</div>
+        <button id="spinBtn" class="btn primary shine">
+          <span class="btn-text">Крутить!</span>
+        </button>
+      </div>
+
+      <div class="paytable">
+        <h3>Таблица выплат</h3>
+        <div class="paytable-grid">
+          <div><span>🍒🍒🍒</span> ×5</div>
+          <div><span>🍋🍋🍋</span> ×8</div>
+          <div><span>🍊🍊🍊</span> ×10</div>
+          <div><span>🔔🔔🔔</span> ×15</div>
+          <div><span>⭐⭐⭐</span> ×25</div>
+          <div><span>💎💎💎</span> ×50</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= РУЛЕТКА ================= -->
+    <section id="tab-roulette" class="panel">
+      <div class="roulette-wrap">
+        <div class="wheel-container">
+          <div class="wheel-pointer">▼</div>
+          <div class="wheel" id="wheel">
+            <div class="wheel-inner" id="wheelInner"></div>
+            <div class="wheel-center" id="wheelResult">?</div>
+          </div>
+        </div>
+        <div class="message" id="rouletteMessage">Выберите ставку и нажмите «Запустить»!</div>
+      </div>
+
+      <div class="controls">
+        <div class="bets">
+          <button class="bet-btn active" data-bet="red">🔴 Красное</button>
+          <button class="bet-btn" data-bet="black">⚫ Чёрное</button>
+          <button class="bet-btn" data-bet="even">Чёт</button>
+          <button class="bet-btn" data-bet="odd">Нечет</button>
+        </div>
+        <div class="number-bet">
+          <input type="number" id="numberBet" min="0" max="36" placeholder="0–36">
+          <button class="bet-btn" data-bet="number">На число (×36)</button>
+        </div>
+        <div class="chips">
+          <button class="chip active" data-bet="10">10</button>
+          <button class="chip" data-bet="25">25</button>
+          <button class="chip" data-bet="50">50</button>
+          <button class="chip" data-bet="100">100</button>
+        </div>
+        <div class="bet-display">Ставка: <span id="rouletteBet">10</span> 🪙</div>
+        <button id="rouletteBtn" class="btn primary shine">
+          <span class="btn-text">Запустить колесо!</span>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>⚠️ Это <strong>учебный симулятор</strong>. Виртуальные фишки не имеют реальной ценности.</p>
+    <p>Проект создан в образовательных целях (Python 3.9 + Flask).</p>
+  </footer>
+
+  <!-- Оверлей «Big Win» -->
+  <div class="big-win-overlay" id="bigWinOverlay">
+    <div class="big-win-text">🎉 BIG WIN! 🎉</div>
+    <div class="big-win-amount" id="bigWinAmount">+0</div>
+  </div>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
