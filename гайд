@@ -1,127 +1,583 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🎰 Казино-Симулятор</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-  <div class="background-glow"></div>
-  <div class="floating-coins" id="floatingCoins"></div>
-  <canvas id="confettiCanvas"></canvas>
+* { margin: 0; padding: 0; box-sizing: border-box; }
 
-  <header class="topbar">
-    <div class="logo">🎰 Казино-<span>Симулятор</span></div>
-    <div class="balance-box" id="balanceBox">
-      <span class="balance-label">Баланс</span>
-      <span id="balance" class="balance-value">1000</span>
-      <span class="chip-icon">🪙</span>
-    </div>
-    <button id="resetBtn" class="btn ghost">↻ Сброс</button>
-  </header>
+:root {
+  --gold: #ffd93b;
+  --gold-2: #f5a623;
+  --bg-1: #0b1029;
+  --panel: rgba(22, 28, 68, 0.75);
+  --border: rgba(255, 217, 59, 0.25);
+  --text: #eef1ff;
+  --muted: #9aa3c7;
+  --green: #4ade80;
+  --red: #f87171;
+  --shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --neon: 0 0 20px rgba(255, 217, 59, 0.45);
+}
 
-  <main class="container">
-    <div class="notice">
-      <span>ℹ️</span>
-      <div>
-        <strong>Учебный симулятор.</strong>
-        Все фишки виртуальные и не имеют денежной ценности.
-        Игра создана для изучения Python и веб-разработки.
-      </div>
-    </div>
+html, body { height: 100%; }
 
-    <div class="tabs">
-      <button class="tab active" data-tab="slots">🎰 Слоты</button>
-      <button class="tab" data-tab="roulette">🎡 Рулетка</button>
-    </div>
+body {
+  font-family: "Segoe UI", Roboto, system-ui, sans-serif;
+  background: radial-gradient(circle at 15% 10%, #232a63, var(--bg-1) 55%), var(--bg-1);
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  position: relative;
+}
 
-    <!-- ================= СЛОТЫ ================= -->
-    <section id="tab-slots" class="panel active">
-      <div class="machine">
-        <div class="reels" id="reels">
-          <div class="reel-wrap"><div class="reel" id="reel1">🍒</div></div>
-          <div class="reel-wrap"><div class="reel" id="reel2">🍋</div></div>
-          <div class="reel-wrap"><div class="reel" id="reel3">🍊</div></div>
-        </div>
-        <div class="message" id="slotMessage">Сделайте ставку и нажмите «Крутить»!</div>
-      </div>
+/* ================= ФОН ================= */
+.background-glow {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(circle at 80% 20%, rgba(255, 217, 59, 0.10), transparent 40%),
+    radial-gradient(circle at 10% 80%, rgba(120, 90, 255, 0.14), transparent 45%);
+  animation: glowShift 14s ease-in-out infinite alternate;
+}
+@keyframes glowShift {
+  0%   { transform: scale(1) rotate(0deg); }
+  100% { transform: scale(1.1) rotate(3deg); }
+}
 
-      <div class="controls">
-        <div class="chips">
-          <button class="chip active" data-bet="10">10</button>
-          <button class="chip" data-bet="25">25</button>
-          <button class="chip" data-bet="50">50</button>
-          <button class="chip" data-bet="100">100</button>
-        </div>
-        <div class="bet-display">Ставка: <span id="slotBet">10</span> 🪙</div>
-        <button id="spinBtn" class="btn primary shine">
-          <span class="btn-text">Крутить!</span>
-        </button>
-      </div>
+/* Парящие монетки на фоне */
+.floating-coins {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+}
+.floating-coins::before,
+.floating-coins::after {
+  content: "🪙"; position: absolute; font-size: 2rem; opacity: 0.08;
+  animation: floatCoin 18s linear infinite;
+}
+.floating-coins::before { left: 8%; top: 100%; animation-delay: 0s; }
+.floating-coins::after  { left: 82%; top: 100%; animation-delay: 6s; }
+@keyframes floatCoin {
+  0%   { transform: translateY(0) rotate(0deg);   opacity: 0; }
+  10%  { opacity: 0.15; }
+  90%  { opacity: 0.15; }
+  100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
+}
 
-      <div class="paytable">
-        <h3>Таблица выплат</h3>
-        <div class="paytable-grid">
-          <div><span>🍒🍒🍒</span> ×5</div>
-          <div><span>🍋🍋🍋</span> ×8</div>
-          <div><span>🍊🍊🍊</span> ×10</div>
-          <div><span>🔔🔔🔔</span> ×15</div>
-          <div><span>⭐⭐⭐</span> ×25</div>
-          <div><span>💎💎💎</span> ×50</div>
-        </div>
-      </div>
-    </section>
+/* Конфетти canvas */
+#confettiCanvas {
+  position: fixed; inset: 0; pointer-events: none; z-index: 9999;
+}
 
-    <!-- ================= РУЛЕТКА ================= -->
-    <section id="tab-roulette" class="panel">
-      <div class="roulette-wrap">
-        <div class="wheel-container">
-          <div class="wheel-pointer">▼</div>
-          <div class="wheel" id="wheel">
-            <div class="wheel-inner" id="wheelInner"></div>
-            <div class="wheel-center" id="wheelResult">?</div>
-          </div>
-        </div>
-        <div class="message" id="rouletteMessage">Выберите ставку и нажмите «Запустить»!</div>
-      </div>
+/* ================= ВЕРХНЯЯ ПАНЕЛЬ ================= */
+.topbar {
+  position: relative; z-index: 2;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; padding: 16px 28px;
+  background: rgba(10, 14, 40, 0.7);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.logo { font-size: 1.4rem; font-weight: 800; letter-spacing: 0.5px; }
+.logo span {
+  color: var(--gold);
+  text-shadow: 0 0 12px rgba(255, 217, 59, 0.5);
+  animation: logoPulse 3s ease-in-out infinite;
+}
+@keyframes logoPulse {
+  0%, 100% { text-shadow: 0 0 12px rgba(255, 217, 59, 0.5); }
+  50%      { text-shadow: 0 0 24px rgba(255, 217, 59, 0.9); }
+}
 
-      <div class="controls">
-        <div class="bets">
-          <button class="bet-btn active" data-bet="red">🔴 Красное</button>
-          <button class="bet-btn" data-bet="black">⚫ Чёрное</button>
-          <button class="bet-btn" data-bet="even">Чёт</button>
-          <button class="bet-btn" data-bet="odd">Нечет</button>
-        </div>
-        <div class="number-bet">
-          <input type="number" id="numberBet" min="0" max="36" placeholder="0–36">
-          <button class="bet-btn" data-bet="number">На число (×36)</button>
-        </div>
-        <div class="chips">
-          <button class="chip active" data-bet="10">10</button>
-          <button class="chip" data-bet="25">25</button>
-          <button class="chip" data-bet="50">50</button>
-          <button class="chip" data-bet="100">100</button>
-        </div>
-        <div class="bet-display">Ставка: <span id="rouletteBet">10</span> 🪙</div>
-        <button id="rouletteBtn" class="btn primary shine">
-          <span class="btn-text">Запустить колесо!</span>
-        </button>
-      </div>
-    </section>
-  </main>
+.balance-box {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 18px;
+  background: linear-gradient(135deg, rgba(255, 217, 59, 0.12), rgba(245, 166, 35, 0.12));
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: 0 0 20px rgba(255, 217, 59, 0.12);
+  position: relative;
+  transition: box-shadow 0.3s;
+}
+.balance-box.flash {
+  animation: boxFlash 0.8s ease;
+}
+@keyframes boxFlash {
+  0%   { box-shadow: 0 0 20px rgba(255, 217, 59, 0.12); }
+  50%  { box-shadow: 0 0 40px rgba(255, 217, 59, 0.9), 0 0 80px rgba(255, 217, 59, 0.5); transform: scale(1.05); }
+  100% { box-shadow: 0 0 20px rgba(255, 217, 59, 0.12); }
+}
 
-  <footer class="footer">
-    <p>⚠️ Это <strong>учебный симулятор</strong>. Виртуальные фишки не имеют реальной ценности.</p>
-    <p>Проект создан в образовательных целях (Python 3.9 + Flask).</p>
-  </footer>
+.balance-label { color: var(--muted); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
+.balance-value { font-weight: 800; font-size: 1.2rem; color: var(--gold); transition: transform 0.1s; }
+.balance-value.pop { animation: pop 0.35s ease; }
+@keyframes pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.35); color: #fff; }
+  100% { transform: scale(1); }
+}
+.chip-icon { font-size: 1.1rem; }
 
-  <!-- Оверлей «Big Win» -->
-  <div class="big-win-overlay" id="bigWinOverlay">
-    <div class="big-win-text">🎉 BIG WIN! 🎉</div>
-    <div class="big-win-amount" id="bigWinAmount">+0</div>
-  </div>
+/* ================= КНОПКИ ================= */
+.btn {
+  border: none; cursor: pointer; border-radius: 12px;
+  padding: 10px 18px; font-weight: 700; font-size: 0.95rem;
+  transition: transform 0.15s, box-shadow 0.15s, background 0.2s, color 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn.ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+.btn.ghost:hover { color: var(--gold); border-color: var(--gold); }
+.btn.primary {
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
+  color: #1a1400; padding: 14px 36px; font-size: 1.05rem;
+  letter-spacing: 0.5px;
+  box-shadow: 0 6px 24px rgba(255, 217, 59, 0.3);
+  background-size: 200% 200%;
+}
+.btn.primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(255, 217, 59, 0.55), 0 0 40px rgba(255, 217, 59, 0.35);
+}
+.btn.primary:active:not(:disabled) { transform: translateY(0) scale(0.98); }
 
-  <script src="{{ url_for('static', filename='app.js') }}"></script>
-</body>
-</html>
+/* Блеск на кнопке */
+.btn.shine .btn-text { position: relative; z-index: 2; }
+.btn.shine::before {
+  content: ""; position: absolute; top: 0; left: -150%;
+  width: 100%; height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.65), transparent);
+  transform: skewX(-25deg);
+  animation: btnShine 3s infinite;
+}
+@keyframes btnShine {
+  0%   { left: -150%; }
+  40%  { left: 150%; }
+  100% { left: 150%; }
+}
+
+/* ================= КОНТЕЙНЕР ================= */
+.container {
+  position: relative; z-index: 2;
+  width: min(980px, 94vw);
+  margin: 24px auto; flex: 1;
+}
+
+.notice {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 14px 18px; margin-bottom: 20px;
+  background: rgba(77, 171, 247, 0.08);
+  border: 1px solid rgba(77, 171, 247, 0.3);
+  border-radius: 14px;
+  color: #bcd7ff; font-size: 0.9rem; line-height: 1.5;
+  animation: slideDown 0.5s ease;
+}
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: none; }
+}
+.notice strong { color: #e3efff; }
+
+/* ================= ТАБЫ ================= */
+.tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+.tab {
+  flex: 1; padding: 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  color: var(--muted);
+  font-size: 1.05rem; font-weight: 700;
+  cursor: pointer; transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+.tab:hover { color: var(--text); transform: translateY(-2px); }
+.tab.active {
+  color: #1a1400;
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
+  border-color: transparent;
+  box-shadow: 0 6px 24px rgba(255, 217, 59, 0.35), 0 0 30px rgba(255, 217, 59, 0.2);
+}
+
+.panel { display: none; }
+.panel.active { display: block; animation: fade 0.35s ease; }
+@keyframes fade {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ================= СЛОТЫ ================= */
+.machine {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 34px 24px 24px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+}
+.machine::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(120deg, transparent 30%, rgba(255,217,59,0.06) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: machineSweep 6s linear infinite;
+  pointer-events: none;
+}
+@keyframes machineSweep {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.reels {
+  display: flex; justify-content: center;
+  gap: 16px; margin-bottom: 18px;
+  perspective: 1000px;
+}
+.reel-wrap {
+  width: 110px; height: 130px;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 3px solid var(--gold);
+  background: linear-gradient(180deg, #fffdf3, #ffe9a8);
+  box-shadow: inset 0 4px 12px rgba(0,0,0,0.15),
+              0 8px 24px rgba(255, 217, 59, 0.25);
+  position: relative;
+}
+.reel-wrap::before,
+.reel-wrap::after {
+  content: ""; position: absolute; left: 0; right: 0; height: 20px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.18), transparent);
+  pointer-events: none; z-index: 2;
+}
+.reel-wrap::before { top: 0; }
+.reel-wrap::after  { bottom: 0; transform: scaleY(-1); }
+
+.reel {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 3.6rem;
+  user-select: none;
+  transform-style: preserve-3d;
+}
+
+.reel.spinning {
+  animation: reelSpin 0.15s linear infinite;
+}
+@keyframes reelSpin {
+  0%   { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+.reel.win {
+  animation: winPulse 0.5s ease 3;
+}
+@keyframes winPulse {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  25%      { transform: scale(1.2) rotate(-5deg); }
+  75%      { transform: scale(1.2) rotate(5deg); }
+}
+
+.reel-wrap.win-glow {
+  box-shadow:
+    inset 0 4px 12px rgba(0,0,0,0.15),
+    0 0 40px rgba(255, 217, 59, 0.9),
+    0 0 80px rgba(255, 217, 59, 0.5);
+  animation: wrapGlow 0.6s ease 3;
+}
+@keyframes wrapGlow {
+  0%, 100% { filter: brightness(1); }
+  50%      { filter: brightness(1.4); }
+}
+
+.message {
+  min-height: 28px; font-size: 1.05rem; font-weight: 600;
+  color: var(--muted); transition: color 0.3s;
+}
+.message.win  {
+  color: var(--green);
+  text-shadow: 0 0 16px rgba(74, 222, 128, 0.7);
+  animation: msgPop 0.4s ease;
+}
+.message.lose { color: var(--red); }
+@keyframes msgPop {
+  0%   { transform: scale(0.9); }
+  50%  { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* ================= КОНТРОЛЫ ================= */
+.controls {
+  margin-top: 20px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 22px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 16px;
+  backdrop-filter: blur(12px);
+}
+.chips { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.chip {
+  width: 62px; height: 62px;
+  border-radius: 50%;
+  border: 2px dashed rgba(255,255,255,0.4);
+  background: radial-gradient(circle at 30% 30%, #ff6b6b, #c0392b);
+  color: white; font-weight: 800; font-size: 0.95rem;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+  position: relative;
+}
+.chip:nth-child(2) { background: radial-gradient(circle at 30% 30%, #4dabf7, #1864ab); }
+.chip:nth-child(3) { background: radial-gradient(circle at 30% 30%, #51cf66, #2b8a3e); }
+.chip:nth-child(4) { background: radial-gradient(circle at 30% 30%, #cc5de8, #862e9c); }
+.chip:hover { transform: translateY(-4px) scale(1.06); }
+.chip.active {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px var(--gold), 0 6px 20px rgba(255, 217, 59, 0.6);
+  animation: chipPulse 2s ease-in-out infinite;
+}
+@keyframes chipPulse {
+  0%, 100% { box-shadow: 0 0 0 3px var(--gold), 0 6px 20px rgba(255, 217, 59, 0.4); }
+  50%      { box-shadow: 0 0 0 3px var(--gold), 0 6px 30px rgba(255, 217, 59, 0.9); }
+}
+.bet-display { color: var(--muted); font-size: 1.05rem; }
+.bet-display span { color: var(--gold); font-weight: 800; font-size: 1.2rem; }
+
+/* ================= ТАБЛИЦА ВЫПЛАТ ================= */
+.paytable {
+  margin-top: 20px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 22px;
+  backdrop-filter: blur(12px);
+}
+.paytable h3 { color: var(--gold); margin-bottom: 14px; text-align: center; letter-spacing: 1px; }
+.paytable-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.paytable-grid > div {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 12px; text-align: center; font-weight: 600;
+  transition: transform 0.2s, background 0.2s;
+}
+.paytable-grid > div:hover {
+  transform: translateY(-3px);
+  background: rgba(255, 217, 59, 0.08);
+}
+.paytable-grid span { font-size: 1.2rem; margin-right: 6px; }
+
+/* ================= РУЛЕТКА ================= */
+.roulette-wrap {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 30px 20px;
+  box-shadow: var(--shadow);
+  text-align: center;
+  backdrop-filter: blur(12px);
+}
+
+.wheel-container {
+  position: relative;
+  width: 220px; height: 220px;
+  margin: 0 auto 24px;
+}
+.wheel-pointer {
+  position: absolute;
+  top: -10px; left: 50%; transform: translateX(-50%);
+  font-size: 2rem; color: var(--gold);
+  z-index: 5;
+  text-shadow: 0 0 12px rgba(255, 217, 59, 0.9);
+  animation: pointerBounce 1.5s ease-in-out infinite;
+}
+@keyframes pointerBounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50%      { transform: translateX(-50%) translateY(-4px); }
+}
+
+.wheel {
+  position: relative;
+  width: 220px; height: 220px;
+  border-radius: 50%;
+  background:
+    conic-gradient(
+      from 0deg,
+      #b02a2a 0deg 10deg,
+      #14141c 10deg 20deg,
+      #b02a2a 20deg 30deg,
+      #14141c 30deg 40deg,
+      #b02a2a 40deg 50deg,
+      #14141c 50deg 60deg,
+      #b02a2a 60deg 70deg,
+      #14141c 70deg 80deg,
+      #b02a2a 80deg 90deg,
+      #14141c 90deg 100deg,
+      #b02a2a 100deg 110deg,
+      #14141c 110deg 120deg,
+      #b02a2a 120deg 130deg,
+      #14141c 130deg 140deg,
+      #b02a2a 140deg 150deg,
+      #14141c 150deg 160deg,
+      #b02a2a 160deg 170deg,
+      #14141c 170deg 180deg,
+      #b02a2a 180deg 190deg,
+      #14141c 190deg 200deg,
+      #b02a2a 200deg 210deg,
+      #14141c 210deg 220deg,
+      #b02a2a 220deg 230deg,
+      #14141c 230deg 240deg,
+      #b02a2a 240deg 250deg,
+      #14141c 250deg 260deg,
+      #b02a2a 260deg 270deg,
+      #14141c 270deg 280deg,
+      #b02a2a 280deg 290deg,
+      #14141c 290deg 300deg,
+      #b02a2a 300deg 310deg,
+      #14141c 310deg 320deg,
+      #b02a2a 320deg 330deg,
+      #14141c 330deg 340deg,
+      #b02a2a 340deg 350deg,
+      #15803d 350deg 360deg
+    );
+  box-shadow:
+    inset 0 0 0 6px var(--gold),
+    inset 0 0 30px rgba(0,0,0,0.6),
+    0 0 30px rgba(255, 217, 59, 0.4);
+  transition: transform 4s cubic-bezier(0.15, 0.9, 0.25, 1);
+}
+
+.wheel-center {
+  position: absolute;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 92px; height: 92px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #2a3268, #10142e);
+  border: 3px solid var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.4rem; font-weight: 900;
+  color: #fff;
+  z-index: 3;
+  box-shadow:
+    inset 0 0 20px rgba(0,0,0,0.5),
+    0 0 20px rgba(255, 217, 59, 0.5);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.8);
+  transition: background 0.4s, box-shadow 0.4s;
+}
+.wheel-center.red {
+  background: radial-gradient(circle at 30% 30%, #ff6b6b, #b02a2a);
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.4), 0 0 40px rgba(255, 107, 107, 0.9);
+}
+.wheel-center.black {
+  background: radial-gradient(circle at 30% 30%, #4a4a5a, #14141c);
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 0 40px rgba(120, 120, 140, 0.7);
+}
+.wheel-center.green {
+  background: radial-gradient(circle at 30% 30%, #4ade80, #15803d);
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.4), 0 0 40px rgba(74, 222, 128, 0.9);
+}
+
+.bets { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.bet-btn {
+  padding: 12px 18px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.04);
+  color: var(--text); font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+}
+.bet-btn:hover { border-color: var(--gold); transform: translateY(-2px); }
+.bet-btn.active {
+  background: linear-gradient(135deg, rgba(255,217,59,0.2), rgba(245,166,35,0.2));
+  border-color: var(--gold);
+  color: var(--gold);
+  box-shadow: 0 0 16px rgba(255, 217, 59, 0.4);
+}
+.number-bet { display: flex; gap: 10px; align-items: center; }
+.number-bet input {
+  width: 110px; padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,0.3);
+  color: var(--text); font-size: 1rem;
+  text-align: center; outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.number-bet input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 16px rgba(255, 217, 59, 0.4);
+}
+
+/* ================= ФУТЕР ================= */
+.footer {
+  position: relative; z-index: 2;
+  text-align: center;
+  padding: 20px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  background: rgba(10, 14, 40, 0.5);
+}
+.footer p { margin: 4px 0; }
+.footer strong { color: var(--gold); }
+
+/* ================= BIG WIN ================= */
+.big-win-overlay {
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  pointer-events: none;
+  z-index: 9998;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.big-win-overlay.show {
+  opacity: 1;
+  animation: bigWinBg 1.2s ease;
+}
+@keyframes bigWinBg {
+  0%, 100% { background: transparent; }
+  40%      { background: radial-gradient(circle, rgba(255, 217, 59, 0.15), transparent 60%); }
+}
+.big-win-text {
+  font-size: 3rem; font-weight: 900;
+  background: linear-gradient(135deg, var(--gold), #fff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 40px rgba(255, 217, 59, 0.6);
+  animation: bigWinBounce 1.2s ease;
+}
+.big-win-amount {
+  font-size: 2rem; font-weight: 800;
+  color: var(--green);
+  text-shadow: 0 0 30px rgba(74, 222, 128, 0.9);
+  margin-top: 10px;
+  animation: bigWinBounce 1.2s ease 0.15s;
+}
+@keyframes bigWinBounce {
+  0%   { transform: scale(0) rotate(-15deg); opacity: 0; }
+  60%  { transform: scale(1.15) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+/* Монетка, летящая к балансу */
+.fly-coin {
+  position: fixed;
+  font-size: 1.6rem;
+  pointer-events: none;
+  z-index: 9997;
+  transition: transform 0.9s cubic-bezier(0.5, -0.3, 0.3, 1.5), opacity 0.9s;
+}
+
+/* ================= АДАПТИВ ================= */
+@media (max-width: 640px) {
+  .reel-wrap { width: 84px; height: 104px; }
+  .reel { font-size: 2.6rem; }
+  .topbar { padding: 12px 16px; flex-wrap: wrap; }
+  .balance-box { padding: 6px 14px; }
+  .logo { font-size: 1.1rem; }
+  .paytable-grid { grid-template-columns: repeat(2, 1fr); }
+  .wheel-container, .wheel { width: 180px; height: 180px; }
+  .wheel-center { width: 76px; height: 76px; font-size: 2rem; }
+  .big-win-text { font-size: 2rem; }
+  .big-win-amount { font-size: 1.5rem; }
+}
