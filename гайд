@@ -1,8 +1,1 @@
-/* Плавная остановка барабана с эффектом «отскока» */
-.reel.landing {
-  animation: reelLand 0.38s cubic-bezier(0.2, 1.4, 0.4, 1);
-}
-@keyframes reelLand {
-  0%   { transform: translateY(-100%); }
-  100% { transform: translateY(0); }
-}
+https://drive.google.com/file/d/1SqY1QFSH52yh92KU7aRSIvnXoRNWiCQe/view?usp=sharing
