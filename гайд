@@ -1,467 +1,251 @@
-import os
-import hashlib
-import shutil
-from datetime import datetime
-import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
-import pyodbc
+USE [IP_33_06];
+GO
 
-# ==============================================================================
-# КОНФИГУРАЦИЯ ПОДКЛЮЧЕНИЯ К MS SQL SERVER
-# ==============================================================================
-DB_CONFIG = {
-    "server": r"ET_SERVER\STUD2023",
-    "database": "IP_33_06",
-    "username": "IP_33_06",
-    "password": "Qweasd333",
-}
+SET NOCOUNT ON;
 
+-- ==============================================================================
+-- 1. ЗАПОЛНЕНИЕ СПРАВОЧНИКОВ (РОЛИ, СТАТУСЫ, ПРИОРИТЕТЫ)
+-- ==============================================================================
+IF NOT EXISTS (SELECT 1 FROM dbo.SDL_Roles)
+BEGIN
+    INSERT INTO dbo.SDL_Roles (RoleName) VALUES 
+    (N'Сотрудник'),
+    (N'Исполнитель'),
+    (N'Администратор');
+END
 
-def get_connection():
-    """Создаёт подключение к MS SQL Server с автоматическим подбором ODBC-драйвера."""
-    drivers = [
-        "ODBC Driver 18 for SQL Server",
-        "ODBC Driver 17 for SQL Server",
-        "SQL Server Native Client 11.0",
-        "SQL Server",
-    ]
-    available = pyodbc.drivers()
-    selected_driver = next((d for d in drivers if d in available), "SQL Server")
+IF NOT EXISTS (SELECT 1 FROM dbo.SDL_Statuses)
+BEGIN
+    INSERT INTO dbo.SDL_Statuses (StatusName) VALUES 
+    (N'Новая'),
+    (N'В работе'),
+    (N'На проверке'),
+    (N'Закрыта');
+END
 
-    conn_str = (
-        f"DRIVER={{{selected_driver}}};"
-        f"SERVER={DB_CONFIG['server']};"
-        f"DATABASE={DB_CONFIG['database']};"
-        f"UID={DB_CONFIG['username']};"
-        f"PWD={DB_CONFIG['password']};"
-        "TrustServerCertificate=yes;"
-    )
-    return pyodbc.connect(conn_str)
+IF NOT EXISTS (SELECT 1 FROM dbo.SDL_Priorities)
+BEGIN
+    INSERT INTO dbo.SDL_Priorities (PriorityName, SLA_Hours) VALUES 
+    (N'Низкий', 48),
+    (N'Средний', 8),
+    (N'Высокий', 2);
+END
+GO
 
+-- ==============================================================================
+-- 2. ЗАПОЛНЕНИЕ ПОЛЬЗОВАТЕЛЕЙ (ПАРОЛЬ ДЛЯ ВСЕХ: 12345)
+-- SHA-256 от '12345' = '5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5'
+-- ==============================================================================
+DECLARE @PwdHash NVARCHAR(256) = N'5994471abb01112afcc18159f6cc74b4f511b99806da59b3caf5a9c173cacfc5';
 
-def hash_password(password: str) -> str:
-    return hashlib.sha256(password.encode("utf-8")).hexdigest()
+DECLARE @RoleEmp INT = (SELECT RoleID FROM dbo.SDL_Roles WHERE RoleName = N'Сотрудник');
+DECLARE @RoleExec INT = (SELECT RoleID FROM dbo.SDL_Roles WHERE RoleName = N'Исполнитель');
+DECLARE @RoleAdm INT = (SELECT RoleID FROM dbo.SDL_Roles WHERE RoleName = N'Администратор');
 
+IF NOT EXISTS (SELECT 1 FROM dbo.SDL_Users WHERE Email = N'ivanov@company.ru')
+    INSERT INTO dbo.SDL_Users (FullName, Email, PasswordHash, Department, RoleID, IsActive)
+    VALUES (N'Иванов Иван Иванович', N'ivanov@company.ru', @PwdHash, N'Бухгалтерия', @RoleEmp, 1);
 
-# ==============================================================================
-# ИНИЦИАЛИЗАЦИЯ СТРУКТУРЫ БД (ТАБЛИЦЫ С ПРЕФИКСОМ SDL_)
-# ==============================================================================
-def init_database():
-    conn = get_connection()
-    cur = conn.cursor()
+IF NOT EXISTS (SELECT 1 FROM dbo.SDL_Users WHERE Email = N'sokolova@company.ru')
+    INSERT INTO dbo.SDL_Users (FullName, Email, PasswordHash, Department, RoleID, IsActive)
+    VALUES (N'Соколова Анна Дмитриевна', N'sokolova@company.ru', @PwdHash, N'Отдел кадров', @RoleEmp, 1);
 
-    ddl_statements = [
-        """
-        IF OBJECT_ID('dbo.SDL_Roles', 'U') IS NULL
-        CREATE TABLE dbo.SDL_Roles (
-            RoleID INT IDENTITY(1,1) PRIMARY KEY,
-            RoleName NVARCHAR(50) NOT NULL UNIQUE
-        )
-        """,
-        """
-        IF OBJECT_ID('dbo.SDL_Users', 'U') IS NULL
-        CREATE TABLE dbo.SDL_Users (
-            UserID INT IDENTITY(1,1) PRIMARY KEY,
-            FullName NVARCHAR(150) NOT NULL,
-            Email NVARCHAR(100) NOT NULL UNIQUE,
-            PasswordHash NVARCHAR(256) NOT NULL,
-            Department NVARCHAR(100) NULL,
-            RoleID INT NOT NULL FOREIGN KEY REFERENCES dbo.SDL_Roles(RoleID),
-            IsActive BIT NOT NULL DEFAULT 1,
-            CreatedAt DATETIME NOT NULL DEFAULT GETDATE()
-        )
-        """,
-        """
-        IF OBJECT_ID('dbo.SDL_Categories', 'U') IS NULL
-        CREATE TABLE dbo.SDL_Categories (
-            CategoryID INT IDENTITY(1,1) PRIMARY KEY,
-            CategoryName NVARCHAR(100) NOT NULL UNIQUE,
-            DefaultExecutorID INT NULL FOREIGN KEY REFERENCES dbo.SDL_Users(UserID)
-        )
-        """,
-        """
-        IF OBJECT_ID('dbo.SDL_Priorities', 'U') IS NULL
-        CREATE TABLE dbo.SDL_Priorities (
-            PriorityID INT IDENTITY(1,1) PRIMARY KEY,
-            PriorityName NVARCHAR(50) NOT NULL UNIQUE,
-            SLA_Hours INT NOT NULL DEFAULT 24
-        )
-        """,
-        """
-        IF OBJECT_ID('dbo.SDL_Statuses', 'U') IS NULL
-        CREATE TABLE dbo.SDL_Statuses (
-            StatusID INT IDENTITY(1,1) PRIMARY KEY,
-            StatusName NVARCHAR(50) NOT NULL UNIQUE
-        )
-        """,
-        """
-        IF OBJECT_ID('dbo.SDL_Tickets', 'U') IS NULL
-        CREATE TABLE dbo.SDL_Tickets (
-            TicketID INT IDENTITY(1001,1) PRIMARY KEY,
-            Subject NVARCHAR(200) NOT NULL,
-            Description NVARCHAR(MAX) NOT NULL,
-            CategoryID INT NOT NULL FOREIGN KEY REFERENCES dbo.SDL_Categories(CategoryID),
-            PriorityID INT NOT NULL FOREIGN KEY REFERENCES dbo.SDL_Priorities(PriorityID),
-            StatusID INT NOT NULL FOREIGN KEY REFERENCES dbo.SDL_Statuses(StatusID),
-            AuthorID INT NOT NULL FOREIGN KEY REFERENCES dbo.SDL_Users(UserID),
-            ExecutorID INT NULL FOREIGN KEY REFERENCES dbo.SDL_Users(UserID),
-            CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
-            UpdatedAt DATETIME NOT NULL DEFAULT GETDATE(),
-            ClosedAt DATETIME NULL
-        )
-        """,
-        """
-        IF OBJECT_ID('dbo.SDL_Comments', 'U') IS NULL
-        CREATE TABLE dbo.SDL_Comments (
-            CommentID INT IDENTITY(1,1) PRIMARY KEY,
-            TicketID INT NOT NULL FOREIGN KEY REFERENCES dbo.SDL_Tickets(TicketID),
-            AuthorID INT NOT NULL FOREIGN KEY REFERENCES dbo.SDL_Users(UserID),
-            CommentText NVARCHAR(MAX) NOT NULL,
-            CreatedAt DATETIME NOT NULL DEFAULT GETDATE()
-        )
-        """,
-        """
-        IF OBJECT_ID('dbo.SDL_Attachments', 'U') IS NULL
-        CREATE TABLE dbo.SDL_Attachments (
-            AttachmentID INT IDENTITY(1,1) PRIMARY KEY,
-            TicketID INT NOT NULL FOREIGN KEY REFERENCES dbo.SDL_Tickets(TicketID),
-            FileName NVARCHAR(255) NOT NULL,
-            FileData VARBINARY(MAX) NULL,
-            UploadedAt DATETIME NOT NULL DEFAULT GETDATE()
-        )
-        """,
-    ]
+IF NOT EXISTS (SELECT 1 FROM dbo.SDL_Users WHERE Email = N'morozov@company.ru')
+    INSERT INTO dbo.SDL_Users (FullName, Email, PasswordHash, Department, RoleID, IsActive)
+    VALUES (N'Морозов Денис Викторович', N'morozov@company.ru', @PwdHash, N'Отдел продаж', @RoleEmp, 1);
 
-    for stmt in ddl_statements:
-        cur.execute(stmt)
-    conn.commit()
+IF NOT EXISTS (SELECT 1 FROM dbo.SDL_Users WHERE Email = N'kozlov@company.ru')
+    INSERT INTO dbo.SDL_Users (FullName, Email, PasswordHash, Department, RoleID, IsActive)
+    VALUES (N'Козлов Дмитрий Петрович', N'kozlov@company.ru', @PwdHash, N'Логистика', @RoleEmp, 0); -- Заблокирован
 
-    # Заполнение базовых справочников, если таблица ролей пуста
-    cur.execute("SELECT COUNT(*) FROM dbo.SDL_Roles")
-    if cur.fetchone()[0] == 0:
-        for role in ["Сотрудник", "Исполнитель", "Администратор"]:
-            cur.execute("INSERT INTO dbo.SDL_Roles (RoleName) VALUES (?)", role)
+IF NOT EXISTS (SELECT 1 FROM dbo.SDL_Users WHERE Email = N'petrov@company.ru')
+    INSERT INTO dbo.SDL_Users (FullName, Email, PasswordHash, Department, RoleID, IsActive)
+    VALUES (N'Петров Алексей Сергеевич', N'petrov@company.ru', @PwdHash, N'ИТ-отдел (Поддержка)', @RoleExec, 1);
 
-        for status in ["Новая", "В работе", "На проверке", "Закрыта"]:
-            cur.execute("INSERT INTO dbo.SDL_Statuses (StatusName) VALUES (?)", status)
+IF NOT EXISTS (SELECT 1 FROM dbo.SDL_Users WHERE Email = N'sidorov@company.ru')
+    INSERT INTO dbo.SDL_Users (FullName, Email, PasswordHash, Department, RoleID, IsActive)
+    VALUES (N'Сидоров Кирилл Владимирович', N'sidorov@company.ru', @PwdHash, N'ИТ-отдел (Системное адм.)', @RoleExec, 1);
 
-        for prio, sla in [("Низкий", 48), ("Средний", 8), ("Высокий", 2)]:
-            cur.execute(
-                "INSERT INTO dbo.SDL_Priorities (PriorityName, SLA_Hours) VALUES (?, ?)",
-                (prio, sla),
-            )
+IF NOT EXISTS (SELECT 1 FROM dbo.SDL_Users WHERE Email = N'admin@company.ru')
+    INSERT INTO dbo.SDL_Users (FullName, Email, PasswordHash, Department, RoleID, IsActive)
+    VALUES (N'Смирнова Елена Олеговна', N'admin@company.ru', @PwdHash, N'Администрирование ИС', @RoleAdm, 1);
+GO
 
-        # Тестовые пользователи (пароль для всех: 12345)
-        pwd = hash_password("12345")
-        cur.execute(
-            "INSERT INTO dbo.SDL_Users (FullName, Email, PasswordHash, Department, RoleID) VALUES (?, ?, ?, ?, 1)",
-            ("Иванов Иван Иванович", "ivanov@company.ru", pwd, "Бухгалтерия"),
-        )
-        cur.execute(
-            "INSERT INTO dbo.SDL_Users (FullName, Email, PasswordHash, Department, RoleID) VALUES (?, ?, ?, ?, 2)",
-            ("Петров Алексей Сергеевич", "petrov@company.ru", pwd, "ИТ-отдел"),
-        )
-        cur.execute(
-            "INSERT INTO dbo.SDL_Users (FullName, Email, PasswordHash, Department, RoleID) VALUES (?, ?, ?, ?, 3)",
-            ("Смирнова Елена Олеговна", "admin@company.ru", pwd, "Администрирование"),
-        )
-        conn.commit()
+-- ==============================================================================
+-- 3. ЗАПОЛНЕНИЕ КАТЕГОРИЙ ЗАЯВОК
+-- ==============================================================================
+DECLARE @ExecPetrov INT = (SELECT UserID FROM dbo.SDL_Users WHERE Email = N'petrov@company.ru');
+DECLARE @ExecSidorov INT = (SELECT UserID FROM dbo.SDL_Users WHERE Email = N'sidorov@company.ru');
 
-        cur.execute("SELECT UserID FROM dbo.SDL_Users WHERE Email = 'petrov@company.ru'")
-        exec_id = cur.fetchone()[0]
-        for cat in ["Оргтехника и периферия", "Программное обеспечение", "Доступы и учётные записи", "Сеть и Интернет"]:
-            cur.execute(
-                "INSERT INTO dbo.SDL_Categories (CategoryName, DefaultExecutorID) VALUES (?, ?)",
-                (cat, exec_id),
-            )
-        conn.commit()
+IF NOT EXISTS (SELECT 1 FROM dbo.SDL_Categories WHERE CategoryName = N'Оргтехника и периферия')
+    INSERT INTO dbo.SDL_Categories (CategoryName, DefaultExecutorID) VALUES (N'Оргтехника и периферия', @ExecPetrov);
 
-    cur.close()
-    conn.close()
+IF NOT EXISTS (SELECT 1 FROM dbo.SDL_Categories WHERE CategoryName = N'Программное обеспечение')
+    INSERT INTO dbo.SDL_Categories (CategoryName, DefaultExecutorID) VALUES (N'Программное обеспечение', @ExecPetrov);
 
+IF NOT EXISTS (SELECT 1 FROM dbo.SDL_Categories WHERE CategoryName = N'Доступы и учётные записи')
+    INSERT INTO dbo.SDL_Categories (CategoryName, DefaultExecutorID) VALUES (N'Доступы и учётные записи', @ExecSidorov);
 
-# ==============================================================================
-# ГРАФИЧЕСКИЙ ИНТЕРФЕЙС ПРИЛОЖЕНИЯ (TKINTER)
-# ==============================================================================
-class ServiceDeskApp(tk.Tk):
-    def __init__(self):
-        super().__init__()
-        self.title("ServiceDesk Lite — Система учёта заявок")
-        self.geometry("1120x680")
-        self.configure(bg="#F1F5F9")
-        self.current_user = None
+IF NOT EXISTS (SELECT 1 FROM dbo.SDL_Categories WHERE CategoryName = N'Сеть и Интернет')
+    INSERT INTO dbo.SDL_Categories (CategoryName, DefaultExecutorID) VALUES (N'Сеть и Интернет', @ExecSidorov);
 
-        style = ttk.Style(self)
-        style.theme_use("clam")
-        style.configure("Treeview", rowheight=28, font=("Segoe UI", 9))
-        style.configure("Treeview.Heading", font=("Segoe UI", 9, "bold"))
+IF NOT EXISTS (SELECT 1 FROM dbo.SDL_Categories WHERE CategoryName = N'Административно-хозяйственные вопросы')
+    INSERT INTO dbo.SDL_Categories (CategoryName, DefaultExecutorID) VALUES (N'Административно-хозяйственные вопросы', @ExecPetrov);
+GO
 
-        self.show_login_screen()
+-- ==============================================================================
+-- 4. ЗАПОЛНЕНИЕ ЗАЯВОК, КОММЕНТАРИЕВ (ОТВЕТОВ) И ВЛОЖЕНИЙ
+-- ==============================================================================
+DECLARE @U_Ivanov INT   = (SELECT UserID FROM dbo.SDL_Users WHERE Email = N'ivanov@company.ru');
+DECLARE @U_Sokolova INT = (SELECT UserID FROM dbo.SDL_Users WHERE Email = N'sokolova@company.ru');
+DECLARE @U_Morozov INT  = (SELECT UserID FROM dbo.SDL_Users WHERE Email = N'morozov@company.ru');
+DECLARE @U_Petrov INT   = (SELECT UserID FROM dbo.SDL_Users WHERE Email = N'petrov@company.ru');
+DECLARE @U_Sidorov INT  = (SELECT UserID FROM dbo.SDL_Users WHERE Email = N'sidorov@company.ru');
 
-    def clear_window(self):
-        for widget in self.winfo_children():
-            widget.destroy()
+DECLARE @C_Org INT  = (SELECT CategoryID FROM dbo.SDL_Categories WHERE CategoryName = N'Оргтехника и периферия');
+DECLARE @C_Soft INT = (SELECT CategoryID FROM dbo.SDL_Categories WHERE CategoryName = N'Программное обеспечение');
+DECLARE @C_Acc INT  = (SELECT CategoryID FROM dbo.SDL_Categories WHERE CategoryName = N'Доступы и учётные записи');
+DECLARE @C_Net INT  = (SELECT CategoryID FROM dbo.SDL_Categories WHERE CategoryName = N'Сеть и Интернет');
 
-    # --------------------------------------------------------------------------
-    # ЭКРАН АВТОРИЗАЦИИ
-    # --------------------------------------------------------------------------
-    def show_login_screen(self):
-        self.clear_window()
-        card = tk.Frame(self, bg="white", bd=1, relief="solid", padx=35, pady=30)
-        card.place(relx=0.5, rely=0.5, anchor="center")
+DECLARE @P_Low INT  = (SELECT PriorityID FROM dbo.SDL_Priorities WHERE PriorityName = N'Низкий');
+DECLARE @P_Med INT  = (SELECT PriorityID FROM dbo.SDL_Priorities WHERE PriorityName = N'Средний');
+DECLARE @P_High INT = (SELECT PriorityID FROM dbo.SDL_Priorities WHERE PriorityName = N'Высокий');
 
-        tk.Label(card, text="ServiceDesk Lite", font=("Segoe UI", 18, "bold"), bg="white", fg="#1E3A8A").pack(pady=(0, 5))
-        tk.Label(card, text="Вход в систему учёта заявок", font=("Segoe UI", 10), bg="white", fg="#64748B").pack(pady=(0, 20))
+DECLARE @S_New INT    = (SELECT StatusID FROM dbo.SDL_Statuses WHERE StatusName = N'Новая');
+DECLARE @S_Work INT   = (SELECT StatusID FROM dbo.SDL_Statuses WHERE StatusName = N'В работе');
+DECLARE @S_Check INT  = (SELECT StatusID FROM dbo.SDL_Statuses WHERE StatusName = N'На проверке');
+DECLARE @S_Closed INT = (SELECT StatusID FROM dbo.SDL_Statuses WHERE StatusName = N'Закрыта');
 
-        tk.Label(card, text="Логин (корпоративный e-mail):", font=("Segoe UI", 9, "bold"), bg="white").pack(anchor="w")
-        self.email_entry = ttk.Entry(card, width=35, font=("Segoe UI", 10))
-        self.email_entry.insert(0, "ivanov@company.ru")
-        self.email_entry.pack(pady=(3, 12))
+DECLARE @T_ID INT;
 
-        tk.Label(card, text="Пароль:", font=("Segoe UI", 9, "bold"), bg="white").pack(anchor="w")
-        self.pass_entry = ttk.Entry(card, width=35, font=("Segoe UI", 10), show="•")
-        self.pass_entry.insert(0, "12345")
-        self.pass_entry.pack(pady=(3, 18))
+-- Заявка 1: ЗАКРЫТА (полный цикл с перепиской и решением)
+IF NOT EXISTS (SELECT 1 FROM dbo.SDL_Tickets WHERE Subject = N'Установка 1С:Предприятие 8.3 на новый ПК')
+BEGIN
+    INSERT INTO dbo.SDL_Tickets (Subject, Description, CategoryID, PriorityID, StatusID, AuthorID, ExecutorID, CreatedAt, UpdatedAt, ClosedAt)
+    VALUES (
+        N'Установка 1С:Предприятие 8.3 на новый ПК',
+        N'Прошу установить тонкий клиент 1С:Предприятие 8.3 и подключить базу «Бухгалтерия предприятия» в каб. 204, рабочее место 2.',
+        @C_Soft, @P_Med, @S_Closed, @U_Ivanov, @U_Petrov,
+        DATEADD(DAY, -5, GETDATE()), DATEADD(DAY, -4, GETDATE()), DATEADD(DAY, -4, GETDATE())
+    );
+    SET @T_ID = SCOPE_IDENTITY();
 
-        btn_login = tk.Button(
-            card, text="Войти в систему", bg="#1D4ED8", fg="white",
-            font=("Segoe UI", 10, "bold"), relief="flat", padx=20, pady=8,
-            command=self.handle_login
-        )
-        btn_login.pack(fill="x")
+    INSERT INTO dbo.SDL_Comments (TicketID, AuthorID, CommentText, CreatedAt) VALUES
+    (@T_ID, @U_Petrov, N'Добрый день! Заявка принята в работу. Подойду в каб. 204 сегодня после 14:00.', DATEADD(HOUR, -118, GETDATE())),
+    (@T_ID, @U_Ivanov, N'Хорошо, буду на рабочем месте до 17:30.', DATEADD(HOUR, -117, GETDATE())),
+    (@T_ID, @U_Petrov, N'Клиент 1С установлен, база подключена, тестовый вход выполнен успешно. Перевожу заявку на проверку.', DATEADD(HOUR, -112, GETDATE())),
+    (@T_ID, @U_Ivanov, N'Всё работает отлично, спасибо! Подтверждаю закрытие.', DATEADD(HOUR, -100, GETDATE()));
+END
 
-        hint = (
-            "Тестовые учётные записи (пароль 12345):\n"
-            "• Сотрудник: ivanov@company.ru\n"
-            "• Исполнитель: petrov@company.ru\n"
-            "• Администратор: admin@company.ru"
-        )
-        tk.Label(card, text=hint, font=("Segoe UI", 8), bg="#F8FAFC", fg="#475569", justify="left", padx=10, pady=8).pack(pady=(15, 0), fill="x")
+-- Заявка 2: В РАБОТЕ (активная переписка и вложение)
+IF NOT EXISTS (SELECT 1 FROM dbo.SDL_Tickets WHERE Subject = N'Не печатает сетевой принтер HP LaserJet в каб. 205')
+BEGIN
+    INSERT INTO dbo.SDL_Tickets (Subject, Description, CategoryID, PriorityID, StatusID, AuthorID, ExecutorID, CreatedAt, UpdatedAt)
+    VALUES (
+        N'Не печатает сетевой принтер HP LaserJet в каб. 205',
+        N'При отправке документов на печать появляется ошибка «Принтер не отвечает». Кабель питания проверен, индикатор мигает красным.',
+        @C_Org, @P_High, @S_Work, @U_Ivanov, @U_Petrov,
+        DATEADD(HOUR, -3, GETDATE()), DATEADD(HOUR, -1, GETDATE())
+    );
+    SET @T_ID = SCOPE_IDENTITY();
 
-    def handle_login(self):
-        email = self.email_entry.get().strip()
-        pwd = self.pass_entry.get().strip()
-        if not email or not pwd:
-            messagebox.showwarning("Ошибка ввода", "Заполните логин и пароль!")
-            return
+    INSERT INTO dbo.SDL_Comments (TicketID, AuthorID, CommentText, CreatedAt) VALUES
+    (@T_ID, @U_Petrov, N'Взял заявку в работу. Уточните, пожалуйста, проблема наблюдается только с вашего компьютера или у всего кабинета?', DATEADD(HOUR, -2, GETDATE())),
+    (@T_ID, @U_Ivanov, N'У всех трёх сотрудников в кабинете документы зависают в очереди печати.', DATEADD(MINUTE, -95, GETDATE())),
+    (@T_ID, @U_Petrov, N'Понял, проблема на стороне принт-сервера или самого аппарата. Подхожу в каб. 205 с запасным картриджем и ноутбуком для диагностики.', DATEADD(MINUTE, -40, GETDATE()));
 
-        try:
-            conn = get_connection()
-            cur = conn.cursor()
-            cur.execute(
-                """
-                SELECT u.UserID, u.FullName, u.Email, r.RoleName, u.IsActive
-                FROM dbo.SDL_Users u
-                JOIN dbo.SDL_Roles r ON u.RoleID = r.RoleID
-                WHERE u.Email = ? AND u.PasswordHash = ?
-                """,
-                (email, hash_password(pwd)),
-            )
-            row = cur.fetchone()
-            cur.close()
-            conn.close()
+    INSERT INTO dbo.SDL_Attachments (TicketID, FileName, FileData, UploadedAt) VALUES
+    (@T_ID, N'printer_error_screen.png', CAST(N'DEMO_BINARY_IMAGE_DATA_PNG' AS VARBINARY(MAX)), DATEADD(HOUR, -3, GETDATE()));
+END
 
-            if not row:
-                messagebox.showerror("Ошибка авторизации", "Неверный логин или пароль.")
-                return
-            if not row.IsActive:
-                messagebox.showerror("Доступ запрещён", "Учётная запись заблокирована администратором.")
-                return
+-- Заявка 3: НА ПРОВЕРКЕ (ожидает подтверждения инициатора)
+IF NOT EXISTS (SELECT 1 FROM dbo.SDL_Tickets WHERE Subject = N'Замена картриджа в МФУ Kyocera (каб. 304)')
+BEGIN
+    INSERT INTO dbo.SDL_Tickets (Subject, Description, CategoryID, PriorityID, StatusID, AuthorID, ExecutorID, CreatedAt, UpdatedAt)
+    VALUES (
+        N'Замена картриджа в МФУ Kyocera (каб. 304)',
+        N'На экране МФУ появилось сообщение «Замените тонер-картридж TK-1170». Печать стала бледной с полосами.',
+        @C_Org, @P_Low, @S_Check, @U_Sokolova, @U_Petrov,
+        DATEADD(DAY, -1, GETDATE()), DATEADD(MINUTE, -30, GETDATE())
+    );
+    SET @T_ID = SCOPE_IDENTITY();
 
-            self.current_user = {
-                "id": row.UserID,
-                "name": row.FullName,
-                "email": row.Email,
-                "role": row.RoleName,
-            }
-            self.show_main_screen()
-        except Exception as e:
-            messagebox.showerror("Ошибка БД", f"Не удалось подключиться к SQL Server:\n{e}")
+    INSERT INTO dbo.SDL_Comments (TicketID, AuthorID, CommentText, CreatedAt) VALUES
+    (@T_ID, @U_Petrov, N'Картридж заменён на новый оригинальный, узел очистки протёрт. Распечатана тестовая страница. Пожалуйста, проверьте качество печати и закройте заявку.', DATEADD(MINUTE, -30, GETDATE()));
+END
 
-    # --------------------------------------------------------------------------
-    # ГЛАВНЫЙ ЭКРАН СИСТЕМЫ
-    # --------------------------------------------------------------------------
-    def show_main_screen(self):
-        self.clear_window()
+-- Заявка 4: НОВАЯ (ещё не взята в работу)
+IF NOT EXISTS (SELECT 1 FROM dbo.SDL_Tickets WHERE Subject = N'Доступ к сетевой папке «Отдел кадров — Приказы»')
+BEGIN
+    INSERT INTO dbo.SDL_Tickets (Subject, Description, CategoryID, PriorityID, StatusID, AuthorID, ExecutorID, CreatedAt, UpdatedAt)
+    VALUES (
+        N'Доступ к сетевой папке «Отдел кадров — Приказы»',
+        N'Прошу предоставить права на чтение и запись в сетевую директорию \\fileserver\HR\Orders для нового инспектора по кадрам.',
+        @C_Acc, @P_Med, @S_New, @U_Sokolova, NULL,
+        DATEADD(MINUTE, -25, GETDATE()), DATEADD(MINUTE, -25, GETDATE())
+    );
+    SET @T_ID = SCOPE_IDENTITY();
 
-        # Верхняя панель навигации
-        topbar = tk.Frame(self, bg="#1E3A8A", height=52, padx=15)
-        topbar.pack(fill="x")
-        tk.Label(topbar, text="ServiceDesk Lite", font=("Segoe UI", 13, "bold"), bg="#1E3A8A", fg="white").pack(side="left", pady=10)
+    INSERT INTO dbo.SDL_Attachments (TicketID, FileName, FileData, UploadedAt) VALUES
+    (@T_ID, N'sluzhebnaya_zapiska.pdf', CAST(N'DEMO_PDF_CONTENT' AS VARBINARY(MAX)), DATEADD(MINUTE, -25, GETDATE()));
+END
 
-        user_info = f"{self.current_user['name']}  |  Роль: {self.current_user['role']}"
-        tk.Button(topbar, text="Выход", bg="#DC2626", fg="white", relief="flat", padx=12, command=self.show_login_screen).pack(side="right", pady=10)
-        tk.Label(topbar, text=user_info, font=("Segoe UI", 9, "bold"), bg="#1E3A8A", fg="#DBEAFE").pack(side="right", padx=15)
+-- Заявка 5: НОВАЯ (высокий приоритет — сеть)
+IF NOT EXISTS (SELECT 1 FROM dbo.SDL_Tickets WHERE Subject = N'Не подключается корпоративный VPN из дома')
+BEGIN
+    INSERT INTO dbo.SDL_Tickets (Subject, Description, CategoryID, PriorityID, StatusID, AuthorID, ExecutorID, CreatedAt, UpdatedAt)
+    VALUES (
+        N'Не подключается корпоративный VPN из дома',
+        N'При попытке подключения через OpenVPN клиент выдаёт ошибку «TLS Error: TLS handshake failed». Домашний интернет работает стабильно.',
+        @C_Net, @P_High, @S_New, @U_Morozov, NULL,
+        DATEADD(MINUTE, -10, GETDATE()), DATEADD(MINUTE, -10, GETDATE())
+    );
+    SET @T_ID = SCOPE_IDENTITY();
 
-        notebook = ttk.Notebook(self)
-        notebook.pack(fill="both", expand=True, padx=12, pady=12)
+    INSERT INTO dbo.SDL_Attachments (TicketID, FileName, FileData, UploadedAt) VALUES
+    (@T_ID, N'openvpn_client.log', CAST(N'Thu Nov 23 11:30:12 2026 TLS Error: TLS handshake failed' AS VARBINARY(MAX)), DATEADD(MINUTE, -10, GETDATE()));
+END
 
-        # Вкладка 1: Реестр заявок (доступна всем)
-        tab_tickets = tk.Frame(notebook, bg="#F8FAFC")
-        notebook.add(tab_tickets, text="  Реестр заявок  ")
-        self.build_tickets_tab(tab_tickets)
+-- Заявка 6: ЗАКРЫТА (для статистики отчётов)
+IF NOT EXISTS (SELECT 1 FROM dbo.SDL_Tickets WHERE Subject = N'Настройка корпоративной почты на новом ноутбуке')
+BEGIN
+    INSERT INTO dbo.SDL_Tickets (Subject, Description, CategoryID, PriorityID, StatusID, AuthorID, ExecutorID, CreatedAt, UpdatedAt, ClosedAt)
+    VALUES (
+        N'Настройка корпоративной почты на новом ноутбуке',
+        N'Необходимо настроить учётную запись morozov@company.ru в почтовом клиенте Thunderbird и перенести архив писем.',
+        @C_Soft, @P_Med, @S_Closed, @U_Morozov, @U_Sidorov,
+        DATEADD(DAY, -3, GETDATE()), DATEADD(DAY, -2, GETDATE()), DATEADD(DAY, -2, GETDATE())
+    );
+    SET @T_ID = SCOPE_IDENTITY();
 
-        # Вкладка 2: Администрирование и отчёты (только для Администратора)
-        if self.current_user["role"] == "Администратор":
-            tab_admin = tk.Frame(notebook, bg="#F8FAFC")
-            notebook.add(tab_admin, text="  Панель администратора и отчёты  ")
-            self.build_admin_tab(tab_admin)
+    INSERT INTO dbo.SDL_Comments (TicketID, AuthorID, CommentText, CreatedAt) VALUES
+    (@T_ID, @U_Sidorov, N'Почтовый клиент настроен по протоколу IMAP/SMTP, архив за 2025–2026 гг. импортирован.', DATEADD(DAY, -2, GETDATE()));
+END
 
-    # --------------------------------------------------------------------------
-    # ВКЛАДКА РЕЕСТРА ЗАЯВОК (СЦЕНАРИИ 1–5)
-    # --------------------------------------------------------------------------
-    def build_tickets_tab(self, parent):
-        ctrl = tk.Frame(parent, bg="#F8FAFC", pady=8, padx=8)
-        ctrl.pack(fill="x")
+-- Заявка 7: В РАБОТЕ (у системного администратора)
+IF NOT EXISTS (SELECT 1 FROM dbo.SDL_Tickets WHERE Subject = N'Периодически пропадает Wi-Fi в переговорной №2')
+BEGIN
+    INSERT INTO dbo.SDL_Tickets (Subject, Description, CategoryID, PriorityID, StatusID, AuthorID, ExecutorID, CreatedAt, UpdatedAt)
+    VALUES (
+        N'Периодически пропадает Wi-Fi в переговорной №2',
+        N'Во время видеозвонков в Яндекс.Телемост каждые 15 минут обрывается соединение по Wi-Fi (сеть Corp_WiFi).',
+        @C_Net, @P_Med, @S_Work, @U_Morozov, @U_Sidorov,
+        DATEADD(HOUR, -5, GETDATE()), DATEADD(HOUR, -2, GETDATE())
+    );
+    SET @T_ID = SCOPE_IDENTITY();
 
-        tk.Button(
-            ctrl, text="+ Создать заявку", bg="#16A34A", fg="white",
-            font=("Segoe UI", 9, "bold"), relief="flat", padx=14, pady=6,
-            command=self.open_create_ticket_modal
-        ).pack(side="left")
+    INSERT INTO dbo.SDL_Comments (TicketID, AuthorID, CommentText, CreatedAt) VALUES
+    (@T_ID, @U_Sidorov, N'Проверил логи контроллера точек доступа. Наблюдается переключение между точками AP-04 и AP-05. Настраиваю порог роуминга и мощность сигнала.', DATEADD(HOUR, -2, GETDATE()));
+END
+GO
 
-        tk.Label(ctrl, text="Статус:", bg="#F8FAFC", font=("Segoe UI", 9)).pack(side="left", padx=(20, 5))
-        self.status_filter = ttk.Combobox(ctrl, values=["Все", "Новая", "В работе", "На проверке", "Закрыта"], state="readonly", width=16)
-        self.status_filter.set("Все")
-        self.status_filter.pack(side="left")
-        self.status_filter.bind("<<ComboboxSelected>>", lambda e: self.load_tickets())
-
-        tk.Button(ctrl, text="Обновить список", bg="#E2E8F0", relief="flat", padx=10, pady=5, command=self.load_tickets).pack(side="left", padx=10)
-        tk.Label(ctrl, text="Подсказка: дважды кликните по заявке для просмотра и работы с ней", bg="#F8FAFC", fg="#64748B", font=("Segoe UI", 8, "italic")).pack(side="right")
-
-        cols = ("id", "subject", "category", "priority", "status", "author", "executor", "created")
-        self.tree = ttk.Treeview(parent, columns=cols, show="headings")
-        headers = [
-            ("id", "№", 60),
-            ("subject", "Тема заявки", 260),
-            ("category", "Категория", 160),
-            ("priority", "Приоритет", 95),
-            ("status", "Статус", 110),
-            ("author", "Инициатор", 150),
-            ("executor", "Исполнитель", 150),
-            ("created", "Дата создания", 125),
-        ]
-        for col_id, title, w in headers:
-            self.tree.heading(col_id, text=title)
-            self.tree.column(col_id, width=w, anchor="w")
-
-        self.tree.pack(fill="both", expand=True, padx=8, pady=(0, 8))
-        self.tree.bind("<Double-1>", self.open_ticket_detail_modal)
-        self.load_tickets()
-
-    def load_tickets(self):
-        for item in self.tree.get_children():
-            self.tree.delete(item)
-
-        conn = get_connection()
-        cur = conn.cursor()
-
-        query = """
-            SELECT t.TicketID, t.Subject, c.CategoryName, p.PriorityName, s.StatusName,
-                   a.FullName AS AuthorName, ISNULL(e.FullName, N'Не назначен') AS ExecName,
-                   CONVERT(VARCHAR(16), t.CreatedAt, 120) AS CreatedStr
-            FROM dbo.SDL_Tickets t
-            JOIN dbo.SDL_Categories c ON t.CategoryID = c.CategoryID
-            JOIN dbo.SDL_Priorities p ON t.PriorityID = p.PriorityID
-            JOIN dbo.SDL_Statuses s ON t.StatusID = s.StatusID
-            JOIN dbo.SDL_Users a ON t.AuthorID = a.UserID
-            LEFT JOIN dbo.SDL_Users e ON t.ExecutorID = e.UserID
-            WHERE 1=1
-        """
-        params = []
-        # Сотрудник видит только свои заявки, Исполнитель и Администратор — все
-        if self.current_user["role"] == "Сотрудник":
-            query += " AND t.AuthorID = ?"
-            params.append(self.current_user["id"])
-
-        st_val = self.status_filter.get()
-        if st_val != "Все":
-            query += " AND s.StatusName = ?"
-            params.append(st_val)
-
-        query += " ORDER BY t.TicketID DESC"
-        cur.execute(query, params)
-        for r in cur.fetchall():
-            self.tree.insert("", "end", values=(
-                f"#{r.TicketID}", r.Subject, r.CategoryName, r.PriorityName,
-                r.StatusName, r.AuthorName, r.ExecName, r.CreatedStr
-            ))
-        cur.close()
-        conn.close()
-
-    # --------------------------------------------------------------------------
-    # СЦЕНАРИЙ 1: СОЗДАНИЕ ЗАЯВКИ С ВЛОЖЕНИЕМ
-    # --------------------------------------------------------------------------
-    def open_create_ticket_modal(self):
-        win = tk.Toplevel(self)
-        win.title("Создание новой заявки")
-        win.geometry("540x460")
-        win.configure(bg="white", padx=20, pady=15)
-        win.grab_set()
-
-        conn = get_connection()
-        cur = conn.cursor()
-        cur.execute("SELECT CategoryID, CategoryName FROM dbo.SDL_Categories")
-        categories = {row.CategoryName: row.CategoryID for row in cur.fetchall()}
-        cur.execute("SELECT PriorityID, PriorityName FROM dbo.SDL_Priorities")
-        priorities = {row.PriorityName: row.PriorityID for row in cur.fetchall()}
-        cur.close()
-        conn.close()
-
-        tk.Label(win, text="Категория заявки *:", bg="white", font=("Segoe UI", 9, "bold")).pack(anchor="w")
-        cb_cat = ttk.Combobox(win, values=list(categories.keys()), state="readonly", width=55)
-        cb_cat.current(0)
-        cb_cat.pack(pady=(2, 10), fill="x")
-
-        tk.Label(win, text="Приоритет *:", bg="white", font=("Segoe UI", 9, "bold")).pack(anchor="w")
-        cb_prio = ttk.Combobox(win, values=list(priorities.keys()), state="readonly", width=55)
-        cb_prio.set("Средний")
-        cb_prio.pack(pady=(2, 10), fill="x")
-
-        tk.Label(win, text="Тема заявки (кратко) *:", bg="white", font=("Segoe UI", 9, "bold")).pack(anchor="w")
-        ent_subj = ttk.Entry(win, font=("Segoe UI", 10))
-        ent_subj.pack(pady=(2, 10), fill="x")
-
-        tk.Label(win, text="Подробное описание проблемы *:", bg="white", font=("Segoe UI", 9, "bold")).pack(anchor="w")
-        txt_desc = tk.Text(win, height=6, font=("Segoe UI", 9))
-        txt_desc.pack(pady=(2, 10), fill="x")
-
-        attached_file = {"path": None}
-        lbl_file = tk.Label(win, text="Файл не прикреплён (PNG, JPG, PDF, DOCX до 10 МБ)", bg="white", fg="#64748B", font=("Segoe UI", 8))
-        lbl_file.pack(anchor="w")
-
-        def choose_file():
-            path = filedialog.askopenfilename(filetypes=[("Разрешённые файлы", "*.png *.jpg *.jpeg *.pdf *.docx *.txt")])
-            if path:
-                if os.path.getsize(path) > 10 * 1024 * 1024:
-                    messagebox.showerror("Ошибка", "Размер файла превышает 10 МБ!")
-                    return
-                attached_file["path"] = path
-                lbl_file.config(text=f"Прикреплён: {os.path.basename(path)}", fg="#1D4ED8")
-
-        tk.Button(win, text="📎 Прикрепить файл", command=choose_file, bg="#E2E8F0", relief="flat", padx=10).pack(anchor="w", pady=(4, 15))
-
-        def submit():
-            subj = ent_subj.get().strip()
-            desc = txt_desc.get("1.0", "end").strip()
-            if not subj or not desc:
-                messagebox.showwarning("Ошибка", "Заполните обязательные поля: Тема и Описание!")
-                return
-
-            conn = get_connection()
-            cur = conn.cursor()
-            cur.execute(
-                """
-                INSERT INTO dbo.SDL_Tickets (Subject, Description, CategoryID, PriorityID, StatusID, AuthorID)
-                OUTPUT INSERTED.TicketID
-                VALUES (?, ?, ?, ?, 1, ?)
-                """,
-                (subj, desc, categories[cb_cat.get()], priorities[cb_prio.get()], self.current_user["id"]),
-            )
-            new_ticket_id = cur.fetchone()[0]
-
-            if attached_file["path"]:
-                with open(attached_file["path"], "rb") as f:
-                    file_bytes = f.read()
-                cur.execute(
-            
+-- Проверка заполнения таблиц
+SELECT 'SDL_Roles' AS TableName, COUNT(*) AS RowsCount FROM dbo.SDL_Roles
+UNION ALL SELECT 'SDL_Users', COUNT(*) FROM dbo.SDL_Users
+UNION ALL SELECT 'SDL_Categories', COUNT(*) FROM dbo.SDL_Categories
+UNION ALL SELECT 'SDL_Priorities', COUNT(*) FROM dbo.SDL_Priorities
+UNION ALL SELECT 'SDL_Statuses', COUNT(*) FROM dbo.SDL_Statuses
+UNION ALL SELECT 'SDL_Tickets', COUNT(*) FROM dbo.SDL_Tickets
+UNION ALL SELECT 'SDL_Comments', COUNT(*) FROM dbo.SDL_Comments
+UNION ALL SELECT 'SDL_Attachments', COUNT(*) FROM dbo.SDL_Attachments;
+GO
