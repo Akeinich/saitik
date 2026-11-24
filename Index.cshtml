@@ -1,0 +1,203 @@
+﻿@page
+@model CasinoSimulator.Pages.IndexModel
+@{
+    ViewData["Title"] = "Звёздный Ковчег";
+}
+
+<link rel="stylesheet" href="~/css/style.css" asp-append-version="true" />
+
+<div class="site-bg" aria-hidden="true"></div>
+
+<!-- ДЕКОРАЦИИ ЛЕСА -->
+<div class="forest-decorations" aria-hidden="true">
+    <div class="root root-left"></div>
+    <div class="root root-right"></div>
+
+    <div class="vine vine-left"></div>
+    <div class="vine vine-right"></div>
+
+    <div class="leaf-decor l-1"></div>
+    <div class="leaf-decor l-2"></div>
+    <div class="leaf-decor l-3"></div>
+    <div class="leaf-decor l-4"></div>
+</div>
+
+<canvas id="ambient-canvas" aria-hidden="true"></canvas>
+@Html.AntiForgeryToken()
+
+<header class="topbar">
+    <a class="brand" href="#top" aria-label="На главную">
+        <span class="brand-mark">✦</span>
+        <span>STAR<span class="brand-accent">.ARK</span></span>
+        <span class="brand-subtitle">испытай свою судьбу</span>
+    </a>
+
+    <div class="topbar-actions">
+        <div class="balance-pill" title="Ваш баланс">
+            <span class="balance-gem">◆</span>
+            <span id="balance">10 000</span>
+            <span class="balance-label">кристаллов</span>
+        </div>
+        <button class="button button-quiet" id="resetBtn" type="button">↻ Сбросить прогресс</button>
+    </div>
+</header>
+
+<main class="page-shell" id="top">
+    <section class="hero-banner" aria-labelledby="banner-title">
+        <div class="banner-orbit orbit-one"></div>
+        <div class="banner-orbit orbit-two"></div>
+        <div class="banner-sparkle sparkle-one">✦</div>
+        <div class="banner-sparkle sparkle-two">✧</div>
+        <div class="banner-copy">
+            <div class="eyebrow"><span class="live-dot"></span> ИВЕНТОВЫЙ БАННЕР · ВЕЛИКИЙ МАГ</div>
+            <h1 id="banner-title">Мудрость <span>Древних</span></h1>
+            <p class="banner-description">Призови Великого Мага или одного из легендарных героев.</p>
+            <div class="banner-rates">
+                <span class="rate rate-five">★★★★★ <b>0.6%</b></span>
+                <span class="rate rate-four">★★★★ <b>5.1%</b></span>
+                <span class="rate rate-three">★★★ <b>94.3%</b></span>
+            </div>
+            <small class="banner-disclaimer">* 50% шанс получить ивентового персонажа. Если не повезло — следующий 5★ гарантирован.</small>
+
+            <!-- ПРОГРЕСС ГАРАНТА -->
+            <div class="pity-container">
+                <div class="pity-info">
+                    <span id="pityText">До гаранта: 0/90</span>
+                    <span id="guaranteeStatus" class="guarantee-status">50/50</span>
+                </div>
+                <div class="pity-bar-bg">
+                    <div class="pity-bar-fill" id="pityBar"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="banner-art" aria-hidden="true">
+            <div class="art-halo"></div>
+            <div class="art-ring ring-a"></div>
+            <div class="art-ring ring-b"></div>
+            <div class="art-crystal">✦</div>
+            <div class="art-caption">ОГРАНИЧЕННЫЙ<br />ПРИЗЫВ<br /><strong>ВЕЛИКИЙ МАГ</strong></div>
+        </div>
+        <div class="banner-bottom-line"></div>
+    </section>
+
+    <section class="wish-section" aria-label="Призыв">
+        <div class="section-heading">
+            <div>
+                <span class="section-kicker">СДЕЛАЙ СВОЙ ВЫБОР</span>
+                <h2>Сколько героев призвать?</h2>
+            </div>
+            <div class="pity-note"><span>ⓘ</span> Мягкий гарант с 74 ролла.</div>
+        </div>
+
+        <div class="wish-actions">
+            <button class="wish-button" type="button" data-count="1">
+                <span class="wish-button-icon">✧</span>
+                <span class="wish-button-copy"><strong>Один призыв</strong><small>Испытать удачу</small></span>
+                <span class="wish-button-cost">100 <i>◆</i></span>
+            </button>
+            <button class="wish-button wish-button-featured" type="button" data-count="10">
+                <span class="ten-badge">ВЫГОДНО</span>
+                <span class="wish-button-icon">✦</span>
+                <span class="wish-button-copy"><strong>Десять призывов</strong><small>Больше шансов на легенду</small></span>
+                <span class="wish-button-cost">900 <i>◆</i></span>
+            </button>
+        </div>
+    </section>
+
+    <section class="side-activity" aria-label="Добыча">
+        <div class="activity-copy">
+            <span class="activity-icon">☄</span>
+            <div>
+                <span class="section-kicker">ИСТОЧНИК СИЛЫ</span>
+                <h3>Сбор звёздной пыли</h3>
+                <p>Нажми на сферу. Получи <b>+50 ◆</b>. Повторяй, пока есть силы.</p>
+            </div>
+        </div>
+        <div class="farm-control">
+            <button class="farm-orb" id="farmOrb" type="button" aria-label="Добыть 50 кристаллов"><span>✦</span></button>
+            <div class="farm-stats"><strong id="minedAmount">0</strong><small>добыто всего</small></div>
+        </div>
+    </section>
+
+    <footer class="page-footer">
+        <span>STAR.ARK © 2026</span>
+        <span>Все совпадения с реальными гача-системами случайны.</span>
+    </footer>
+</main>
+
+<!-- Контейнер для маскота -->
+<div id="fairy-mascot" class="fairy-mascot">
+    <div class="fairy-glow"></div>
+    <div class="fairy-gift-ui" id="fairyGiftUi">
+        <div class="gift-timer" id="giftTimer">05:00</div>
+    </div>
+    <div class="fairy-particles">
+        <span class="leaf leaf-1"></span>
+        <span class="leaf leaf-2"></span>
+        <span class="leaf leaf-3"></span>
+        <span class="firefly ff-1"></span>
+        <span class="firefly ff-2"></span>
+        <span class="firefly ff-3"></span>
+    </div>
+    <div class="chibi-dryad">
+        <div class="hair-back"></div>
+        <div class="body-dress">
+            <div class="dress-layer layer-1"></div>
+            <div class="dress-layer layer-2"></div>
+            <div class="arm arm-left"></div>
+            <div class="arm arm-right"></div>
+        </div>
+        <div class="head">
+            <div class="face">
+                <div class="eye eye-left"><div class="pupil"></div><div class="highlight"></div></div>
+                <div class="eye eye-right"><div class="pupil"></div><div class="highlight"></div></div>
+                <div class="blush blush-left"></div>
+                <div class="blush blush-right"></div>
+                <div class="mouth"></div>
+            </div>
+            <div class="bangs"></div>
+            <div class="wreath"></div>
+        </div>
+    </div>
+</div>
+
+<div class="gacha-overlay" id="gachaOverlay" aria-hidden="true">
+    <canvas id="scene-canvas" aria-hidden="true"></canvas>
+    <div class="scene-vignette"></div>
+    <div class="scene-topline"><span>STAR.ARK / PROTOCOL</span><span id="sceneCounter">ПРИЗЫВ 01 / 01</span></div>
+    <button class="skip-button" id="skipBtn" type="button">Пропустить <span>»</span></button>
+
+    <div class="cinematic-message" id="cinematicMessage">
+        <span class="cinematic-kicker">ПРОТОКОЛ АКТИВИРОВАН</span>
+        <h2 id="cinematicTitle">Начинаем призыв</h2>
+        <p id="cinematicSubtitle">Судьба уже делает свой ход.</p>
+        <div class="cinematic-loading"><span></span></div>
+    </div>
+
+    <div class="rarity-reveal" id="rarityReveal">
+        <div class="reveal-rays"></div>
+        <div class="reveal-stars" id="revealStars">★★★</div>
+        <div class="reveal-label" id="revealLabel">ОБЫЧНЫЙ ПРИЗЫВ</div>
+        <div class="reveal-name" id="revealName">Предмет</div>
+        <div class="reveal-hint" id="revealHint">Нажми, чтобы продолжить</div>
+    </div>
+
+    <div class="summary-screen" id="summaryScreen">
+        <div class="summary-header">
+            <span class="cinematic-kicker">ОТЧЁТ</span>
+            <h2>Вот что нам выпало</h2>
+            <p id="summaryComment">Статистика не врёт. В отличие от надежды.</p>
+        </div>
+        <div class="summary-grid" id="summaryGrid"></div>
+        <div class="summary-footer">
+            <div class="summary-total" id="summaryTotal"></div>
+            <button class="button button-gold" id="closeSummaryBtn" type="button">Вернуться к призывам</button>
+        </div>
+    </div>
+
+    <div class="scene-bottom-hint" id="sceneBottomHint">ПРОБЕЛ / КЛИК — ПРОДОЛЖИТЬ</div>
+</div>
+
+<script src="~/js/gacha-scene.js" asp-append-version="true"></script>
+<script src="~/js/app.js" asp-append-version="true"></script>
