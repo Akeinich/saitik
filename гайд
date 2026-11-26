@@ -1,2 +1,15 @@
-comm_list = tk.Text(comm_card, height=8, font=("Segoe UI", 9), bg="#F8FAFC", fg=COLORS["text_dark"],
-                    relief="flat", state="disabled", padx=8, pady=6)
+Серьезность	Код	Описание	Проект	Файл	Строка	Состояние подавления
+Ошибка	CS1525	Недопустимый термин "[" в выражении	CasinoSimulator	C:\Users\Student_23_10\source\repos\CasinoSimulator\CasinoSimulator\Pages\Index.cshtml.cs	35	Активные
+Ошибка	CS1525	Недопустимый термин "[" в выражении	CasinoSimulator	C:\Users\Student_23_10\source\repos\CasinoSimulator\CasinoSimulator\Pages\Index.cshtml.cs	42	Активные
+Ошибка	CS1525	Недопустимый термин "[" в выражении	CasinoSimulator	C:\Users\Student_23_10\source\repos\CasinoSimulator\CasinoSimulator\Pages\Index.cshtml.cs	53	Активные
+Ошибка (активно)	CS0103	Имя "keyframes" не существует в текущем контексте.		C:\Users\Student_23_10\source\repos\CasinoSimulator\CasinoSimulator\Pages\Index.cshtml	90	
+Ошибка (активно)	CS0103	Имя "keyframes" не существует в текущем контексте.		C:\Users\Student_23_10\source\repos\CasinoSimulator\CasinoSimulator\Pages\Index.cshtml	146	
+Ошибка (активно)	CS0103	Имя "keyframes" не существует в текущем контексте.		C:\Users\Student_23_10\source\repos\CasinoSimulator\CasinoSimulator\Pages\Index.cshtml	765	
+Ошибка (активно)	CS0103	Имя "keyframes" не существует в текущем контексте.		C:\Users\Student_23_10\source\repos\CasinoSimulator\CasinoSimulator\Pages\Index.cshtml	766	
+Ошибка (активно)	CS0103	Имя "keyframes" не существует в текущем контексте.		C:\Users\Student_23_10\source\repos\CasinoSimulator\CasinoSimulator\Pages\Index.cshtml	767	
+Ошибка (активно)	CS0103	Имя "keyframes" не существует в текущем контексте.		C:\Users\Student_23_10\source\repos\CasinoSimulator\CasinoSimulator\Pages\Index.cshtml	768	
+Ошибка (активно)	CS0103	Имя "keyframes" не существует в текущем контексте.		C:\Users\Student_23_10\source\repos\CasinoSimulator\CasinoSimulator\Pages\Index.cshtml	769	
+Ошибка (активно)	CS0103	Имя "keyframes" не существует в текущем контексте.		C:\Users\Student_23_10\source\repos\CasinoSimulator\CasinoSimulator\Pages\Index.cshtml	770	
+Ошибка (активно)	CS0103	Имя "keyframes" не существует в текущем контексте.		C:\Users\Student_23_10\source\repos\CasinoSimulator\CasinoSimulator\Pages\Index.cshtml	771	
+Ошибка (активно)	CS0103	Имя "keyframes" не существует в текущем контексте.		C:\Users\Student_23_10\source\repos\CasinoSimulator\CasinoSimulator\Pages\Index.cshtml	772	
+Ошибка (активно)	CS0103	Имя "media" не существует в текущем контексте.		C:\Users\Student_23_10\source\repos\CasinoSimulator\CasinoSimulator\Pages\Index.cshtml	774	
