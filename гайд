@@ -1,46 +1,12 @@
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using System.Text.Json.Serialization;
-
-namespace CasinoSimulator.Pages;
-
-public class IndexModel : PageModel
-{
-    private const int StartingBalance = 10_000;
-    private const int SingleCost = 100;
-    private const int TenCost = 900;
-    private const int MineReward = 50;
-    private const int GiftReward = 500;
-
-    private const long MineCooldownMs = 180;
-    private const long GiftCooldownMs = 300_000; // 5 минут
-
-    private const int SoftPityStart = 74;
-    private const int HardPityFiveStar = 89; // 90-я крутка (индекс 89) — 100%
-    private const int HardPityFourStar = 9;   // 10-я крутка (индекс 9) — 100% 4★+
-    private const double BaseFiveStarRate = 0.006;
-    private const double SoftPityStep = 0.06;
-    private const double BaseFourStarRate = 0.051;
-
-    private const string BalanceKey = "gacha.balance";
-    private const string MinedKey = "gacha.mined";
-    private const string LastMineKey = "gacha.lastMine";
-    private const string LastGiftKey = "gacha.lastGift";
-    private const string PityKey = "gacha.pity";
-    private const string Pity4Key = "gacha.pity4";
-    private const string GuaranteedKey = "gacha.guaranteed";
-
-    private const string EventFiveStar = "🧙♂️ Великий Маг";
-
-    private static readonly string[] StandardFiveStars =
-    [
+    private static readonly string[] StandardFiveStars = new string[]
+    {
         "👑 Король Артур",
         "🐉 Дракон Владыка",
         "🧝♀️ Верховная Жрица"
-    ];
+    };
 
-    private static readonly string[] FourStarItems =
-    [
+    private static readonly string[] FourStarItems = new string[]
+    {
         "🔮 Архимаг",
         "🦅 Грифон",
         "🛡️ Паладин",
@@ -48,10 +14,10 @@ public class IndexModel : PageModel
         "🧜♀️ Сирена",
         "⚔️ Мастер клинка",
         "🌙 Вестник Ночи"
-    ];
+    };
 
-    private static readonly string[] ThreeStarItems =
-    [
+    private static readonly string[] ThreeStarItems = new string[]
+    {
         "🧪 Зелье маны",
         "📜 Свиток",
         "💎 Осколок",
@@ -59,210 +25,4 @@ public class IndexModel : PageModel
         "🗡️ Кинжал",
         "🍞 Паёк",
         "🪵 Древесина"
-    ];
-
-    public void OnGet()
-    {
-        _ = GetBalance();
-    }
-
-    public IActionResult OnGetBalance() => new JsonResult(BuildStatePayload());
-
-    public IActionResult OnPostReset()
-    {
-        SetBalance(StartingBalance);
-        HttpContext.Session.SetInt32(MinedKey, 0);
-        HttpContext.Session.Remove(LastMineKey);
-        HttpContext.Session.Remove(LastGiftKey);
-        HttpContext.Session.Remove(PityKey);
-        HttpContext.Session.Remove(Pity4Key);
-        HttpContext.Session.Remove(GuaranteedKey);
-
-        return new JsonResult(BuildStatePayload());
-    }
-
-    public IActionResult OnPostMine()
-    {
-        var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        var lastMine = HttpContext.Session.GetInt64(LastMineKey);
-
-        if (now - lastMine < MineCooldownMs)
-            return BadRequest(new { error = "Источник магии ещё восстанавливается." });
-
-        var balance = GetBalance() + MineReward;
-        var mined = (HttpContext.Session.GetInt32(MinedKey) ?? 0) + MineReward;
-
-        SetBalance(balance);
-        HttpContext.Session.SetInt32(MinedKey, mined);
-        HttpContext.Session.SetInt64(LastMineKey, now);
-
-        return new JsonResult(new { balance, mined });
-    }
-
-    public IActionResult OnPostClaimGift()
-    {
-        var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        var lastGift = HttpContext.Session.GetInt64(LastGiftKey);
-        var elapsed = now - lastGift;
-
-        if (lastGift > 0 && elapsed < GiftCooldownMs)
-        {
-            var remainingSec = Math.Ceiling((GiftCooldownMs - elapsed) / 1000.0);
-            return BadRequest(new
-            {
-                error = $"Дух ещё собирается с силами (осталось {remainingSec} сек.).",
-                giftCooldownMs = GiftCooldownMs - elapsed
-            });
-        }
-
-        var balance = GetBalance() + GiftReward;
-        SetBalance(balance);
-        HttpContext.Session.SetInt64(LastGiftKey, now);
-
-        return new JsonResult(new
-        {
-            balance,
-            reward = GiftReward,
-            giftCooldownMs = GiftCooldownMs
-        });
-    }
-
-    public IActionResult OnPostGacha([FromBody] GachaRequest? request)
-    {
-        if (request is null || (request.Count != 1 && request.Count != 10))
-            return BadRequest(new { error = "Доступны только призывы x1 или x10." });
-
-        var cost = request.Count == 1 ? SingleCost : TenCost;
-        var balance = GetBalance();
-
-        if (balance < cost)
-            return BadRequest(new { error = "Недостаточно звёздных кристаллов." });
-
-        balance -= cost;
-        SetBalance(balance);
-
-        var results = new List<GachaResult>(request.Count);
-        int pity = HttpContext.Session.GetInt32(PityKey) ?? 0;
-        int pity4 = HttpContext.Session.GetInt32(Pity4Key) ?? 0;
-        bool isGuaranteed = HttpContext.Session.GetBool(GuaranteedKey) ?? false;
-
-        for (var i = 0; i < request.Count; i++)
-        {
-            double fiveStarChance = BaseFiveStarRate;
-            if (pity >= SoftPityStart)
-            {
-                fiveStarChance += (pity - (SoftPityStart - 1)) * SoftPityStep;
-            }
-
-            bool isFiveStar = (pity >= HardPityFiveStar) || (Random.Shared.NextDouble() < fiveStarChance);
-
-            if (isFiveStar)
-            {
-                pity = 0;
-                pity4 = 0;
-
-                string characterName;
-                if (isGuaranteed || Random.Shared.Next(0, 2) == 0)
-                {
-                    characterName = EventFiveStar;
-                    isGuaranteed = false;
-                }
-                else
-                {
-                    characterName = StandardFiveStars[Random.Shared.Next(StandardFiveStars.Length)];
-                    isGuaranteed = true;
-                }
-
-                results.Add(new GachaResult(5, characterName));
-            }
-            else
-            {
-                pity++;
-                bool isFourStar = (pity4 >= HardPityFourStar) || (Random.Shared.NextDouble() < BaseFourStarRate);
-
-                if (isFourStar)
-                {
-                    pity4 = 0;
-                    results.Add(new GachaResult(4, FourStarItems[Random.Shared.Next(FourStarItems.Length)]));
-                }
-                else
-                {
-                    pity4++;
-                    results.Add(new GachaResult(3, ThreeStarItems[Random.Shared.Next(ThreeStarItems.Length)]));
-                }
-            }
-        }
-
-        HttpContext.Session.SetInt32(PityKey, pity);
-        HttpContext.Session.SetInt32(Pity4Key, pity4);
-        HttpContext.Session.SetBool(GuaranteedKey, isGuaranteed);
-
-        return new JsonResult(new
-        {
-            results,
-            balance,
-            cost,
-            pity,
-            guaranteed = isGuaranteed
-        });
-    }
-
-    private object BuildStatePayload()
-    {
-        var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        var lastGift = HttpContext.Session.GetInt64(LastGiftKey);
-        var giftCooldownMs = lastGift > 0 ? Math.Max(0, GiftCooldownMs - (now - lastGift)) : 0;
-
-        return new
-        {
-            balance = GetBalance(),
-            mined = HttpContext.Session.GetInt32(MinedKey) ?? 0,
-            pity = HttpContext.Session.GetInt32(PityKey) ?? 0,
-            guaranteed = HttpContext.Session.GetBool(GuaranteedKey) ?? false,
-            giftCooldownMs
-        };
-    }
-
-    private int GetBalance()
-    {
-        var balance = HttpContext.Session.GetInt32(BalanceKey);
-        if (balance.HasValue && balance.Value >= 0)
-            return balance.Value;
-
-        SetBalance(StartingBalance);
-        return StartingBalance;
-    }
-
-    private void SetBalance(int value) =>
-        HttpContext.Session.SetInt32(BalanceKey, Math.Max(0, value));
-
-    public sealed record GachaResult(
-        [property: JsonPropertyName("stars")] int Stars,
-        [property: JsonPropertyName("name")] string Name);
-
-    public sealed class GachaRequest
-    {
-        public int Count { get; set; }
-    }
-}
-
-public static class SessionExtensions
-{
-    public static void SetBool(this ISession session, string key, bool value) =>
-        session.SetString(key, value ? "true" : "false");
-
-    public static bool? GetBool(this ISession session, string key)
-    {
-        var value = session.GetString(key);
-        return value is null ? null : value == "true";
-    }
-
-    public static void SetInt64(this ISession session, string key, long value) =>
-        session.SetString(key, value.ToString());
-
-    public static long GetInt64(this ISession session, string key)
-    {
-        var value = session.GetString(key);
-        return long.TryParse(value, out var parsed) ? parsed : 0;
-    }
-}
+    };
