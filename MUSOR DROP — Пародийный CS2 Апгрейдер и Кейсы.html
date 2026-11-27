@@ -1,0 +1,3040 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MUSOR DROP — Пародийный CS2 Апгрейдер и Кейсы</title>
+  <!-- Google Fonts: Montserrat (700/800/900) & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700;800&family=Montserrat:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Montserrat', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            obsidian: '#0b0d13',
+            slateDark: '#121622',
+            slateCard: '#181d2d',
+            gold: '#facc15',
+            amberGold: '#f59e0b',
+            emeraldWin: '#10b981',
+            crimsonLoss: '#ef4444',
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    :root {
+      --bg-main: #0b0d13;
+      --bg-panel: #121622;
+      --bg-card: #181d2d;
+      --border-subtle: rgba(255, 255, 255, 0.07);
+      --gold: #facc15;
+      --amber: #f59e0b;
+      --emerald: #10b981;
+      --crimson: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      background-image:
+        radial-gradient(circle at 50% 0%, rgba(250, 204, 21, 0.07) 0%, transparent 48%),
+        radial-gradient(circle at 15% 35%, rgba(75, 105, 255, 0.05) 0%, transparent 42%),
+        radial-gradient(circle at 85% 40%, rgba(235, 75, 75, 0.05) 0%, transparent 42%);
+      color: #f1f5f9;
+      font-family: 'Montserrat', sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* Тонкий кастомный скроллбар */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0b0d13;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #252c42;
+      border-radius: 999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #facc15;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Анимация появления элемента в ленте лайв-дропов */
+    @keyframes liveDropEnter {
+      0% {
+        opacity: 0;
+        transform: translateX(-24px) scale(0.95);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+      }
+    }
+    .live-drop-item {
+      animation: liveDropEnter 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Плавное парение выбранного скина */
+    @keyframes skinFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-5px); }
+    }
+    .skin-float {
+      animation: skinFloat 3.4s ease-in-out infinite;
+    }
+
+    /* Блик на золотой кнопке АПГРЕЙД */
+    @keyframes goldSheen {
+      0% { transform: translateX(-140%) skewX(-22deg); }
+      100% { transform: translateX(280%) skewX(-22deg); }
+    }
+    .btn-gold-sheen::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 38%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+      animation: goldSheen 2.8s infinite ease-in-out;
+      pointer-events: none;
+    }
+
+    /* Импульс победы на колесе */
+    @keyframes winRingPulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { box-shadow: 0 0 0 28px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    .wheel-win-pulse {
+      animation: winRingPulse 1s ease-out 2;
+    }
+
+    /* Тряска при проигрыше */
+    @keyframes lossShake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+    .arena-loss-shake {
+      animation: lossShake 0.42s ease-in-out;
+    }
+
+    /* Стилизация ползунка доплаты с баланса */
+    input[type='range'].gold-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      background: #1e2538;
+      border-radius: 999px;
+      outline: none;
+    }
+    input[type='range'].gold-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #facc15;
+      border: 2px solid #0b0d13;
+      box-shadow: 0 0 10px rgba(250, 204, 21, 0.6);
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+    input[type='range'].gold-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    /* Карточка скина */
+    .cs-card {
+      transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.18s ease, background-color 0.18s ease, box-shadow 0.18s ease;
+    }
+    .cs-card:hover:not(:disabled) {
+      transform: translateY(-2px);
+      background-color: #1e2438;
+    }
+
+    /* Всплывающие уведомления */
+    @keyframes toastIn {
+      0% { opacity: 0; transform: translateY(14px) scale(0.96); }
+      100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .toast-item {
+      animation: toastIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="selection:bg-yellow-400 selection:text-slate-950">
+
+  <!-- Контейнер всплывающих уведомлений -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <!-- ===================================================================== -->
+  <!-- 1. ВЕРХНЯЯ ЛЕНТА ЛАЙВ-ДРОПОВ (TOP LIVE-DROP RIBBON)                    -->
+  <!-- ===================================================================== -->
+  <div class="bg-[#080a0f] border-b border-white/[0.07] py-1.5 px-3 sm:px-6">
+    <div class="max-w-[1520px] mx-auto flex items-center gap-2.5">
+      <!-- Индикатор Live + переключатель фильтра -->
+      <div class="flex items-center gap-2 shrink-0 pr-2.5 border-r border-white/[0.07]">
+        <div class="flex items-center gap-1.5">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-yellow-400"></span>
+          </span>
+          <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-300">LIVE</span>
+        </div>
+
+        <div class="flex items-center bg-[#121622] rounded-lg p-0.5 border border-white/[0.07]">
+          <button
+            id="filter-live-all"
+            type="button"
+            class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-yellow-400 text-slate-950 transition cursor-pointer"
+          >
+            Все дропы
+          </button>
+          <button
+            id="filter-live-top"
+            type="button"
+            class="px-2 py-0.5 rounded-md text-[10px] font-bold text-slate-400 hover:text-white transition cursor-pointer"
+          >
+            Топ дропы
+          </button>
+        </div>
+      </div>
+
+      <!-- Поток лайв-дропов -->
+      <div id="live-drops-track" class="flex items-center gap-2 overflow-x-auto no-scrollbar flex-1 py-0.5">
+        <!-- Заполняется через JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- 2. ШАПКА САЙТА И НАВИГАЦИЯ (HEADER & NAVIGATION)                      -->
+  <!-- ===================================================================== -->
+  <header class="sticky top-0 z-40 bg-[#0b0d13]/92 backdrop-blur-md border-b border-white/[0.07]">
+    <div class="max-w-[1520px] mx-auto px-3 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-3">
+      <!-- Левая часть: Логотип MUSOR DROP + Навигация -->
+      <div class="flex items-center gap-4 sm:gap-6 flex-wrap">
+        <!-- Логотип MUSOR DROP -->
+        <a href="#top" id="brand-logo-btn" class="flex items-center gap-2.5 group shrink-0">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#181d2d] to-[#121622] border border-yellow-400/40 shadow-[0_0_20px_rgba(250,204,21,0.18)] flex items-center justify-center relative overflow-hidden">
+            <!-- Стильная киберспортивная эмблема MUSOR DROP -->
+            <svg class="w-6 h-6" viewBox="0 0 36 36" fill="none" aria-hidden="true">
+              <polygon points="18,2 32,10 32,26 18,34 4,26 4,10" fill="#181d2d" stroke="#facc15" stroke-width="2" />
+              <path d="M10 23 V13 L18 19 L26 13 V23" stroke="#facc15" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+              <circle cx="18" cy="25" r="2.2" fill="#f59e0b" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-black text-base sm:text-lg tracking-tight text-white">
+                MUSOR <span class="text-yellow-400">DROP</span>
+              </span>
+              <span class="px-1.5 py-0.5 rounded bg-yellow-400/15 border border-yellow-400/35 text-[9px] font-extrabold uppercase tracking-wider text-yellow-300">
+                ПАРОДИЯ • ДЕМО
+              </span>
+            </div>
+            <p class="text-[10px] font-medium text-slate-400 leading-none mt-0.5">
+              CS2 Skin Upgrader & Cases Simulator
+            </p>
+          </div>
+        </a>
+
+        <!-- Основные вкладки навигации -->
+        <nav aria-label="Основная навигация" class="flex items-center gap-1.5 bg-[#121622] p-1 rounded-xl border border-white/[0.07]">
+          <button
+            id="nav-tab-upgrader"
+            type="button"
+            class="nav-tab-btn px-3.5 py-2 rounded-lg text-xs font-extrabold uppercase tracking-wide bg-yellow-400 text-slate-950 shadow-[0_0_15px_rgba(250,204,21,0.25)] transition cursor-pointer flex items-center gap-1.5"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+            <span>АПГРЕЙД</span>
+          </button>
+
+          <button
+            id="nav-tab-cases"
+            type="button"
+            class="nav-tab-btn px-3.5 py-2 rounded-lg text-xs font-extrabold uppercase tracking-wide text-slate-300 hover:text-white hover:bg-white/[0.04] transition cursor-pointer flex items-center gap-1.5"
+          >
+            <svg class="w-3.5 h-3.5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.3">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            <span>КЕЙСЫ</span>
+          </button>
+
+          <button
+            id="nav-btn-promo"
+            type="button"
+            class="px-3.5 py-2 rounded-lg text-xs font-extrabold uppercase tracking-wide text-amber-300 hover:text-yellow-300 hover:bg-yellow-400/10 transition cursor-pointer flex items-center gap-1.5"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.3">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+            </svg>
+            <span>БОНУС / ПРОМО</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Правая часть: Звук, Честная игра, Баланс, Игрок #1337 -->
+      <div class="flex items-center gap-2 sm:gap-2.5 flex-wrap justify-end">
+        <!-- Переключатель звука -->
+        <button
+          id="btn-sound-toggle"
+          type="button"
+          class="w-9 h-9 rounded-xl bg-[#121622] hover:bg-[#181d2d] border border-white/[0.07] flex items-center justify-center text-yellow-400 transition cursor-pointer"
+          title="Включить / выключить звук"
+          aria-label="Переключить звук"
+        >
+          <svg id="icon-sound-on" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+          </svg>
+          <svg id="icon-sound-off" class="w-4 h-4 hidden text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2" />
+          </svg>
+        </button>
+
+        <!-- Честная игра (SHA-256) -->
+        <button
+          id="btn-open-pf"
+          type="button"
+          class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#121622] hover:bg-[#181d2d] border border-white/[0.07] hover:border-emerald-400/40 text-xs font-bold text-slate-200 transition cursor-pointer"
+        >
+          <svg class="w-4 h-4 text-emerald-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          <span class="hidden md:inline">Честная игра</span>
+          <span class="font-mono text-[10px] text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/25">SHA-256</span>
+        </button>
+
+        <!-- Демо-баланс + Пополнить -->
+        <div class="flex items-center bg-[#121622] border border-white/[0.07] rounded-xl p-1 pl-3 gap-2">
+          <div class="flex flex-col">
+            <span class="text-[9px] font-bold uppercase tracking-wider text-slate-400 leading-none">Демо-баланс</span>
+            <span id="header-balance" class="font-mono font-extrabold text-xs sm:text-sm text-yellow-400 leading-tight">1 500.00 ₽</span>
+          </div>
+          <button
+            id="btn-open-topup"
+            type="button"
+            class="px-2.5 py-1.5 rounded-lg bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-extrabold text-xs transition active:scale-95 cursor-pointer"
+          >
+            + Пополнить
+          </button>
+        </div>
+
+        <!-- Карточка Steam пользователя (Игрок #1337) -->
+        <div class="hidden sm:flex items-center gap-2 bg-[#121622] border border-white/[0.07] rounded-xl px-2.5 py-1.5">
+          <div class="w-7 h-7 rounded-lg bg-gradient-to-tr from-yellow-500 to-amber-300 flex items-center justify-center text-slate-950 font-black text-xs shadow">
+            CS
+          </div>
+          <div class="leading-tight">
+            <div class="text-xs font-bold text-white">Игрок #1337</div>
+            <div class="text-[10px] font-mono text-emerald-400">Steam Demo</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- ОСНОВНОЙ КОНТЕЙНЕР                                                    -->
+  <!-- ===================================================================== -->
+  <main class="max-w-[1520px] mx-auto px-3 sm:px-6 py-5 space-y-6">
+
+    <!-- =================================================================== -->
+    <!-- ВКЛАДКА 1: АПГРЕЙД СКИНОВ CS2 (UPGRADER ARENA)                      -->
+    <!-- =================================================================== -->
+    <div id="view-upgrader" class="space-y-6">
+
+      <!-- ВЕРХНЯЯ 3-КОЛОНОЧНАЯ АРЕНА АПГРЕЙДА -->
+      <section aria-label="Арена апгрейда скинов" class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+
+        <!-- =============================================================== -->
+        <!-- ЛЕВАЯ ПАНЕЛЬ: «ВАШ СКИН» + ДОПЛАТА С БАЛАНСА (₽)                -->
+        <!-- =============================================================== -->
+        <div class="lg:col-span-4 order-2 lg:order-1 rounded-2xl bg-[#121622] border border-white/[0.07] p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-yellow-400"></span>
+              <h2 class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-white">
+                Ваш скин
+              </h2>
+            </div>
+            <button
+              id="btn-clear-source"
+              type="button"
+              class="hidden text-[11px] font-bold text-slate-400 hover:text-rose-400 transition cursor-pointer"
+            >
+              Очистить ✕
+            </button>
+          </div>
+
+          <!-- Витрина выбранного скина -->
+          <div id="upgrader-source-stage" class="my-4 flex-1 flex flex-col items-center justify-center rounded-xl bg-[#181d2d]/70 border border-dashed border-white/[0.08] p-4 text-center min-h-[210px]">
+            <!-- Заполняется JS -->
+          </div>
+
+          <!-- Блок «Доплата с баланса (₽)» -->
+          <div class="rounded-xl bg-[#181d2d] border border-white/[0.07] p-3.5 space-y-2.5">
+            <div class="flex items-center justify-between gap-2">
+              <label for="balance-topup-slider" class="text-[11px] font-bold uppercase tracking-wide text-slate-300">
+                Доплата с баланса (₽)
+              </label>
+              <div class="flex items-center gap-1.5">
+                <input
+                  id="balance-topup-input"
+                  type="number"
+                  min="0"
+                  step="10"
+                  value="0"
+                  class="w-24 px-2 py-1 rounded-lg bg-[#0b0d13] border border-white/[0.1] focus:border-yellow-400 focus:outline-none font-mono font-bold text-xs text-right text-yellow-400"
+                />
+                <span class="font-mono text-xs text-slate-400">₽</span>
+              </div>
+            </div>
+
+            <input
+              id="balance-topup-slider"
+              type="range"
+              min="0"
+              max="1500"
+              step="5"
+              value="0"
+              class="gold-slider w-full"
+            />
+
+            <div class="flex items-center justify-between gap-1.5 pt-0.5">
+              <div class="flex items-center gap-1">
+                <button type="button" data-topup-preset="0" class="topup-preset-btn px-2 py-1 rounded bg-[#121622] hover:bg-white/[0.07] font-mono text-[10px] font-bold text-slate-300 cursor-pointer">0 ₽</button>
+                <button type="button" data-topup-preset="100" class="topup-preset-btn px-2 py-1 rounded bg-[#121622] hover:bg-white/[0.07] font-mono text-[10px] font-bold text-slate-300 cursor-pointer">+100</button>
+                <button type="button" data-topup-preset="500" class="topup-preset-btn px-2 py-1 rounded bg-[#121622] hover:bg-white/[0.07] font-mono text-[10px] font-bold text-slate-300 cursor-pointer">+500</button>
+                <button type="button" data-topup-preset="MAX" class="topup-preset-btn px-2 py-1 rounded bg-yellow-400/15 hover:bg-yellow-400/25 font-mono text-[10px] font-extrabold text-yellow-300 cursor-pointer">MAX</button>
+              </div>
+              <div class="text-[11px] font-mono text-slate-400">
+                Ставка: <span id="total-stake-display" class="font-extrabold text-white">0.00 ₽</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- =============================================================== -->
+        <!-- ЦЕНТРАЛЬНАЯ ПАНЕЛЬ: КОЛЕСО АПГРЕЙДА                             -->
+        <!-- =============================================================== -->
+        <div
+          id="upgrader-center-card"
+          class="lg:col-span-4 order-1 lg:order-2 rounded-2xl bg-[#121622] border border-white/[0.07] p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden"
+        >
+          <!-- Канвас для частиц победы -->
+          <canvas id="win-particles-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-30"></canvas>
+
+          <!-- Верхняя панель колеса: Переключатель позиции шанса + Быстро -->
+          <div class="flex items-center justify-between gap-2 z-10">
+            <button
+              id="btn-toggle-sector"
+              type="button"
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#181d2d] hover:bg-[#1f263b] border border-white/[0.08] text-xs font-bold text-slate-200 transition cursor-pointer"
+            >
+              <svg class="w-3.5 h-3.5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+              </svg>
+              <span id="sector-pos-label">Шанс: Сверху</span>
+            </button>
+
+            <label class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#181d2d] border border-white/[0.08] text-xs font-bold text-slate-300 cursor-pointer select-none">
+              <input id="checkbox-fast-upgrade" type="checkbox" class="accent-yellow-400 w-3.5 h-3.5 rounded cursor-pointer" />
+              <span>⚡ Быстро</span>
+            </label>
+          </div>
+
+          <!-- Круглое SVG-колесо апгрейда -->
+          <div class="relative flex-1 flex items-center justify-center my-3 z-10">
+            <div id="upgrade-wheel-wrap" class="relative w-64 h-64 sm:w-72 sm:h-72 rounded-full flex items-center justify-center">
+              <svg id="upgrade-wheel-svg" viewBox="0 0 360 360" class="w-full h-full overflow-visible select-none">
+                <defs>
+                  <linearGradient id="csWinSectorGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#facc15" />
+                    <stop offset="55%" stop-color="#f59e0b" />
+                    <stop offset="100%" stop-color="#10b981" />
+                  </linearGradient>
+                  <filter id="goldArcGlow" x="-25%" y="-25%" width="150%" height="150%">
+                    <feGaussianBlur stdDeviation="5" result="blur" />
+                    <feMerge>
+                      <feMergeNode in="blur" />
+                      <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                  </filter>
+                </defs>
+
+                <!-- Внешний декоративный обод -->
+                <circle cx="180" cy="180" r="170" fill="#0b0d13" stroke="rgba(255,255,255,0.08)" stroke-width="2" />
+                <circle cx="180" cy="180" r="158" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1" />
+
+                <!-- Градусные засечки (генерируются JS) -->
+                <g id="wheel-ticks-group"></g>
+
+                <!-- Фоновый трек колеса -->
+                <circle
+                  cx="180"
+                  cy="180"
+                  r="130"
+                  fill="none"
+                  stroke="#181d2d"
+                  stroke-width="24"
+                />
+
+                <!-- Активная дуга шанса победы -->
+                <circle
+                  id="wheel-win-arc"
+                  cx="180"
+                  cy="180"
+                  r="130"
+                  fill="none"
+                  stroke="url(#csWinSectorGrad)"
+                  stroke-width="24"
+                  stroke-linecap="round"
+                  stroke-dasharray="0 817"
+                  transform="rotate(-90 180 180)"
+                  filter="url(#goldArcGlow)"
+                />
+
+                <!-- Внутренний круг дисплея -->
+                <circle cx="180" cy="180" r="104" fill="#121622" stroke="rgba(255,255,255,0.08)" stroke-width="2" />
+                <circle cx="180" cy="180" r="95" fill="none" stroke="rgba(250,204,21,0.12)" stroke-width="1" stroke-dasharray="4 4" />
+
+                <!-- Стрелка-указатель -->
+                <g id="wheel-needle" transform="rotate(0 180 180)">
+                  <polygon
+                    points="180,32 169,10 191,10"
+                    fill="#facc15"
+                    stroke="#0b0d13"
+                    stroke-width="2"
+                    filter="url(#goldArcGlow)"
+                  />
+                  <circle cx="180" cy="46" r="4.5" fill="#ffffff" stroke="#0b0d13" stroke-width="2" />
+                </g>
+              </svg>
+
+              <!-- Центральная телеметрия колеса -->
+              <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none px-7 text-center">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Шанс апгрейда</span>
+                <span id="wheel-chance-text" class="font-mono font-extrabold text-3xl sm:text-4xl text-white tracking-tight my-1">
+                  0.00%
+                </span>
+                <span id="wheel-mult-badge" class="px-2.5 py-0.5 rounded-md bg-[#181d2d] border border-white/[0.08] font-mono font-bold text-xs text-yellow-400">
+                  0.00x
+                </span>
+                <p id="wheel-status-msg" class="mt-2 text-[11px] font-semibold text-slate-400 leading-tight max-w-[165px]">
+                  Шанс превратить ширп в легенду
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Нижние элементы управления: быстрые множители + кнопка АПГРЕЙД -->
+          <div class="space-y-2.5 z-10">
+            <div class="grid grid-cols-6 gap-1.5">
+              <button type="button" data-mult="1.5" class="mult-preset-btn py-1.5 rounded-lg bg-[#181d2d] hover:bg-yellow-400/15 border border-white/[0.07] hover:border-yellow-400/50 font-mono text-xs font-bold text-slate-300 hover:text-yellow-300 transition cursor-pointer">
+                1.5x
+              </button>
+              <button type="button" data-mult="2" class="mult-preset-btn py-1.5 rounded-lg bg-[#181d2d] hover:bg-yellow-400/15 border border-white/[0.07] hover:border-yellow-400/50 font-mono text-xs font-bold text-slate-300 hover:text-yellow-300 transition cursor-pointer">
+                2x
+              </button>
+              <button type="button" data-mult="3" class="mult-preset-btn py-1.5 rounded-lg bg-[#181d2d] hover:bg-yellow-400/15 border border-white/[0.07] hover:border-yellow-400/50 font-mono text-xs font-bold text-slate-300 hover:text-yellow-300 transition cursor-pointer">
+                3x
+              </button>
+              <button type="button" data-mult="5" class="mult-preset-btn py-1.5 rounded-lg bg-[#181d2d] hover:bg-yellow-400/15 border border-white/[0.07] hover:border-yellow-400/50 font-mono text-xs font-bold text-slate-300 hover:text-yellow-300 transition cursor-pointer">
+                5x
+              </button>
+              <button type="button" data-mult="10" class="mult-preset-btn py-1.5 rounded-lg bg-[#181d2d] hover:bg-yellow-400/15 border border-white/[0.07] hover:border-yellow-400/50 font-mono text-xs font-bold text-slate-300 hover:text-yellow-300 transition cursor-pointer">
+                10x
+              </button>
+              <button type="button" data-mult="MAX" class="mult-preset-btn py-1.5 rounded-lg bg-yellow-400/15 hover:bg-yellow-400/25 border border-yellow-400/40 font-mono text-xs font-extrabold text-yellow-300 transition cursor-pointer">
+                MAX
+              </button>
+            </div>
+
+            <button
+              id="btn-upgrade-spin"
+              type="button"
+              disabled
+              class="relative overflow-hidden w-full py-3.5 px-5 rounded-xl font-black uppercase tracking-wider text-sm sm:text-base transition-all duration-200 disabled:opacity-45 disabled:cursor-not-allowed bg-[#181d2d] text-slate-400 border border-white/[0.08]"
+            >
+              АПГРЕЙД
+            </button>
+          </div>
+        </div>
+
+        <!-- =============================================================== -->
+        <!-- ПРАВАЯ ПАНЕЛЬ: «ЖЕЛАЕМЫЙ СКИН»                                  -->
+        <!-- =============================================================== -->
+        <div class="lg:col-span-4 order-3 rounded-2xl bg-[#121622] border border-white/[0.07] p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <h2 class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-white">
+                Желаемый скин
+              </h2>
+            </div>
+            <button
+              id="btn-clear-target"
+              type="button"
+              class="hidden text-[11px] font-bold text-slate-400 hover:text-rose-400 transition cursor-pointer"
+            >
+              Очистить ✕
+            </button>
+          </div>
+
+          <!-- Витрина выбранного целевого скина -->
+          <div id="upgrader-target-stage" class="my-4 flex-1 flex flex-col items-center justify-center rounded-xl bg-[#181d2d]/70 border border-dashed border-white/[0.08] p-4 text-center min-h-[210px]">
+            <!-- Заполняется JS -->
+          </div>
+
+          <!-- Сводка профита при успехе -->
+          <div class="rounded-xl bg-[#181d2d] border border-white/[0.07] p-3.5 flex items-center justify-between gap-2">
+            <div>
+              <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Чистый профит</span>
+              <span id="potential-profit-display" class="font-mono font-extrabold text-sm text-emerald-400">+0.00 ₽</span>
+            </div>
+            <div class="text-right">
+              <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Коэффициент</span>
+              <span id="target-ratio-display" class="font-mono font-extrabold text-sm text-yellow-400">0.00x</span>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- НИЖНИЕ 2 КОЛОНКИ: «ВАШ ИНВЕНТАРЬ» И «ВЫБОР СКИНА ДЛЯ АПГРЕЙДА»   -->
+      <!-- ================================================================= -->
+      <section class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-stretch">
+
+        <!-- ЛЕВАЯ КОЛОНКА: ВАШ ИНВЕНТАРЬ -->
+        <div class="lg:col-span-5 rounded-2xl bg-[#121622] border border-white/[0.07] flex flex-col h-[560px] overflow-hidden">
+          <div class="p-4 border-b border-white/[0.07] flex flex-wrap items-center justify-between gap-2 bg-[#141927]">
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-white">
+                  Ваш инвентарь
+                </h3>
+                <span id="inv-count-pill" class="px-2 py-0.5 rounded-md bg-yellow-400/15 border border-yellow-400/30 font-mono text-xs font-bold text-yellow-400">
+                  0
+                </span>
+              </div>
+              <p class="text-[11px] text-slate-400 mt-0.5">
+                Стоимость: <span id="inv-total-price" class="font-mono font-bold text-white">0.00 ₽</span>
+              </p>
+            </div>
+
+            <button
+              id="btn-sell-all"
+              type="button"
+              class="px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 disabled:opacity-40 disabled:cursor-not-allowed border border-rose-500/35 text-xs font-bold text-rose-300 transition cursor-pointer"
+            >
+              Продать всё
+            </button>
+          </div>
+
+          <div id="inventory-grid" class="p-3.5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3 gap-2.5 overflow-y-auto flex-1 content-start">
+            <!-- Рендерится JS -->
+          </div>
+        </div>
+
+        <!-- ПРАВАЯ КОЛОНКА: ВЫБОР СКИНА ДЛЯ АПГРЕЙДА (24 СКИНА CS2) -->
+        <div class="lg:col-span-7 rounded-2xl bg-[#121622] border border-white/[0.07] flex flex-col h-[560px] overflow-hidden">
+          <div class="p-4 border-b border-white/[0.07] space-y-2.5 bg-[#141927]">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <h3 class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-white">
+                Выбор скина для апгрейда
+              </h3>
+
+              <div class="flex items-center gap-2">
+                <button
+                  id="btn-sort-catalog"
+                  type="button"
+                  class="px-3 py-1.5 rounded-xl bg-[#181d2d] hover:bg-[#1f263b] border border-white/[0.08] font-mono text-xs font-bold text-slate-200 transition cursor-pointer"
+                >
+                  Дешевле ↑
+                </button>
+              </div>
+            </div>
+
+            <!-- Поиск + Фильтры по редкостям CS2 -->
+            <div class="flex flex-col sm:flex-row gap-2">
+              <div class="relative flex-1">
+                <svg class="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input
+                  id="catalog-search-input"
+                  type="text"
+                  placeholder="Поиск скина (AWP, Керамбит, Поток информации...)"
+                  class="w-full pl-9 pr-3 py-1.5 rounded-xl bg-[#0b0d13] border border-white/[0.08] focus:border-yellow-400 focus:outline-none text-xs text-white placeholder-slate-500"
+                />
+              </div>
+            </div>
+
+            <!-- Кнопки редкости CS2 -->
+            <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+              <button type="button" data-rarity="all" class="rarity-pill active shrink-0 px-2.5 py-1 rounded-lg bg-yellow-400 text-slate-950 text-[11px] font-extrabold cursor-pointer">
+                Все (24)
+              </button>
+              <button type="button" data-rarity="consumer" class="rarity-pill shrink-0 px-2.5 py-1 rounded-lg bg-[#181d2d] border border-white/[0.07] text-[11px] font-bold cursor-pointer" style="color: #b0c3d9;">
+                Ширпотреб
+              </button>
+              <button type="button" data-rarity="industrial" class="rarity-pill shrink-0 px-2.5 py-1 rounded-lg bg-[#181d2d] border border-white/[0.07] text-[11px] font-bold cursor-pointer" style="color: #5e98d9;">
+                Промышленное
+              </button>
+              <button type="button" data-rarity="milspec" class="rarity-pill shrink-0 px-2.5 py-1 rounded-lg bg-[#181d2d] border border-white/[0.07] text-[11px] font-bold cursor-pointer" style="color: #4b69ff;">
+                Армейское
+              </button>
+              <button type="button" data-rarity="restricted" class="rarity-pill shrink-0 px-2.5 py-1 rounded-lg bg-[#181d2d] border border-white/[0.07] text-[11px] font-bold cursor-pointer" style="color: #8847ff;">
+                Запрещённое
+              </button>
+              <button type="button" data-rarity="classified" class="rarity-pill shrink-0 px-2.5 py-1 rounded-lg bg-[#181d2d] border border-white/[0.07] text-[11px] font-bold cursor-pointer" style="color: #d32ce6;">
+                Засекреченное
+              </button>
+              <button type="button" data-rarity="covert" class="rarity-pill shrink-0 px-2.5 py-1 rounded-lg bg-[#181d2d] border border-white/[0.07] text-[11px] font-bold cursor-pointer" style="color: #eb4b4b;">
+                Тайное
+              </button>
+              <button type="button" data-rarity="extraordinary" class="rarity-pill shrink-0 px-2.5 py-1 rounded-lg bg-[#181d2d] border border-white/[0.07] text-[11px] font-bold cursor-pointer" style="color: #ffd700;">
+                Ножи / Перчатки
+              </button>
+            </div>
+          </div>
+
+          <div id="catalog-grid" class="p-3.5 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 overflow-y-auto flex-1 content-start">
+            <!-- Рендерится JS -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ================================================================= -->
+      <!-- ПОЛОСА ИСТОРИИ АПГРЕЙДОВ («ИСТОРИЯ АПГРЕЙДОВ»)                    -->
+      <!-- ================================================================= -->
+      <section aria-label="История апгрейдов" class="rounded-2xl bg-[#121622] border border-white/[0.07] overflow-hidden">
+        <div class="p-4 border-b border-white/[0.07] flex items-center justify-between gap-2 bg-[#141927]">
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-yellow-400"></span>
+            <h3 class="text-xs sm:text-sm font-extrabold uppercase tracking-wider text-white">
+              История апгрейдов
+            </h3>
+          </div>
+          <span id="upgrade-history-count" class="font-mono text-xs font-bold text-slate-400">0 попыток</span>
+        </div>
+
+        <div id="upgrade-history-list" class="p-3.5 flex items-center gap-3 overflow-x-auto no-scrollbar">
+          <div class="w-full py-6 text-center text-xs font-mono text-slate-500">
+            История пуста — выберите скин (или укажите доплату с баланса), выберите цель и нажмите «АПГРЕЙД»!
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- =================================================================== -->
+    <!-- ВКЛАДКА 2: КЕЙСЫ CS2 (CASE OPENING ROULETTE)                        -->
+    <!-- =================================================================== -->
+    <div id="view-cases" class="hidden space-y-6">
+      <!-- Выбор из 5 тематических кейсов MUSOR DROP -->
+      <section aria-label="Кейсы MUSOR DROP" class="space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 class="text-base sm:text-lg font-black uppercase tracking-tight text-white">
+              Фирменные кейсы <span class="text-yellow-400">MUSOR DROP</span>
+            </h2>
+            <p class="text-xs text-slate-400">
+              От ширпотребного пакета до ножевого пресса — крути рулетку CS2 в демо-режиме
+            </p>
+          </div>
+        </div>
+
+        <div id="cases-selector-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          <!-- Рендерится JS -->
+        </div>
+      </section>
+
+      <!-- Рулетка открытия выбранного кейса -->
+      <section class="rounded-2xl bg-[#121622] border border-white/[0.07] p-4 sm:p-6 space-y-5 relative overflow-hidden">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div id="active-case-icon" class="w-12 h-12 rounded-xl bg-[#181d2d] border border-yellow-400/35 flex items-center justify-center shrink-0"></div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 id="active-case-title" class="text-base sm:text-lg font-black text-white">Мусорный бак</h3>
+                <span id="active-case-price-tag" class="px-2.5 py-0.5 rounded-lg bg-yellow-400/15 border border-yellow-400/35 font-mono text-xs font-extrabold text-yellow-400">99 ₽</span>
+              </div>
+              <p id="active-case-subtitle" class="text-xs text-slate-400">Классика свалки CS2: от песчанки до калаша</p>
+            </div>
+          </div>
+
+          <label class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#181d2d] border border-white/[0.08] text-xs font-bold text-slate-300 cursor-pointer select-none">
+            <input id="checkbox-fast-case" type="checkbox" class="accent-yellow-400 w-3.5 h-3.5 rounded cursor-pointer" />
+            <span>⚡ Быстрое открытие</span>
+          </label>
+        </div>
+
+        <!-- Горизонтальная лента рулетки CS2 -->
+        <div class="relative rounded-2xl bg-[#0b0d13] border border-white/[0.08] py-4 overflow-hidden select-none">
+          <!-- Центральный золотой указатель выигрыша -->
+          <div class="absolute inset-y-0 left-1/2 -translate-x-1/2 w-[3px] bg-yellow-400 z-20 shadow-[0_0_16px_#facc15]"></div>
+          <div class="absolute top-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-t-[10px] border-t-yellow-400 z-20"></div>
+          <div class="absolute bottom-0 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[8px] border-l-transparent border-r-[8px] border-r-transparent border-b-[10px] border-b-yellow-400 z-20"></div>
+
+          <!-- Боковые виньетки -->
+          <div class="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-28 bg-gradient-to-r from-[#0b0d13] to-transparent z-10"></div>
+          <div class="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-28 bg-gradient-to-l from-[#0b0d13] to-transparent z-10"></div>
+
+          <div id="case-roulette-viewport" class="overflow-hidden w-full">
+            <div id="case-roulette-strip" class="flex items-center gap-2.5 will-change-transform" style="transform: translateX(0px);">
+              <!-- Карточки рулетки генерируются JS -->
+            </div>
+          </div>
+
+          <!-- Панель результата открытия кейса -->
+          <div id="case-winner-overlay" class="hidden absolute inset-0 bg-[#0b0d13]/92 backdrop-blur-md z-30 flex-col sm:flex-row items-center justify-center gap-4 p-4 text-center sm:text-left">
+            <div id="case-winner-art" class="shrink-0 skin-float"></div>
+            <div class="space-y-1">
+              <span id="case-winner-rarity" class="inline-block px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider"></span>
+              <h4 id="case-winner-name" class="text-base sm:text-lg font-black text-white"></h4>
+              <p class="font-mono text-sm font-extrabold text-yellow-400" id="case-winner-price"></p>
+            </div>
+            <div class="flex items-center gap-2 sm:ml-4">
+              <button
+                id="btn-case-keep"
+                type="button"
+                class="px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold text-xs uppercase tracking-wide transition cursor-pointer"
+              >
+                Забрать в инвентарь
+              </button>
+              <button
+                id="btn-case-sell"
+                type="button"
+                class="px-4 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-extrabold text-xs uppercase tracking-wide transition cursor-pointer"
+              >
+                Продать сразу
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Кнопка запуска открытия кейса -->
+        <div class="flex justify-center">
+          <button
+            id="btn-open-case-spin"
+            type="button"
+            class="relative overflow-hidden px-8 py-3.5 rounded-xl bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 font-black uppercase tracking-wider text-sm shadow-[0_0_25px_rgba(250,204,21,0.35)] transition active:scale-95 cursor-pointer btn-gold-sheen"
+          >
+            ОТКРЫТЬ КЕЙС • 99 ₽
+          </button>
+        </div>
+
+        <!-- Содержимое выбранного кейса -->
+        <div class="pt-2 border-t border-white/[0.07] space-y-3">
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-300">
+            Содержимое кейса и шансы выпадения
+          </h4>
+          <div id="active-case-contents-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-2.5">
+            <!-- Заполняется JS -->
+          </div>
+        </div>
+      </section>
+    </div>
+
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- МОДАЛЬНОЕ ОКНО 1: «БОНУС / ПРОМО» + ПОПОЛНЕНИЕ ДЕМО-БАЛАНСА           -->
+  <!-- ===================================================================== -->
+  <div id="promo-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-6">
+    <div class="bg-[#121622] border border-white/[0.1] rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl">
+      <div class="p-4 sm:p-5 border-b border-white/[0.07] flex items-center justify-between gap-2 bg-[#161b2a]">
+        <div>
+          <h3 class="text-base font-black uppercase tracking-wide text-white">
+            Бонусы, промокоды и пополнение
+          </h3>
+          <p class="text-[11px] text-slate-400">
+            Пародийный демо-симулятор • Все средства виртуальные
+          </p>
+        </div>
+        <button id="btn-close-promo" type="button" class="w-8 h-8 rounded-lg bg-[#181d2d] hover:bg-rose-500/20 text-slate-300 hover:text-rose-400 font-bold transition cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <div class="p-4 sm:p-5 space-y-5">
+        <!-- Пополнение демо-баланса -->
+        <div class="rounded-xl bg-[#181d2d] border border-white/[0.07] p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-extrabold uppercase text-white">Быстрое демо-пополнение</span>
+            <span id="modal-balance-label" class="font-mono text-xs font-bold text-yellow-400">1 500.00 ₽</span>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <button type="button" data-demo-add="500" class="demo-add-btn py-2.5 rounded-xl bg-[#121622] hover:bg-yellow-400 hover:text-slate-950 border border-yellow-400/35 font-mono text-xs font-extrabold text-yellow-300 transition cursor-pointer">
+              +500 ₽
+            </button>
+            <button type="button" data-demo-add="2500" class="demo-add-btn py-2.5 rounded-xl bg-[#121622] hover:bg-yellow-400 hover:text-slate-950 border border-yellow-400/35 font-mono text-xs font-extrabold text-yellow-300 transition cursor-pointer">
+              +2 500 ₽
+            </button>
+            <button type="button" data-demo-add="10000" class="demo-add-btn py-2.5 rounded-xl bg-[#121622] hover:bg-yellow-400 hover:text-slate-950 border border-yellow-400/35 font-mono text-xs font-extrabold text-yellow-300 transition cursor-pointer">
+              +10 000 ₽
+            </button>
+          </div>
+        </div>
+
+        <!-- Активация пародийных промокодов -->
+        <div class="rounded-xl bg-[#181d2d] border border-white/[0.07] p-4 space-y-3">
+          <label for="promo-code-input" class="block text-xs font-extrabold uppercase text-white">
+            Активировать промокод
+          </label>
+          <div class="flex gap-2">
+            <input
+              id="promo-code-input"
+              type="text"
+              placeholder="Введите промокод..."
+              class="flex-1 px-3 py-2 rounded-xl bg-[#0b0d13] border border-white/[0.1] focus:border-yellow-400 focus:outline-none font-mono text-xs uppercase text-white"
+            />
+            <button
+              id="btn-apply-promo"
+              type="button"
+              class="px-4 py-2 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-slate-950 font-extrabold text-xs uppercase transition cursor-pointer"
+            >
+              Ввести
+            </button>
+          </div>
+
+          <div class="flex flex-wrap gap-1.5 pt-1">
+            <span class="text-[10px] text-slate-400 w-full">Рабочие пародийные коды (нажмите, чтобы подставить):</span>
+            <button type="button" data-fill-promo="MUSOR" class="fill-promo-btn px-2 py-1 rounded bg-[#121622] hover:bg-yellow-400/20 border border-white/[0.08] font-mono text-[11px] font-bold text-yellow-300 cursor-pointer">MUSOR (+777 ₽)</button>
+            <button type="button" data-fill-promo="SHIRP" class="fill-promo-btn px-2 py-1 rounded bg-[#121622] hover:bg-yellow-400/20 border border-white/[0.08] font-mono text-[11px] font-bold text-yellow-300 cursor-pointer">SHIRP (+333 ₽)</button>
+            <button type="button" data-fill-promo="GABEN" class="fill-promo-btn px-2 py-1 rounded bg-[#121622] hover:bg-yellow-400/20 border border-white/[0.08] font-mono text-[11px] font-bold text-yellow-300 cursor-pointer">GABEN (+1 337 ₽)</button>
+            <button type="button" data-fill-promo="DROP" class="fill-promo-btn px-2 py-1 rounded bg-[#121622] hover:bg-yellow-400/20 border border-white/[0.08] font-mono text-[11px] font-bold text-yellow-300 cursor-pointer">DROP (+1 000 ₽)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- МОДАЛЬНОЕ ОКНО 2: «ЧЕСТНАЯ ИГРА (SHA-256)»                            -->
+  <!-- ===================================================================== -->
+  <div id="pf-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-6">
+    <div class="bg-[#121622] border border-white/[0.1] rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden shadow-2xl">
+      <div class="p-4 sm:p-5 border-b border-white/[0.07] flex items-center justify-between gap-2 bg-[#161b2a]">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-emerald-500/15 border border-emerald-500/35 flex items-center justify-center text-emerald-400">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-base font-black uppercase tracking-wide text-white">
+              Честная игра (Provably Fair SHA-256)
+            </h3>
+            <p class="text-[11px] text-slate-400">
+              Криптографическая проверка каждого броска через Web Crypto API
+            </p>
+          </div>
+        </div>
+        <button id="btn-close-pf" type="button" class="w-8 h-8 rounded-lg bg-[#181d2d] hover:bg-rose-500/20 text-slate-300 hover:text-rose-400 font-bold transition cursor-pointer">
+          ✕
+        </button>
+      </div>
+
+      <div class="p-4 sm:p-6 overflow-y-auto space-y-4 text-xs">
+        <div>
+          <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+            SHA-256 Хэш текущего Server Seed (зафиксирован до раунда)
+          </label>
+          <div id="pf-current-hash" class="p-3 rounded-xl bg-[#0b0d13] border border-white/[0.08] font-mono text-emerald-400 break-all select-all">
+            Генерация SHA-256...
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="sm:col-span-2">
+            <label for="pf-client-seed-input" class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+              Client Seed (можно изменить)
+            </label>
+            <div class="flex gap-2">
+              <input
+                id="pf-client-seed-input"
+                type="text"
+                value="musordrop_cs2_2026"
+                class="flex-1 px-3 py-2 rounded-xl bg-[#0b0d13] border border-white/[0.08] focus:border-yellow-400 focus:outline-none font-mono text-white"
+              />
+              <button
+                id="btn-randomize-seed"
+                type="button"
+                class="px-3 py-2 rounded-xl bg-[#181d2d] hover:bg-[#222940] border border-white/[0.08] font-bold text-yellow-400 transition cursor-pointer shrink-0"
+              >
+                Обновить
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1">
+              Nonce (раунд)
+            </label>
+            <div id="pf-nonce-box" class="px-3 py-2 rounded-xl bg-[#0b0d13] border border-white/[0.08] font-mono font-bold text-white">
+              1
+            </div>
+          </div>
+        </div>
+
+        <!-- Инспектор выбранного / последнего раунда -->
+        <div class="p-4 rounded-xl bg-[#181d2d] border border-white/[0.08] space-y-2.5">
+          <div class="flex items-center justify-between gap-2">
+            <span class="font-extrabold uppercase text-yellow-400">Детализация проверенного раунда</span>
+            <span id="pf-inspected-roll" class="font-mono font-bold text-slate-400">Нет завершённых раундов</span>
+          </div>
+
+          <div id="pf-inspected-body" class="hidden space-y-2">
+            <div>
+              <span class="block text-[10px] uppercase text-slate-400">Открытый Server Seed:</span>
+              <code id="pf-inspected-server" class="block p-2 mt-0.5 rounded-lg bg-[#0b0d13] border border-white/[0.06] font-mono text-[11px] text-emerald-300 break-all select-all"></code>
+            </div>
+            <div>
+              <span class="block text-[10px] uppercase text-slate-400">Входная строка (ServerSeed:ClientSeed:Nonce):</span>
+              <code id="pf-inspected-input" class="block p-2 mt-0.5 rounded-lg bg-[#0b0d13] border border-white/[0.06] font-mono text-[11px] text-slate-300 break-all select-all"></code>
+            </div>
+            <div>
+              <span class="block text-[10px] uppercase text-slate-400">SHA-256 Digest (первые 8 hex ➔ число 0.00–99.99):</span>
+              <code id="pf-inspected-digest" class="block p-2 mt-0.5 rounded-lg bg-[#0b0d13] border border-white/[0.06] font-mono text-[11px] text-yellow-300 break-all select-all"></code>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- JAVASCRIPT ЛОГИКА СИМУЛЯТОРА MUSOR DROP                               -->
+  <!-- ===================================================================== -->
+  <script>
+    /**
+     * 1. АУТЕНТИЧНЫЕ РЕДКОСТИ CS2 И КАТАЛОГ ИЗ 24 СКИНОВ
+     */
+    const CS_RARITIES = {
+      consumer: {
+        id: 'consumer',
+        label: 'Ширпотреб',
+        color: '#b0c3d9',
+        glow: 'rgba(176, 195, 217, 0.25)',
+      },
+      industrial: {
+        id: 'industrial',
+        label: 'Промышленное',
+        color: '#5e98d9',
+        glow: 'rgba(94, 152, 217, 0.28)',
+      },
+      milspec: {
+        id: 'milspec',
+        label: 'Армейское',
+        color: '#4b69ff',
+        glow: 'rgba(75, 105, 255, 0.30)',
+      },
+      restricted: {
+        id: 'restricted',
+        label: 'Запрещённое',
+        color: '#8847ff',
+        glow: 'rgba(136, 71, 255, 0.34)',
+      },
+      classified: {
+        id: 'classified',
+        label: 'Засекреченное',
+        color: '#d32ce6',
+        glow: 'rgba(211, 44, 230, 0.36)',
+      },
+      covert: {
+        id: 'covert',
+        label: 'Тайное',
+        color: '#eb4b4b',
+        glow: 'rgba(235, 75, 75, 0.40)',
+      },
+      extraordinary: {
+        id: 'extraordinary',
+        label: 'Редкое / Ножи',
+        color: '#ffd700',
+        glow: 'rgba(255, 215, 0, 0.45)',
+      },
+    };
+
+    // 24 аутентичных скина CS2 от 15 ₽ до 65 000 ₽
+    const CS_SKINS = [
+      { id: 'p250_sand_dune', weapon: 'P250', skin: 'Песчаная дюна', price: 15, rarity: 'consumer', float: 'BS', art: 'p250_sand' },
+      { id: 'mp9_sand_dashed', weapon: 'MP9', skin: 'Песчаная штриховка', price: 22, rarity: 'consumer', float: 'FT', art: 'mp9_sand' },
+      { id: 'glock_candy_apple', weapon: 'Glock-18', skin: 'Карамельное яблоко', price: 45, rarity: 'industrial', float: 'FN', art: 'glock_candy' },
+      { id: 'mac10_silver', weapon: 'MAC-10', skin: 'Серебро', price: 75, rarity: 'industrial', float: 'FN', art: 'mac10_silver' },
+      { id: 'ssg08_abyss', weapon: 'SSG 08', skin: 'Бездна', price: 120, rarity: 'milspec', float: 'MW', art: 'ssg08_abyss' },
+      { id: 'm4a1s_nitro', weapon: 'M4A1-S', skin: 'Нитро', price: 190, rarity: 'milspec', float: 'FT', art: 'm4a1s_nitro' },
+      { id: 'usps_cortex', weapon: 'USP-S', skin: 'Извилины', price: 320, rarity: 'restricted', float: 'FT', art: 'usps_cortex' },
+      { id: 'glock_water', weapon: 'Glock-18', skin: 'Водяной', price: 490, rarity: 'restricted', float: 'MW', art: 'glock_water' },
+      { id: 'ak47_slate', weapon: 'AK-47', skin: 'Сланец', price: 780, rarity: 'restricted', float: 'MW', art: 'ak47_slate' },
+      { id: 'awp_acheron', weapon: 'AWP', skin: 'Ахерон', price: 1150, rarity: 'restricted', float: 'FN', art: 'awp_acheron' },
+      { id: 'm4a1s_nightmare', weapon: 'M4A1-S', skin: 'Ночной кошмар', price: 1650, rarity: 'classified', float: 'FT', art: 'm4a1s_nightmare' },
+      { id: 'usps_neonoir', weapon: 'USP-S', skin: 'Неонуар', price: 2350, rarity: 'classified', float: 'MW', art: 'usps_neonoir' },
+      { id: 'awp_fever_dream', weapon: 'AWP', skin: 'Горячечные грёзы', price: 3200, rarity: 'classified', float: 'FN', art: 'awp_fever' },
+      { id: 'ak47_redline', weapon: 'AK-47', skin: 'Красная линия', price: 4500, rarity: 'classified', float: 'FT', art: 'ak47_redline' },
+      { id: 'deagle_printstream', weapon: 'Desert Eagle', skin: 'Поток информации', price: 6400, rarity: 'covert', float: 'FT', art: 'deagle_printstream' },
+      { id: 'm4a1s_printstream', weapon: 'M4A1-S', skin: 'Поток информации', price: 9200, rarity: 'covert', float: 'MW', art: 'm4a1s_printstream' },
+      { id: 'ak47_vulcan', weapon: 'AK-47', skin: 'Вулкан', price: 12800, rarity: 'covert', float: 'FT', art: 'ak47_vulcan' },
+      { id: 'awp_asiimov', weapon: 'AWP', skin: 'Азимов', price: 16500, rarity: 'covert', float: 'FT', art: 'awp_asiimov' },
+      { id: 'gut_autotronic', weapon: 'Нож с лезвием-крюком', skin: 'Автотроника', price: 21000, rarity: 'extraordinary', float: 'MW', art: 'knife_gut' },
+      { id: 'flip_fade', weapon: 'Складной нож', skin: 'Градиент', price: 28500, rarity: 'extraordinary', float: 'FN', art: 'knife_flip' },
+      { id: 'gloves_marble', weapon: 'Перчатки спецназа', skin: 'Мраморный градиент', price: 36000, rarity: 'extraordinary', float: 'FT', art: 'gloves_marble' },
+      { id: 'm9_doppler', weapon: 'Штык-нож M9', skin: 'Волны', price: 44000, rarity: 'extraordinary', float: 'FN', art: 'knife_m9' },
+      { id: 'butterfly_slaughter', weapon: 'Нож-бабочка', skin: 'Убийство', price: 54000, rarity: 'extraordinary', float: 'MW', art: 'knife_butterfly' },
+      { id: 'karambit_dumplore', weapon: 'Керамбит', skin: 'История о свалке', price: 65000, rarity: 'extraordinary', float: 'FN', art: 'knife_karambit' },
+    ];
+
+    // 5 тематических кейсов MUSOR DROP
+    const MUSOR_CASES = [
+      {
+        id: 'case_consumer',
+        name: 'Ширпотребный',
+        price: 29,
+        subtitle: 'Бюджетный билет со дна инвентаря',
+        accent: '#b0c3d9',
+        pool: [
+          { skinId: 'p250_sand_dune', weight: 46 },
+          { skinId: 'mp9_sand_dashed', weight: 30 },
+          { skinId: 'glock_candy_apple', weight: 15 },
+          { skinId: 'mac10_silver', weight: 6 },
+          { skinId: 'ssg08_abyss', weight: 2.2 },
+          { skinId: 'ak47_slate', weight: 0.8 },
+        ],
+      },
+      {
+        id: 'case_trashbin',
+        name: 'Мусорный бак',
+        price: 99,
+        subtitle: 'Фирменный кейс: от песчанки до сланца',
+        accent: '#facc15',
+        pool: [
+          { skinId: 'p250_sand_dune', weight: 28 },
+          { skinId: 'glock_candy_apple', weight: 26 },
+          { skinId: 'mac10_silver', weight: 18 },
+          { skinId: 'ssg08_abyss', weight: 14 },
+          { skinId: 'm4a1s_nitro', weight: 8 },
+          { skinId: 'usps_cortex', weight: 4 },
+          { skinId: 'ak47_slate', weight: 2 },
+        ],
+      },
+      {
+        id: 'case_milspec',
+        name: 'Армейский утиль',
+        price: 299,
+        subtitle: 'Проверенный арсенал для камбэка',
+        accent: '#4b69ff',
+        pool: [
+          { skinId: 'ssg08_abyss', weight: 30 },
+          { skinId: 'm4a1s_nitro', weight: 26 },
+          { skinId: 'usps_cortex', weight: 20 },
+          { skinId: 'glock_water', weight: 12 },
+          { skinId: 'ak47_slate', weight: 7 },
+          { skinId: 'awp_acheron', weight: 3.5 },
+          { skinId: 'awp_fever_dream', weight: 1.5 },
+        ],
+      },
+      {
+        id: 'case_covert',
+        name: 'Тайный сброс',
+        price: 1190,
+        subtitle: 'Засекреченная и Тайная классика CS2',
+        accent: '#eb4b4b',
+        pool: [
+          { skinId: 'ak47_slate', weight: 32 },
+          { skinId: 'awp_acheron', weight: 25 },
+          { skinId: 'm4a1s_nightmare', weight: 18 },
+          { skinId: 'usps_neonoir', weight: 12 },
+          { skinId: 'awp_fever_dream', weight: 7 },
+          { skinId: 'deagle_printstream', weight: 3.5 },
+          { skinId: 'awp_asiimov', weight: 1.8 },
+          { skinId: 'gut_autotronic', weight: 0.7 },
+        ],
+      },
+      {
+        id: 'case_knives',
+        name: 'Ножевой пресс',
+        price: 4990,
+        subtitle: 'Максимальный риск ради золота CS2',
+        accent: '#ffd700',
+        pool: [
+          { skinId: 'm4a1s_nightmare', weight: 28 },
+          { skinId: 'ak47_redline', weight: 24 },
+          { skinId: 'deagle_printstream', weight: 18 },
+          { skinId: 'ak47_vulcan', weight: 12 },
+          { skinId: 'awp_asiimov', weight: 8 },
+          { skinId: 'gut_autotronic', weight: 4.5 },
+          { skinId: 'flip_fade', weight: 2.8 },
+          { skinId: 'm9_doppler', weight: 1.6 },
+          { skinId: 'butterfly_slaughter', weight: 0.8 },
+          { skinId: 'karambit_dumplore', weight: 0.3 },
+        ],
+      },
+    ];
+
+    /**
+     * 2. КАСТОМНЫЕ ВЕКТОРНЫЕ SVG-ИЛЛЮСТРАЦИИ СКИНОВ CS2
+     */
+    function renderSkinSVG(skin, sizeClass = 'w-24 h-16') {
+      const uid = skin.id + '_' + Math.random().toString(36).slice(2, 6);
+      let defs = '';
+      let art = '';
+
+      switch (skin.art) {
+        case 'p250_sand':
+          art = `
+            <path d="M30 24 H108 L112 42 H62 L54 74 H35 L42 42 H30 Z" fill="#c2b280" stroke="#1e293b" stroke-width="2"/>
+            <rect x="31" y="25" width="77" height="10" rx="2" fill="#dfd3ac"/>
+            <path d="M40 31 Q62 26 84 32" stroke="#9a8c62" stroke-width="2" fill="none"/>
+            <rect x="39" y="47" width="10" height="22" rx="1.5" transform="rotate(11 39 47)" fill="#a89968"/>
+          `;
+          break;
+
+        case 'mp9_sand':
+          art = `
+            <path d="M22 32 H102 L106 46 H74 L76 73 H64 L62 46 H42 L38 66 H28 L32 46 H22 Z" fill="#cbbd93" stroke="#1e293b" stroke-width="2"/>
+            <path d="M35 32 L45 46 M55 32 L65 46 M75 32 L85 46" stroke="#8c7f5a" stroke-width="3"/>
+            <rect x="102" y="36" width="16" height="6" rx="1.5" fill="#334155"/>
+          `;
+          break;
+
+        case 'glock_candy':
+          art = `
+            <path d="M30 24 H110 V41 H62 L54 74 H35 L42 41 H30 Z" fill="#1e293b" stroke="#0f172a" stroke-width="2"/>
+            <rect x="30" y="24" width="80" height="12" rx="2" fill="#dc2626"/>
+            <line x1="36" y1="28" x2="102" y2="28" stroke="#fca5a5" stroke-width="1.5" opacity="0.6"/>
+          `;
+          break;
+
+        case 'mac10_silver':
+          defs = `<linearGradient id="${uid}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f8fafc"/><stop offset="50%" stop-color="#94a3b8"/><stop offset="100%" stop-color="#e2e8f0"/></linearGradient>`;
+          art = `
+            <rect x="34" y="24" width="66" height="24" rx="3" fill="url(#${uid})" stroke="#334155" stroke-width="2"/>
+            <rect x="52" y="48" width="13" height="28" rx="1.5" fill="#475569"/>
+            <rect x="100" y="30" width="14" height="7" rx="1.5" fill="#64748b"/>
+            <line x1="20" y1="30" x2="34" y2="30" stroke="#94a3b8" stroke-width="3"/>
+          `;
+          break;
+
+        case 'ssg08_abyss':
+          art = `
+            <polygon points="8,44 36,37 36,49 10,58" fill="#0f172a" stroke="#38bdf8" stroke-width="1.6"/>
+            <rect x="36" y="37" width="64" height="10" rx="2" fill="#0284c7" stroke="#0f172a" stroke-width="1.8"/>
+            <path d="M44 42 Q64 36 86 43" stroke="#7dd3fc" stroke-width="2.5" fill="none"/>
+            <line x1="100" y1="41" x2="134" y2="41" stroke="#38bdf8" stroke-width="3"/>
+            <rect x="48" y="25" width="38" height="7" rx="3" fill="#0f172a" stroke="#38bdf8" stroke-width="1.6"/>
+          `;
+          break;
+
+        case 'm4a1s_nitro':
+          art = `
+            <polygon points="8,43 34,37 34,49 10,57" fill="#1e293b" stroke="#0f172a" stroke-width="1.8"/>
+            <path d="M34 36 H94 V47 H70 L72 70 H61 L59 47 H34 Z" fill="#1e293b" stroke="#0f172a" stroke-width="1.8"/>
+            <rect x="44" y="38" width="38" height="6" rx="1.5" fill="#f97316"/>
+            <rect x="94" y="38" width="38" height="6" rx="2" fill="#f97316" stroke="#0f172a" stroke-width="1.5"/>
+          `;
+          break;
+
+        case 'usps_cortex':
+          art = `
+            <path d="M18 27 H76 V41 H46 L39 71 H23 L30 41 H18 Z" fill="#1e1b4b" stroke="#0f172a" stroke-width="2"/>
+            <rect x="76" y="29" width="46" height="9" rx="3" fill="#ec4899" stroke="#831843" stroke-width="1.5"/>
+            <path d="M24 33 Q44 26 68 35" stroke="#f472b6" stroke-width="2.4" fill="none"/>
+          `;
+          break;
+
+        case 'glock_water':
+          art = `
+            <path d="M30 24 H110 V41 H62 L54 74 H35 L42 41 H30 Z" fill="#0f172a" stroke="#020617" stroke-width="2"/>
+            <rect x="30" y="24" width="80" height="12" rx="2" fill="#e11d48"/>
+            <path d="M34 32 Q52 24 70 32 T106 30" stroke="#38bdf8" stroke-width="2.6" fill="none"/>
+          `;
+          break;
+
+        case 'ak47_slate':
+          art = `
+            <polygon points="8,44 36,36 36,51 10,61" fill="#18181b" stroke="#09090b" stroke-width="2"/>
+            <path d="M36 35 H102 L105 46 H78 L86 73 L72 75 L64 47 H36 Z" fill="#27272a" stroke="#09090b" stroke-width="2"/>
+            <line x1="105" y1="39" x2="132" y2="39" stroke="#3f3f46" stroke-width="3.5"/>
+            <rect x="46" y="38" width="38" height="5" rx="1" fill="#3f3f46"/>
+          `;
+          break;
+
+        case 'awp_acheron':
+          art = `
+            <path d="M6 42 L38 38 H98 L98 48 H66 L62 64 H52 L54 48 H34 L24 62 H8 Z" fill="#1e293b" stroke="#0f172a" stroke-width="2"/>
+            <circle cx="52" cy="43" r="4" fill="#a3e635"/>
+            <circle cx="72" cy="43" r="4" fill="#facc15"/>
+            <line x1="98" y1="42" x2="134" y2="42" stroke="#64748b" stroke-width="4"/>
+            <rect x="44" y="24" width="38" height="8" rx="3" fill="#0f172a" stroke="#a3e635" stroke-width="1.6"/>
+          `;
+          break;
+
+        case 'm4a1s_nightmare':
+          art = `
+            <polygon points="8,43 34,37 34,49 10,57" fill="#0f172a" stroke="#1e293b" stroke-width="1.8"/>
+            <path d="M34 36 H94 V47 H70 L72 70 H61 L59 47 H34 Z" fill="#172554" stroke="#38bdf8" stroke-width="1.6"/>
+            <path d="M42 42 Q62 34 84 43" stroke="#22d3ee" stroke-width="2.5" fill="none"/>
+            <rect x="94" y="38" width="38" height="6" rx="2" fill="#0f172a" stroke="#22d3ee" stroke-width="1.4"/>
+          `;
+          break;
+
+        case 'usps_neonoir':
+          art = `
+            <path d="M18 27 H76 V41 H46 L39 71 H23 L30 41 H18 Z" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
+            <rect x="76" y="29" width="46" height="9" rx="3" fill="#1e1b4b" stroke="#d946ef" stroke-width="1.6"/>
+            <path d="M24 34 L54 28 L72 36" stroke="#d946ef" stroke-width="2.6" fill="none"/>
+          `;
+          break;
+
+        case 'awp_fever':
+          art = `
+            <path d="M6 42 L38 38 H98 L98 48 H66 L62 64 H52 L54 48 H34 L24 62 H8 Z" fill="#18181b" stroke="#09090b" stroke-width="2"/>
+            <path d="M24 44 L48 39 L68 46 L90 39" stroke="#ec4899" stroke-width="3" fill="none"/>
+            <path d="M34 46 L58 40 L82 46" stroke="#38bdf8" stroke-width="2" fill="none"/>
+            <line x1="98" y1="42" x2="134" y2="42" stroke="#ec4899" stroke-width="3.5"/>
+            <rect x="44" y="24" width="38" height="8" rx="3" fill="#09090b" stroke="#d946ef" stroke-width="1.8"/>
+          `;
+          break;
+
+        case 'ak47_redline':
+          art = `
+            <polygon points="8,44 36,36 36,51 10,61" fill="#18181b" stroke="#09090b" stroke-width="2"/>
+            <path d="M36 35 H102 L105 46 H78 L86 73 L72 75 L64 47 H36 Z" fill="#18181b" stroke="#09090b" stroke-width="2"/>
+            <line x1="16" y1="46" x2="102" y2="41" stroke="#ef4444" stroke-width="2.4"/>
+            <line x1="105" y1="39" x2="132" y2="39" stroke="#27272a" stroke-width="3.5"/>
+          `;
+          break;
+
+        case 'deagle_printstream':
+          art = `
+            <path d="M24 23 H114 L118 41 H62 L52 75 H32 L41 41 H24 Z" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
+            <rect x="26" y="34" width="88" height="5" fill="#0f172a"/>
+            <polygon points="56,28 60,32 56,36 52,32" fill="#ec4899"/>
+            <polygon points="74,28 78,32 74,36 70,32" fill="#38bdf8"/>
+          `;
+          break;
+
+        case 'm4a1s_printstream':
+          art = `
+            <polygon points="8,43 34,37 34,49 10,57" fill="#f8fafc" stroke="#0f172a" stroke-width="1.8"/>
+            <path d="M34 36 H94 V47 H70 L72 70 H61 L59 47 H34 Z" fill="#f8fafc" stroke="#0f172a" stroke-width="1.8"/>
+            <rect x="44" y="40" width="44" height="4" fill="#0f172a"/>
+            <rect x="94" y="38" width="38" height="6" rx="2" fill="#f8fafc" stroke="#0f172a" stroke-width="1.5"/>
+          `;
+          break;
+
+        case 'ak47_vulcan':
+          art = `
+            <polygon points="8,44 36,36 36,51 10,61" fill="#0f172a" stroke="#020617" stroke-width="2"/>
+            <path d="M36 35 H102 L105 46 H78 L86 73 L72 75 L64 47 H36 Z" fill="#f8fafc" stroke="#020617" stroke-width="2"/>
+            <path d="M22 46 L52 38 L78 44 L98 38" stroke="#0284c7" stroke-width="3.2" fill="none"/>
+            <line x1="105" y1="39" x2="132" y2="39" stroke="#0284c7" stroke-width="3.5"/>
+          `;
+          break;
+
+        case 'awp_asiimov':
+          art = `
+            <path d="M6 42 L38 38 H98 L98 48 H66 L62 64 H52 L54 48 H34 L24 62 H8 Z" fill="#f8fafc" stroke="#0f172a" stroke-width="2"/>
+            <polygon points="24,42 46,38 56,48 34,54" fill="#f97316"/>
+            <polygon points="68,38 86,38 82,48 64,48" fill="#f97316"/>
+            <line x1="98" y1="42" x2="134" y2="42" stroke="#0f172a" stroke-width="4"/>
+            <rect x="44" y="24" width="38" height="8" rx="3" fill="#f8fafc" stroke="#f97316" stroke-width="1.8"/>
+          `;
+          break;
+
+        case 'knife_gut':
+          art = `
+            <rect x="20" y="42" width="36" height="11" rx="4" fill="#1e293b" stroke="#ef4444" stroke-width="1.6"/>
+            <path d="M56 41 H116 C122 41 124 46 118 52 C104 60 76 58 56 53 Z" fill="#e2e8f0" stroke="#991b1b" stroke-width="2"/>
+            <path d="M62 46 H108" stroke="#ef4444" stroke-width="3" stroke-dasharray="5 3"/>
+          `;
+          break;
+
+        case 'knife_flip':
+          defs = `<linearGradient id="${uid}" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#a855f7"/><stop offset="50%" stop-color="#ec4899"/><stop offset="100%" stop-color="#facc15"/></linearGradient>`;
+          art = `
+            <rect x="18" y="42" width="40" height="10" rx="4" fill="#0f172a" stroke="#334155" stroke-width="1.8"/>
+            <path d="M58 42 L124 37 C116 49 92 54 58 52 Z" fill="url(#${uid})" stroke="#1e1b4b" stroke-width="1.8"/>
+          `;
+          break;
+
+        case 'gloves_marble':
+          defs = `<linearGradient id="${uid}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ef4444"/><stop offset="50%" stop-color="#facc15"/><stop offset="100%" stop-color="#3b82f6"/></linearGradient>`;
+          art = `
+            <path d="M30 74 V42 C30 33 36 27 42 27 C45 27 47 30 47 35 V23 C47 20 52 20 52 23 V35 V21 C52 18 57 18 57 21 V35 V24 C57 21 62 21 62 24 V50 L58 74 Z" fill="url(#${uid})" stroke="#0f172a" stroke-width="2"/>
+            <path d="M82 74 L78 50 V24 C78 21 83 21 83 24 V35 V21 C83 18 88 18 88 21 V35 V23 C88 20 93 20 93 23 V35 C93 30 95 27 98 27 C104 27 110 33 110 42 V74 Z" fill="url(#${uid})" stroke="#0f172a" stroke-width="2"/>
+          `;
+          break;
+
+        case 'knife_m9':
+          defs = `<linearGradient id="${uid}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1d4ed8"/><stop offset="50%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#0f172a"/></linearGradient>`;
+          art = `
+            <rect x="16" y="42" width="36" height="11" rx="3" fill="#1e293b" stroke="#38bdf8" stroke-width="1.6"/>
+            <rect x="50" y="36" width="5" height="22" rx="1.5" fill="#94a3b8"/>
+            <path d="M55 40 H112 L124 47 L110 54 H55 Z" fill="url(#${uid})" stroke="#0f172a" stroke-width="1.8"/>
+          `;
+          break;
+
+        case 'knife_butterfly':
+          art = `
+            <path d="M18 33 L64 42 L64 47 L18 41 Z" fill="#18181b" stroke="#ef4444" stroke-width="1.6"/>
+            <path d="M18 59 L64 50 L64 55 L18 67 Z" fill="#18181b" stroke="#ef4444" stroke-width="1.6"/>
+            <path d="M66 42 L122 39 C114 50 92 54 66 52 Z" fill="#dc2626" stroke="#450a0a" stroke-width="1.8"/>
+          `;
+          break;
+
+        case 'knife_karambit':
+          defs = `<linearGradient id="${uid}" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#fde047"/><stop offset="50%" stop-color="#f59e0b"/><stop offset="100%" stop-color="#b45309"/></linearGradient>`;
+          art = `
+            <circle cx="32" cy="54" r="10" fill="none" stroke="#facc15" stroke-width="4.5"/>
+            <path d="M40 46 L56 39 L62 49 L45 55 Z" fill="#18181b" stroke="#facc15" stroke-width="1.6"/>
+            <path d="M56 39 C78 30, 102 32, 122 48 C102 42, 80 43, 62 49 Z" fill="url(#${uid})" stroke="#451a03" stroke-width="1.8"/>
+          `;
+          break;
+      }
+
+      return `
+        <svg viewBox="0 0 140 90" class="${sizeClass} drop-shadow-[0_6px_14px_rgba(0,0,0,0.75)] select-none" aria-hidden="true">
+          <defs>${defs}</defs>
+          ${art}
+        </svg>
+      `;
+    }
+
+    /**
+     * 3. ЗВУКОВОЙ ДВИЖОК (WEB AUDIO API)
+     */
+    class SoundEngine {
+      constructor() {
+        this.enabled = true;
+        this.ctx = null;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      toggle() {
+        this.enabled = !this.enabled;
+        if (this.enabled) {
+          this.init();
+          this.click(640);
+        }
+        return this.enabled;
+      }
+
+      click(freq = 540) {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.exponentialRampToValueAtTime(freq * 1.25, now + 0.045);
+
+        gain.gain.setValueAtTime(0.07, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.055);
+      }
+
+      tick(intensity = 1) {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(720 + intensity * 260, now);
+        osc.frequency.exponentialRampToValueAtTime(210, now + 0.022);
+
+        gain.gain.setValueAtTime(0.075, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.028);
+      }
+
+      goldWin() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const notes = [523.25, 659.25, 783.99, 1046.5, 1318.51];
+        const now = this.ctx.currentTime;
+        notes.forEach((freq, idx) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = idx % 2 === 0 ? 'triangle' : 'sine';
+
+          const start = now + idx * 0.055;
+          osc.frequency.setValueAtTime(freq, start);
+
+          gain.gain.setValueAtTime(0.001, start);
+          gain.gain.linearRampToValueAtTime(0.09, start + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0008, start + 0.6);
+
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(start);
+          osc.stop(start + 0.62);
+        });
+      }
+
+      lossThud() {
+        if (!this.enabled) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(140, now);
+        osc.frequency.exponentialRampToValueAtTime(44, now + 0.45);
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(320, now);
+
+        gain.gain.setValueAtTime(0.13, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.48);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.5);
+      }
+    }
+
+    const sfx = new SoundEngine();
+
+    /**
+     * 4. ГЛОБАЛЬНОЕ СОСТОЯНИЕ ПРИЛОЖЕНИЯ (STATE)
+     */
+    const state = {
+      activeTab: 'upgrader', // 'upgrader' | 'cases'
+      balance: 1500,
+      inventory: [],
+      selectedSourceUid: null,
+      balanceTopup: 0,
+      selectedTargetId: null,
+      sectorTop: true,
+      isUpgrading: false,
+      needleAngle: 0,
+      catalogSortAsc: true,
+      catalogSearch: '',
+      catalogRarity: 'all',
+      liveFilter: 'all', // 'all' | 'top'
+      upgradeHistory: [],
+      usedPromos: new Set(),
+
+      // Кейсы CS2
+      selectedCaseId: 'case_trashbin',
+      isCaseSpinning: false,
+      pendingCaseDrop: null,
+
+      // Provably Fair (SHA-256)
+      serverSeed: '',
+      serverSeedHash: '',
+      clientSeed: 'musordrop_cs2_2026',
+      nonce: 1,
+      lastProof: null,
+    };
+
+    const STARTER_SKIN_IDS = [
+      'p250_sand_dune',
+      'glock_candy_apple',
+      'm4a1s_nitro',
+      'usps_cortex',
+      'ak47_slate',
+      'awp_fever_dream',
+    ];
+
+    function createOwnedSkin(skinId) {
+      const base = CS_SKINS.find((s) => s.id === skinId);
+      return {
+        ...base,
+        uid: 'item_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+      };
+    }
+
+    function formatRub(val, decimals = 2) {
+      return Number(val).toLocaleString('ru-RU', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      }) + ' ₽';
+    }
+
+    function showToast(message, variant = 'info') {
+      const container = document.getElementById('toast-container');
+      const el = document.createElement('div');
+      const styles = {
+        success: 'bg-[#111e1b] border-emerald-500/50 text-emerald-300 shadow-[0_10px_28px_rgba(16,185,129,0.25)]',
+        error: 'bg-[#221216] border-rose-500/50 text-rose-300 shadow-[0_10px_28px_rgba(239,68,68,0.25)]',
+        info: 'bg-[#1a1811] border-yellow-400/50 text-yellow-200 shadow-[0_10px_28px_rgba(250,204,21,0.2)]',
+      };
+      const icon = variant === 'success' ? '✓' : variant === 'error' ? '✕' : '★';
+
+      el.className = `toast-item pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl border text-xs font-bold backdrop-blur-md ${styles[variant] || styles.info}`;
+      el.innerHTML = `
+        <span class="w-5 h-5 rounded-md bg-black/35 flex items-center justify-center font-mono text-xs shrink-0">${icon}</span>
+        <span class="leading-snug">${message}</span>
+      `;
+      container.appendChild(el);
+
+      setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(8px)';
+        el.style.transition = 'all 0.2s ease';
+        setTimeout(() => el.remove(), 220);
+      }, 3000);
+    }
+
+    /**
+     * 5. PROVABLY FAIR (SHA-256 ЧЕРЕЗ WEB CRYPTO API)
+     */
+    function generateHexSeed(byteLen = 24) {
+      const bytes = new Uint8Array(byteLen);
+      window.crypto.getRandomValues(bytes);
+      return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function sha256Hex(str) {
+      if (window.crypto && window.crypto.subtle) {
+        const buf = new TextEncoder().encode(str);
+        const hashBuf = await window.crypto.subtle.digest('SHA-256', buf);
+        return Array.from(new Uint8Array(hashBuf), (b) => b.toString(16).padStart(2, '0')).join('');
+      }
+      let h = 2166136261;
+      for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return (h >>> 0).toString(16).padStart(8, '0').repeat(8);
+    }
+
+    async function rotateServerSeed() {
+      state.serverSeed = generateHexSeed(24);
+      state.serverSeedHash = await sha256Hex(state.serverSeed);
+      document.getElementById('pf-current-hash').textContent = state.serverSeedHash;
+      document.getElementById('pf-nonce-box').textContent = state.nonce;
+    }
+
+    async function computeProvablyFairRoll() {
+      const inputStr = `${state.serverSeed}:${state.clientSeed}:${state.nonce}`;
+      const digest = await sha256Hex(inputStr);
+      const intVal = parseInt(digest.slice(0, 8), 16);
+      const roll = Number(((intVal % 10000) / 100).toFixed(2));
+      return {
+        roll,
+        serverSeed: state.serverSeed,
+        clientSeed: state.clientSeed,
+        nonce: state.nonce,
+        inputStr,
+        digest,
+      };
+    }
+
+    function openProofInspector(proof) {
+      const modal = document.getElementById('pf-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+
+      if (proof) {
+        const badge = document.getElementById('pf-inspected-roll');
+        badge.textContent = `Ролл: ${proof.roll.toFixed(2)} (Nonce #${proof.nonce})`;
+        badge.className = 'font-mono font-extrabold text-yellow-400';
+
+        document.getElementById('pf-inspected-body').classList.remove('hidden');
+        document.getElementById('pf-inspected-server').textContent = proof.serverSeed;
+        document.getElementById('pf-inspected-input').textContent = proof.inputStr;
+        document.getElementById('pf-inspected-digest').textContent = proof.digest;
+      }
+    }
+
+    /**
+     * 6. РАСЧЁТ СТАВКИ, ШАНСА И МНОЖИТЕЛЯ АПГРЕЙДА
+     */
+    function getSelectedSourceSkin() {
+      return state.inventory.find((i) => i.uid === state.selectedSourceUid) || null;
+    }
+
+    function getSelectedTargetSkin() {
+      return CS_SKINS.find((s) => s.id === state.selectedTargetId) || null;
+    }
+
+    function getTotalStake() {
+      const src = getSelectedSourceSkin();
+      const skinPrice = src ? src.price : 0;
+      return Number((skinPrice + state.balanceTopup).toFixed(2));
+    }
+
+    function getUpgradeMetrics() {
+      const stake = getTotalStake();
+      const target = getSelectedTargetSkin();
+      if (stake <= 0 || !target || target.price <= stake) return null;
+
+      const rawChance = (stake / target.price) * 95;
+      const chance = Number(Math.min(85, Math.max(1, rawChance)).toFixed(2));
+      const multiplier = Number((target.price / stake).toFixed(2));
+      const profit = Number((target.price - stake).toFixed(2));
+
+      return { stake, chance, multiplier, profit };
+    }
+
+    function syncBalanceTopupUI() {
+      const slider = document.getElementById('balance-topup-slider');
+      const input = document.getElementById('balance-topup-input');
+      const maxAllowed = Math.floor(state.balance);
+
+      if (state.balanceTopup > maxAllowed) {
+        state.balanceTopup = maxAllowed;
+      }
+      if (state.balanceTopup < 0) {
+        state.balanceTopup = 0;
+      }
+
+      slider.max = maxAllowed;
+      slider.value = state.balanceTopup;
+      input.max = maxAllowed;
+      input.value = state.balanceTopup;
+
+      document.getElementById('total-stake-display').textContent = formatRub(getTotalStake());
+    }
+
+    function updateAllBalances() {
+      const text = formatRub(state.balance);
+      document.getElementById('header-balance').textContent = text;
+      const modalLabel = document.getElementById('modal-balance-label');
+      if (modalLabel) modalLabel.textContent = text;
+      syncBalanceTopupUI();
+    }
+
+    /**
+     * 7. ЧАСТИЦЫ ПОБЕДЫ НА КАНВАСЕ
+     */
+    function triggerWinParticles() {
+      const canvas = document.getElementById('win-particles-canvas');
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+
+      const colors = ['#facc15', '#f59e0b', '#10b981', '#34d399', '#ffffff'];
+      const particles = [];
+      const cx = canvas.width / 2;
+      const cy = canvas.height * 0.46;
+
+      for (let i = 0; i < 80; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 2.4 + Math.random() * 6.2;
+        particles.push({
+          x: cx,
+          y: cy,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed - 2,
+          size: 4 + Math.random() * 4.5,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rot: Math.random() * 360,
+          vRot: (Math.random() - 0.5) * 14,
+          alpha: 1,
+        });
+      }
+
+      function loop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        let active = false;
+        for (const p of particles) {
+          if (p.alpha <= 0) continue;
+          active = true;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.vy += 0.16;
+          p.vx *= 0.985;
+          p.rot += p.vRot;
+          p.alpha -= 0.017;
+
+          ctx.save();
+          ctx.globalAlpha = Math.max(0, p.alpha);
+          ctx.translate(p.x, p.y);
+          ctx.rotate((p.rot * Math.PI) / 180);
+          ctx.fillStyle = p.color;
+          ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.65);
+          ctx.restore();
+        }
+        if (active) requestAnimationFrame(loop);
+        else ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+    /**
+     * 8. ОТРИСОВКА ИНТЕРФЕЙСА АПГРЕЙДЕРА
+     */
+    function buildWheelDegreeTicks() {
+      const group = document.getElementById('wheel-ticks-group');
+      let svg = '';
+      for (let deg = 0; deg < 360; deg += 6) {
+        const major = deg % 30 === 0;
+        const y1 = major ? 16 : 19;
+        const y2 = 24;
+        const stroke = major ? 'rgba(250,204,21,0.55)' : 'rgba(255,255,255,0.12)';
+        svg += `<line x1="180" y1="${y1}" x2="180" y2="${y2}" stroke="${stroke}" stroke-width="${major ? 1.8 : 1}" transform="rotate(${deg} 180 180)" />`;
+      }
+      group.innerHTML = svg;
+    }
+
+    function renderUpgraderArena() {
+      const src = getSelectedSourceSkin();
+      const target = getSelectedTargetSkin();
+      const metrics = getUpgradeMetrics();
+      const stake = getTotalStake();
+
+      // ЛЕВАЯ ВИТРИНА: ВАШ СКИН
+      const srcStage = document.getElementById('upgrader-source-stage');
+      const btnClearSrc = document.getElementById('btn-clear-source');
+
+      if (src) {
+        const r = CS_RARITIES[src.rarity];
+        btnClearSrc.classList.remove('hidden');
+        srcStage.className = 'my-4 flex-1 flex flex-col items-center justify-between rounded-xl bg-[#181d2d] border p-4 text-center min-h-[210px] relative overflow-hidden';
+        srcStage.style.borderColor = r.color + '66';
+        srcStage.style.boxShadow = `inset 0 0 36px ${r.glow}`;
+        srcStage.innerHTML = `
+          <div class="w-full flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded font-mono text-[10px] font-extrabold bg-[#0b0d13]/80 border border-white/[0.1] text-slate-200">${src.float}</span>
+            <span class="text-[10px] font-extrabold uppercase tracking-wider" style="color: ${r.color}">${r.label}</span>
+          </div>
+          <div class="my-2 skin-float">${renderSkinSVG(src, 'w-40 h-24')}</div>
+          <div class="w-full">
+            <div class="text-xs font-bold text-slate-300">${src.weapon}</div>
+            <div class="text-sm font-black text-white">${src.skin}</div>
+            <div class="mt-1 font-mono font-extrabold text-sm text-yellow-400">${formatRub(src.price)}</div>
+          </div>
+        `;
+      } else if (state.balanceTopup > 0) {
+        btnClearSrc.classList.add('hidden');
+        srcStage.className = 'my-4 flex-1 flex flex-col items-center justify-center rounded-xl bg-[#181d2d] border border-yellow-400/35 p-4 text-center min-h-[210px]';
+        srcStage.style.boxShadow = 'inset 0 0 30px rgba(250,204,21,0.12)';
+        srcStage.innerHTML = `
+          <div class="w-12 h-12 rounded-2xl bg-yellow-400/15 border border-yellow-400/40 flex items-center justify-center text-yellow-400 font-mono font-black text-lg mb-2">
+            ₽
+          </div>
+          <div class="text-xs font-extrabold uppercase text-white">Апгрейд чисто с баланса</div>
+          <div class="font-mono font-extrabold text-base text-yellow-400 mt-1">${formatRub(state.balanceTopup)}</div>
+          <p class="text-[11px] text-slate-400 mt-1 max-w-[210px]">
+            Можно также добавить любой скин из инвентаря ниже
+          </p>
+        `;
+      } else {
+        btnClearSrc.classList.add('hidden');
+        srcStage.className = 'my-4 flex-1 flex flex-col items-center justify-center rounded-xl bg-[#181d2d]/60 border border-dashed border-white/[0.1] p-4 text-center min-h-[210px]';
+        srcStage.style.boxShadow = 'none';
+        srcStage.innerHTML = `
+          <div class="w-11 h-11 rounded-xl bg-[#121622] border border-white/[0.08] flex items-center justify-center text-slate-500 text-lg mb-2.5">
+            +
+          </div>
+          <div class="text-xs font-bold text-slate-300">Выберите скин из инвентаря</div>
+          <div class="text-[11px] text-slate-500 mt-1">Или укажите сумму доплаты с баланса ниже</div>
+        `;
+      }
+
+      // ПРАВАЯ ВИТРИНА: ЖЕЛАЕМЫЙ СКИН
+      const tgtStage = document.getElementById('upgrader-target-stage');
+      const btnClearTgt = document.getElementById('btn-clear-target');
+
+      if (target) {
+        const r = CS_RARITIES[target.rarity];
+        btnClearTgt.classList.remove('hidden');
+        tgtStage.className = 'my-4 flex-1 flex flex-col items-center justify-between rounded-xl bg-[#181d2d] border p-4 text-center min-h-[210px] relative overflow-hidden';
+        tgtStage.style.borderColor = r.color + '77';
+        tgtStage.style.boxShadow = `inset 0 0 38px ${r.glow}`;
+        tgtStage.innerHTML = `
+          <div class="w-full flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded font-mono text-[10px] font-extrabold bg-[#0b0d13]/80 border border-white/[0.1] text-slate-200">${target.float}</span>
+            <span class="text-[10px] font-extrabold uppercase tracking-wider" style="color: ${r.color}">${r.label}</span>
+          </div>
+          <div class="my-2 skin-float">${renderSkinSVG(target, 'w-40 h-24')}</div>
+          <div class="w-full">
+            <div class="text-xs font-bold text-slate-300">${target.weapon}</div>
+            <div class="text-sm font-black text-white">${target.skin}</div>
+            <div class="mt-1 font-mono font-extrabold text-sm text-emerald-400">${formatRub(target.price)}</div>
+          </div>
+        `;
+      } else {
+        btnClearTgt.classList.add('hidden');
+        tgtStage.className = 'my-4 flex-1 flex flex-col items-center justify-center rounded-xl bg-[#181d2d]/60 border border-dashed border-white/[0.1] p-4 text-center min-h-[210px]';
+        tgtStage.style.boxShadow = 'none';
+        tgtStage.innerHTML = `
+          <div class="w-11 h-11 rounded-xl bg-[#121622] border border-white/[0.08] flex items-center justify-center text-slate-500 text-lg mb-2.5">
+            ★
+          </div>
+          <div class="text-xs font-bold text-slate-300">Выберите желаемый скин</div>
+          <div class="text-[11px] text-slate-500 mt-1">Из каталога CS2 справа или кнопками 1.5x–MAX</div>
+        `;
+      }
+
+      // Сводка профита справа
+      document.getElementById('potential-profit-display').textContent = metrics ? '+' + formatRub(metrics.profit) : '+0.00 ₽';
+      document.getElementById('target-ratio-display').textContent = metrics ? metrics.multiplier.toFixed(2) + 'x' : '0.00x';
+
+      // ЦЕНТРАЛЬНОЕ КОЛЕСО АПГРЕЙДА
+      const circumference = 2 * Math.PI * 130; // ~816.814
+      const winArc = document.getElementById('wheel-win-arc');
+      const chanceText = document.getElementById('wheel-chance-text');
+      const multBadge = document.getElementById('wheel-mult-badge');
+      const statusMsg = document.getElementById('wheel-status-msg');
+      const btnSpin = document.getElementById('btn-upgrade-spin');
+
+      if (metrics) {
+        const arcLen = (metrics.chance / 100) * circumference;
+        const winDeg = (metrics.chance / 100) * 360;
+        const rotDeg = state.sectorTop ? -90 : 270 - winDeg;
+
+        winArc.setAttribute('stroke-dasharray', `${arcLen} ${circumference}`);
+        winArc.setAttribute('transform', `rotate(${rotDeg} 180 180)`);
+
+        chanceText.textContent = metrics.chance.toFixed(2) + '%';
+        multBadge.textContent = metrics.multiplier.toFixed(2) + 'x';
+
+        if (!state.isUpgrading) {
+          statusMsg.textContent = 'Шанс превратить ширп в легенду';
+          statusMsg.className = 'mt-2 text-[11px] font-semibold text-slate-300 leading-tight max-w-[165px]';
+
+          btnSpin.disabled = false;
+          btnSpin.className =
+            'relative overflow-hidden w-full py-3.5 px-5 rounded-xl font-black uppercase tracking-wider text-sm sm:text-base transition-all duration-200 cursor-pointer bg-gradient-to-r from-yellow-400 to-amber-500 hover:from-yellow-300 hover:to-amber-400 text-slate-950 shadow-[0_0_26px_rgba(250,204,21,0.4)] active:scale-[0.98] btn-gold-sheen';
+        }
+      } else {
+        winArc.setAttribute('stroke-dasharray', `0 ${circumference}`);
+        chanceText.textContent = '0.00%';
+        multBadge.textContent = '0.00x';
+
+        if (!state.isUpgrading) {
+          if (stake > 0 && target && target.price <= stake) {
+            statusMsg.textContent = 'Желаемый скин должен быть дороже ставки';
+            statusMsg.className = 'mt-2 text-[11px] font-bold text-rose-400 leading-tight max-w-[165px]';
+          } else {
+            statusMsg.textContent = 'Шанс превратить ширп в легенду';
+            statusMsg.className = 'mt-2 text-[11px] font-semibold text-slate-400 leading-tight max-w-[165px]';
+          }
+
+          btnSpin.disabled = true;
+          btnSpin.className =
+            'relative overflow-hidden w-full py-3.5 px-5 rounded-xl font-black uppercase tracking-wider text-sm sm:text-base transition-all duration-200 disabled:opacity-45 disabled:cursor-not-allowed bg-[#181d2d] text-slate-400 border border-white/[0.08]';
+        }
+      }
+    }
+
+    function renderInventoryDeck() {
+      const grid = document.getElementById('inventory-grid');
+      const countPill = document.getElementById('inv-count-pill');
+      const totalPriceEl = document.getElementById('inv-total-price');
+      const btnSellAll = document.getElementById('btn-sell-all');
+
+      const total = state.inventory.reduce((acc, s) => acc + s.price, 0);
+      countPill.textContent = state.inventory.length;
+      totalPriceEl.textContent = formatRub(total);
+      btnSellAll.disabled = state.inventory.length === 0 || state.isUpgrading;
+
+      if (state.inventory.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-14 px-4 flex flex-col items-center justify-center text-center">
+            <div class="text-2xl mb-2">🎒</div>
+            <div class="text-xs font-extrabold uppercase text-slate-300">Инвентарь пуст</div>
+            <p class="text-[11px] text-slate-500 mt-1 max-w-[230px]">
+              Откройте кейсы во вкладке «КЕЙСЫ» или сделайте апгрейд чисто с демо-баланса!
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      const sorted = [...state.inventory].sort((a, b) => b.price - a.price);
+
+      grid.innerHTML = sorted
+        .map((item) => {
+          const r = CS_RARITIES[item.rarity];
+          const isSelected = item.uid === state.selectedSourceUid;
+
+          return `
+            <div
+              data-inv-uid="${item.uid}"
+              class="cs-card group relative rounded-xl p-2.5 bg-[#181d2d] border ${
+                isSelected
+                  ? 'border-yellow-400 bg-[#1f263b] shadow-[0_0_18px_rgba(250,204,21,0.25)]'
+                  : 'border-white/[0.07] hover:border-white/20'
+              } flex flex-col justify-between cursor-pointer overflow-hidden"
+            >
+              <div class="flex items-center justify-between gap-1">
+                <span class="px-1.5 py-0.5 rounded bg-[#0b0d13]/80 font-mono text-[9px] font-bold text-slate-300">
+                  ${item.float}
+                </span>
+                <span class="font-mono font-extrabold text-[11px] text-yellow-400">
+                  ${formatRub(item.price, 0)}
+                </span>
+              </div>
+
+              <div class="my-1.5 flex items-center justify-center group-hover:scale-105 transition-transform">
+                ${renderSkinSVG(item, 'w-24 h-14')}
+              </div>
+
+              <div class="space-y-1.5">
+                <div>
+                  <div class="text-[10px] font-bold text-slate-400 truncate">${item.weapon}</div>
+                  <div class="text-[11px] font-extrabold text-white truncate">${item.skin}</div>
+                </div>
+
+                <button
+                  type="button"
+                  data-sell-uid="${item.uid}"
+                  class="w-full py-1 rounded-lg bg-[#121622] hover:bg-rose-500/20 border border-white/[0.07] hover:border-rose-500/40 font-mono text-[10px] font-bold text-slate-300 hover:text-rose-300 transition cursor-pointer"
+                >
+                  Продать
+                </button>
+              </div>
+
+              <div class="mt-2 h-1 w-full rounded-full" style="background-color: ${r.color}"></div>
+            </div>
+          `;
+        })
+        .join('');
+    }
+
+    function renderCatalogDeck() {
+      const grid = document.getElementById('catalog-grid');
+      const stake = getTotalStake();
+      const query = state.catalogSearch.trim().toLowerCase();
+
+      let list = CS_SKINS.filter((s) => {
+        if (state.catalogRarity !== 'all' && s.rarity !== state.catalogRarity) return false;
+        if (query && !`${s.weapon} ${s.skin}`.toLowerCase().includes(query)) return false;
+        return true;
+      });
+
+      list.sort((a, b) => (state.catalogSortAsc ? a.price - b.price : b.price - a.price));
+
+      if (list.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full py-14 text-center text-xs font-mono text-slate-500">
+            Скины по данному фильтру не найдены
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = list
+        .map((skin) => {
+          const r = CS_RARITIES[skin.rarity];
+          const isSelected = skin.id === state.selectedTargetId;
+          const tooCheap = stake > 0 && skin.price <= stake;
+          const mult = stake > 0 && !tooCheap ? (skin.price / stake).toFixed(2) : null;
+
+          return `
+            <button
+              type="button"
+              data-catalog-id="${skin.id}"
+              ${tooCheap ? 'disabled' : ''}
+              class="cs-card ${
+                tooCheap ? 'opacity-35 cursor-not-allowed' : 'cursor-pointer'
+              } group text-left rounded-xl p-2.5 bg-[#181d2d] border ${
+                isSelected
+                  ? 'border-emerald-400 bg-[#18272b] shadow-[0_0_18px_rgba(16,185,129,0.28)]'
+                  : 'border-white/[0.07] hover:border-white/20'
+              } flex flex-col justify-between overflow-hidden"
+            >
+              <div class="flex items-center justify-between gap-1 w-full">
+                ${
+                  mult
+                    ? `<span class="px-1.5 py-0.5 rounded bg-yellow-400/15 border border-yellow-400/35 font-mono text-[10px] font-extrabold text-yellow-300">${mult}x</span>`
+                    : `<span class="px-1.5 py-0.5 rounded bg-[#0b0d13]/80 font-mono text-[9px] font-bold text-slate-300">${skin.float}</span>`
+                }
+                <span class="font-mono font-extrabold text-[11px] text-emerald-400">
+                  ${formatRub(skin.price, 0)}
+                </span>
+              </div>
+
+              <div class="my-1.5 flex items-center justify-center group-hover:scale-105 transition-transform">
+                ${renderSkinSVG(skin, 'w-24 h-14')}
+              </div>
+
+              <div class="w-full">
+                <div class="text-[10px] font-bold text-slate-400 truncate">${skin.weapon}</div>
+                <div class="text-[11px] font-extrabold text-white truncate">${skin.skin}</div>
+              </div>
+
+              <div class="mt-2 h-1 w-full rounded-full" style="background-color: ${r.color}"></div>
+            </button>
+          `;
+        })
+        .join('');
+    }
+
+    function renderUpgradeHistoryStrip() {
+      const container = document.getElementById('upgrade-history-list');
+      const countEl = document.getElementById('upgrade-history-count');
+      countEl.textContent = `${state.upgradeHistory.length} попыток`;
+
+      if (state.upgradeHistory.length === 0) return;
+
+      container.innerHTML = state.upgradeHistory
+        .map((entry, idx) => {
+          return `
+            <div class="shrink-0 w-72 rounded-xl bg-[#181d2d] border ${
+              entry.isWin ? 'border-emerald-500/40' : 'border-rose-500/35'
+            } p-3 flex flex-col justify-between gap-2">
+              <div class="flex items-center justify-between gap-2">
+                <span class="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
+                  entry.isWin
+                    ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/35'
+                    : 'bg-rose-500/15 text-rose-400 border border-rose-500/35'
+                }">
+                  ${entry.isWin ? 'ЗАШЛО' : 'СГОРЕЛО'}
+                </span>
+                <button
+                  type="button"
+                  data-verify-idx="${idx}"
+                  class="px-2 py-0.5 rounded bg-[#121622] hover:bg-emerald-500/20 border border-white/[0.08] font-mono text-[10px] font-bold text-emerald-400 transition cursor-pointer"
+                >
+                  SHA-256
+                </button>
+              </div>
+
+              <div class="flex items-center justify-between gap-2 bg-[#121622] rounded-lg p-2">
+                <div class="min-w-0 flex-1">
+                  <div class="text-[10px] text-slate-400 truncate">
+                    ${entry.source ? `${entry.source.weapon} | ${entry.source.skin}` : 'Баланс'}
+                  </div>
+                  <div class="font-mono text-[11px] font-bold text-white">${formatRub(entry.stake, 0)}</div>
+                </div>
+                <span class="text-yellow-400 font-bold text-xs">➔</span>
+                <div class="min-w-0 flex-1 text-right">
+                  <div class="text-[10px] text-slate-400 truncate">${entry.target.weapon} | ${entry.target.skin}</div>
+                  <div class="font-mono text-[11px] font-bold text-emerald-400">${formatRub(entry.target.price, 0)}</div>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-between font-mono text-[10px] text-slate-400">
+                <span>Шанс: <strong class="text-white">${entry.chance.toFixed(2)}%</strong></span>
+                <span>Ролл: <strong class="${entry.isWin ? 'text-emerald-400' : 'text-rose-400'}">${entry.roll.toFixed(2)}</strong></span>
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+    }
+
+    /**
+     * 9. ЗАПУСК АПГРЕЙДА (SPIN)
+     */
+    async function executeUpgradeSpin() {
+      if (state.isUpgrading) return;
+      const metrics = getUpgradeMetrics();
+      const src = getSelectedSourceSkin();
+      const target = getSelectedTargetSkin();
+
+      if (!metrics || !target) {
+        showToast('Выберите ставку (скин или баланс) и более дорогую цель!', 'error');
+        return;
+      }
+
+      if (state.balanceTopup > state.balance) {
+        showToast('Недостаточно демо-баланса для выбранной доплаты!', 'error');
+        return;
+      }
+
+      state.isUpgrading = true;
+      sfx.init();
+
+      const topupUsed = state.balanceTopup;
+      state.balance = Number((state.balance - topupUsed).toFixed(2));
+      state.balanceTopup = 0;
+
+      if (src) {
+        state.inventory = state.inventory.filter((i) => i.uid !== src.uid);
+        state.selectedSourceUid = null;
+      }
+
+      updateAllBalances();
+      renderInventoryDeck();
+
+      const btnSpin = document.getElementById('btn-upgrade-spin');
+      const statusMsg = document.getElementById('wheel-status-msg');
+      const wheelWrap = document.getElementById('upgrade-wheel-wrap');
+      const centerCard = document.getElementById('upgrader-center-card');
+      const needle = document.getElementById('wheel-needle');
+
+      btnSpin.disabled = true;
+      btnSpin.classList.remove('btn-gold-sheen');
+      wheelWrap.classList.remove('wheel-win-pulse');
+      centerCard.classList.remove('arena-loss-shake');
+
+      statusMsg.textContent = 'Габен крутит барабан...';
+      statusMsg.className = 'mt-2 text-[11px] font-bold text-yellow-400 leading-tight max-w-[165px] animate-pulse';
+
+      // Вычисляем честный бросок SHA-256 (0.00 - 99.99)
+      const proof = await computeProvablyFairRoll();
+      const isWin = state.sectorTop
+        ? proof.roll < metrics.chance
+        : proof.roll >= Number((100 - metrics.chance).toFixed(2));
+
+      const targetAngle = (proof.roll / 100) * 360;
+      const startMod = state.needleAngle % 360;
+      const isFast = document.getElementById('checkbox-fast-upgrade').checked;
+      const spins = isFast ? 3 * 360 : 6 * 360;
+      let diff = targetAngle - startMod;
+      if (diff < 0) diff += 360;
+      const totalRot = spins + diff;
+
+      const duration = isFast ? 1200 : 4000;
+      const startTime = performance.now();
+      let lastStep = Math.floor(startMod / 6);
+
+      function step(now) {
+        const elapsed = now - startTime;
+        const p = Math.min(1, elapsed / duration);
+        const eased = 1 - Math.pow(1 - p, 3);
+        const currentAngle = startMod + totalRot * eased;
+
+        needle.setAttribute('transform', `rotate(${currentAngle} 180 180)`);
+
+        const curStep = Math.floor(currentAngle / 6);
+        if (curStep > lastStep) {
+          sfx.tick(1 - p);
+          lastStep = curStep;
+        }
+
+        if (p < 1) {
+          requestAnimationFrame(step);
+        } else {
+          state.needleAngle = currentAngle % 360;
+          finishUpgradeSpin(src, target, metrics, proof, isWin);
+        }
+      }
+
+      requestAnimationFrame(step);
+    }
+
+    async function finishUpgradeSpin(src, target, metrics, proof, isWin) {
+      const statusMsg = document.getElementById('wheel-status-msg');
+      const wheelWrap = document.getElementById('upgrade-wheel-wrap');
+      const centerCard = document.getElementById('upgrader-center-card');
+
+      if (isWin) {
+        const wonItem = createOwnedSkin(target.id);
+        state.inventory.push(wonItem);
+        state.selectedSourceUid = wonItem.uid;
+        state.selectedTargetId = null;
+
+        sfx.goldWin();
+        wheelWrap.classList.add('wheel-win-pulse');
+        triggerWinParticles();
+
+        statusMsg.textContent = 'ЗАШЛО! Дроп в инвентаре!';
+        statusMsg.className = 'mt-2 text-[11px] font-extrabold text-emerald-400 leading-tight max-w-[165px]';
+
+        showToast(`ЗАШЛО! Вы получили ${target.weapon} | ${target.skin} (${formatRub(target.price, 0)})`, 'success');
+      } else {
+        sfx.lossThud();
+        centerCard.classList.add('arena-loss-shake');
+
+        statusMsg.textContent = 'Сгорело в утиль...';
+        statusMsg.className = 'mt-2 text-[11px] font-extrabold text-rose-400 leading-tight max-w-[165px]';
+
+        showToast(`Сгорело в утиль... (Ролл ${proof.roll.toFixed(2)} при шансе ${metrics.chance.toFixed(2)}%)`, 'error');
+      }
+
+      state.upgradeHistory.unshift({
+        source: src,
+        target,
+        stake: metrics.stake,
+        chance: metrics.chance,
+        roll: proof.roll,
+        isWin,
+        proof,
+      });
+
+      if (isWin) {
+        pushLiveDrop('Игрок #1337', target, 'АПГРЕЙД', true);
+      }
+
+      state.lastProof = proof;
+      state.nonce += 1;
+      await rotateServerSeed();
+
+      state.isUpgrading = false;
+      syncBalanceTopupUI();
+      renderInventoryDeck();
+      renderCatalogDeck();
+      renderUpgradeHistoryStrip();
+      renderUpgraderArena();
+    }
+
+    /**
+     * 10. ЛЕНТА ЛАЙВ-ДРОПОВ (TOP LIVE-DROP RIBBON)
+     */
+    const PARODY_PLAYERS = [
+      'S1mple_На_Минималках',
+      'Король_Ширпа',
+      'Гейб_Дай_Нож',
+      'Трейдер_Из_7Б',
+      'P250_Enjoyer',
+      'Адепт_Песчанки',
+      'Сын_Габена',
+      'Лудоман_С_Миража',
+      'Калаш_За_Две_Тыщи',
+      'Охотник_За_Флоатом',
+    ];
+
+    const liveDropEntries = [];
+
+    function pushLiveDrop(player, skin, modeLabel, isSelf = false) {
+      liveDropEntries.unshift({ player, skin, modeLabel, isSelf });
+      if (liveDropEntries.length > 24) liveDropEntries.pop();
+      renderLiveDropRibbon();
+    }
+
+    function renderLiveDropRibbon() {
+      const track = document.getElementById('live-drops-track');
+      const filtered = state.liveFilter === 'top'
+        ? liveDropEntries.filter((d) => d.skin.price >= 1500)
+        : liveDropEntries;
+
+      track.innerHTML = filtered
+        .slice(0, 14)
+        .map((d, i) => {
+          const r = CS_RARITIES[d.skin.rarity];
+          return `
+            <div class="${i === 0 ? 'live-drop-item' : ''} shrink-0 flex items-center gap-2 px-2.5 py-1 rounded-xl bg-[#121622] border ${
+              d.isSelf ? 'border-yellow-400/60 bg-yellow-400/10' : 'border-white/[0.07]'
+            }">
+              <div class="w-1 h-7 rounded-full" style="background-color: ${r.color}; box-shadow: 0 0 8px ${r.color};"></div>
+              ${renderSkinSVG(d.skin, 'w-10 h-6')}
+              <div class="leading-tight">
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[10px] font-bold ${d.isSelf ? 'text-yellow-300' : 'text-slate-200'} truncate max-w-[115px]">${d.player}</span>
+                  <span class="px-1 py-0.2 rounded bg-white/[0.06] text-[8px] font-extrabold text-slate-400">${d.modeLabel}</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="text-[10px] text-slate-400 truncate max-w-[105px]">${d.skin.weapon} | ${d.skin.skin}</span>
+                  <span class="font-mono text-[10px] font-extrabold text-yellow-400">${formatRub(d.skin.price, 0)}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+    }
+
+    function startLiveDropFeed() {
+      for (let i = 0; i < 10; i++) {
+        const skin = CS_SKINS[Math.floor(Math.random() * CS_SKINS.length)];
+        const player = PARODY_PLAYERS[Math.floor(Math.random() * PARODY_PLAYERS.length)];
+        const mode = Math.random() < 0.55 ? 'АПГРЕЙД' : 'КЕЙС';
+        liveDropEntries.push({ player, skin, modeLabel: mode, isSelf: false });
+      }
+      renderLiveDropRibbon();
+
+      setInterval(() => {
+        if (document.hidden) return;
+        const skin = CS_SKINS[Math.floor(Math.random() * CS_SKINS.length)];
+        const player = PARODY_PLAYERS[Math.floor(Math.random() * PARODY_PLAYERS.length)];
+        const mode = Math.random() < 0.55 ? 'АПГРЕЙД' : 'КЕЙС';
+        pushLiveDrop(player, skin, mode, false);
+      }, 3800);
+    }
+
+    /**
+     * 11. ВКЛАДКА «КЕЙСЫ CS2» (CASE OPENING ROULETTE)
+     */
+    function getActiveCase() {
+      return MUSOR_CASES.find((c) => c.id === state.selectedCaseId) || MUSOR_CASES[1];
+    }
+
+    function pickWeightedCaseSkin(caseObj, rollPercent) {
+      const totalWeight = caseObj.pool.reduce((s, p) => s + p.weight, 0);
+      const targetWeight = (rollPercent / 100) * totalWeight;
+      let acc = 0;
+      for (const entry of caseObj.pool) {
+        acc += entry.weight;
+        if (targetWeight <= acc) {
+          return CS_SKINS.find((s) => s.id === entry.skinId);
+        }
+      }
+      return CS_SKINS.find((s) => s.id === caseObj.pool[0].skinId);
+    }
+
+    function renderCasesSection() {
+      const grid = document.getElementById('cases-selector-grid');
+      const activeCase = getActiveCase();
+
+      grid.innerHTML = MUSOR_CASES.map((c) => {
+        const isSelected = c.id === activeCase.id;
+        return `
+          <button
+            type="button"
+            data-case-id="${c.id}"
+            class="cs-card text-left rounded-2xl p-3.5 bg-[#121622] border ${
+              isSelected
+                ? 'border-yellow-400 bg-[#181d2d] shadow-[0_0_22px_rgba(250,204,21,0.22)]'
+                : 'border-white/[0.07] hover:border-white/20'
+            } flex flex-col justify-between cursor-pointer"
+          >
+            <div class="flex items-center justify-between gap-2">
+              <span class="w-2.5 h-2.5 rounded-full" style="background-color: ${c.accent}; box-shadow: 0 0 8px ${c.accent};"></span>
+              <span class="font-mono text-xs font-extrabold text-yellow-400">${formatRub(c.price, 0)}</span>
+            </div>
+
+            <div class="my-3 flex items-center justify-center">
+              <!-- Стилизованный кейс CS2 -->
+              <svg viewBox="0 0 100 72" class="w-24 h-16 drop-shadow-lg">
+                <rect x="12" y="16" width="76" height="46" rx="8" fill="#181d2d" stroke="${c.accent}" stroke-width="2.5"/>
+                <rect x="12" y="28" width="76" height="6" fill="${c.accent}" opacity="0.35"/>
+                <rect x="42" y="24" width="16" height="14" rx="3" fill="${c.accent}"/>
+                <path d="M32 16 V11 C32 8 34 6 37 6 H63 C66 6 68 8 68 11 V16" fill="none" stroke="${c.accent}" stroke-width="3"/>
+              </svg>
+            </div>
+
+            <div>
+              <div class="text-xs sm:text-sm font-black text-white">${c.name}</div>
+              <div class="text-[10px] text-slate-400 line-clamp-1 mt-0.5">${c.subtitle}</div>
+            </div>
+          </button>
+        `;
+      }).join('');
+
+      // Шапка рулетки
+      document.getElementById('active-case-title').textContent = activeCase.name;
+      document.getElementById('active-case-price-tag').textContent = formatRub(activeCase.price, 0);
+      document.getElementById('active-case-subtitle').textContent = activeCase.subtitle;
+      document.getElementById('btn-open-case-spin').textContent = `ОТКРЫТЬ КЕЙС • ${formatRub(activeCase.price, 0)}`;
+
+      document.getElementById('active-case-icon').innerHTML = `
+        <svg viewBox="0 0 100 72" class="w-9 h-7">
+          <rect x="12" y="16" width="76" height="46" rx="8" fill="#121622" stroke="${activeCase.accent}" stroke-width="3"/>
+          <rect x="42" y="24" width="16" height="14" rx="3" fill="${activeCase.accent}"/>
+        </svg>
+      `;
+
+      // Заполнение начальной ленты и содержимого кейса
+      populateRouletteStrip(activeCase, null);
+
+      const totalW = activeCase.pool.reduce((s, p) => s + p.weight, 0);
+      const contentsGrid = document.getElementById('active-case-contents-grid');
+      contentsGrid.innerHTML = activeCase.pool
+        .map((entry) => {
+          const skin = CS_SKINS.find((s) => s.id === entry.skinId);
+          const r = CS_RARITIES[skin.rarity];
+          const pct = ((entry.weight / totalW) * 100).toFixed(1);
+          return `
+            <div class="rounded-xl bg-[#181d2d] border border-white/[0.07] p-2.5 flex flex-col justify-between">
+              <div class="flex items-center justify-between font-mono text-[10px]">
+                <span class="text-slate-400">${pct}%</span>
+                <span class="font-bold text-yellow-400">${formatRub(skin.price, 0)}</span>
+              </div>
+              <div class="my-1.5 flex items-center justify-center">
+                ${renderSkinSVG(skin, 'w-20 h-12')}
+              </div>
+              <div>
+                <div class="text-[9px] font-bold text-slate-400 truncate">${skin.weapon}</div>
+                <div class="text-[11px] font-extrabold text-white truncate">${skin.skin}</div>
+              </div>
+              <div class="mt-1.5 h-1 w-full rounded-full" style="background-color: ${r.color}"></div>
+            </div>
+          `;
+        })
+        .join('');
+    }
+
+    function populateRouletteStrip(caseObj, winningSkin, winIndex = 36) {
+      const strip = document.getElementById('case-roulette-strip');
+      strip.style.transform = 'translateX(0px)';
+      const cards = [];
+
+      for (let i = 0; i < 46; i++) {
+        let skin;
+        if (winningSkin && i === winIndex) {
+          skin = winningSkin;
+        } else {
+          skin = pickWeightedCaseSkin(caseObj, Math.random() * 100);
+        }
+        const r = CS_RARITIES[skin.rarity];
+        cards.push(`
+          <div class="shrink-0 w-[136px] h-[116px] rounded-xl bg-[#121622] border border-white/[0.08] p-2 flex flex-col justify-between">
+            <div class="flex items-center justify-between font-mono text-[9px]">
+              <span class="text-slate-400">${skin.float}</span>
+              <span class="font-bold text-yellow-400">${formatRub(skin.price, 0)}</span>
+            </div>
+            <div class="flex items-center justify-center">
+              ${renderSkinSVG(skin, 'w-20 h-12')}
+            </div>
+            <div>
+              <div class="text-[9px] text-slate-400 truncate">${skin.weapon}</div>
+              <div class="text-[10px] font-extrabold text-white truncate">${skin.skin}</div>
+              <div class="mt-1 h-1 w-full rounded-full" style="background-color: ${r.color}"></div>
+            </div>
+          </div>
+        `);
+      }
+
+      strip.innerHTML = cards.join('');
+    }
+
+    async function openSelectedCase() {
+      if (state.isCaseSpinning || state.pendingCaseDrop) return;
+      const activeCase = getActiveCase();
+
+      if (state.balance < activeCase.price) {
+        showToast('Недостаточно демо-баланса! Нажмите «+ Пополнить» или используйте промокод.', 'error');
+        return;
+      }
+
+      state.isCaseSpinning = true;
+      sfx.init();
+
+      state.balance = Number((state.balance - activeCase.price).toFixed(2));
+      updateAllBalances();
+
+      const btnOpen = document.getElementById('btn-open-case-spin');
+      btnOpen.disabled = true;
+
+      const proof = await computeProvablyFairRoll();
+      const winningSkin = pickWeightedCaseSkin(activeCase, proof.roll);
+      const winIndex = 36;
+
+      populateRouletteStrip(activeCase, winningSkin, winIndex);
+
+      const viewport = document.getElementById('case-roulette-viewport');
+      const strip = document.getElementById('case-roulette-strip');
+      const cardWidth = 136;
+      const gap = 10; // gap-2.5
+      const stepPx = cardWidth + gap;
+      const centerOffset = viewport.clientWidth / 2 - cardWidth / 2;
+      const jitter = (Math.random() - 0.5) * (cardWidth * 0.55);
+      const targetTranslate = -(winIndex * stepPx - centerOffset + jitter);
+
+      const isFast = document.getElementById('checkbox-fast-case').checked;
+      const duration = isFast ? 1300 : 4400;
+      const startTime = performance.now();
+      let lastCardIdx = 0;
+
+      function animateTape(now) {
+        const elapsed = now - startTime;
+        const p = Math.min(1, elapsed / duration);
+        const eased = 1 - Math.pow(1 - p, 4);
+        const curX = targetTranslate * eased;
+        strip.style.transform = `translateX(${curX}px)`;
+
+        const curIdx = Math.floor(Math.abs(curX) / stepPx);
+        if (curIdx > lastCardIdx) {
+          sfx.tick(1 - p);
+          lastCardIdx = curIdx;
+        }
+
+        if (p < 1) {
+          requestAnimationFrame(animateTape);
+        } else {
+          finishCaseOpen(winningSkin, proof);
+        }
+      }
+
+      requestAnimationFrame(animateTape);
+    }
+
+    async function finishCaseOpen(winningSkin, proof) {
+      state.isCaseSpinning = false;
+      state.pendingCaseDrop = winningSkin;
+      state.lastProof = proof;
+      state.nonce += 1;
+      await rotateServerSeed();
+
+      sfx.goldWin();
+      pushLiveDrop('Игрок #1337', winningSkin, 'КЕЙС', true);
+
+      const r = CS_RARITIES[winningSkin.rarity];
+      const overlay = document.getElementById('case-winner-overlay');
+      const rarBadge = document.getElementById('case-winner-rarity');
+
+      document.getElementById('case-winner-art').innerHTML = renderSkinSVG(winningSkin, 'w-32 h-20');
+      rarBadge.textContent = r.label;
+      rarBadge.style.backgroundColor = r.color + '25';
+      rarBadge.style.color = r.color;
+      rarBadge.style.border = `1px solid ${r.color}66`;
+
+      document.getElementById('case-winner-name').textContent = `${winningSkin.weapon} | ${winningSkin.skin} (${winningSkin.float})`;
+      document.getElementById('case-winner-price').textContent = formatRub(winningSkin.price);
+      document.getElementById('btn-case-sell').textContent = `Продать сразу за ${formatRub(winningSkin.price, 0)}`;
+
+      overlay.classList.remove('hidden');
+      overlay.classList.add('flex');
+    }
+
+    function resolveCaseWinner(keepInInventory) {
+      const drop = state.pendingCaseDrop;
+      if (!drop) return;
+
+      if (keepInInventory) {
+        const owned = createOwnedSkin(drop.id);
+        state.inventory.push(owned);
+        if (!state.selectedSourceUid) state.selectedSourceUid = owned.uid;
+        renderInventoryDeck();
+        renderUpgraderArena();
+        showToast(`Скин «${drop.weapon} | ${drop.skin}» отправлен в инвентарь!`, 'success');
+      } else {
+        state.balance = Number((state.balance + drop.price).toFixed(2));
+        updateAllBalances();
+        showToast(`Продано за +${formatRub(drop.price)}`, 'info');
+      }
+
+      state.pendingCaseDrop = null;
+      const overlay = document.getElementById('case-winner-overlay');
+      overlay.classList.add('hidden');
+      overlay.classList.remove('flex');
+      document.getElementById('btn-open-case-spin').disabled = false;
+    }
+
+    /**
+     * 12. ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК И ПРИВЯЗКА ВСЕХ СОБЫТИЙ
+     */
+    function switchMainTab(tabName) {
+      state.activeTab = tabName;
+      const upgraderView = document.getElementById('view-upgrader');
+      const casesView = document.getElementById('view-cases');
+      const tabUpgraderBtn = document.getElementById('nav-tab-upgrader');
+      const tabCasesBtn = document.getElementById('nav-tab-cases');
+
+      if (tabName === 'upgrader') {
+        upgraderView.classList.remove('hidden');
+        casesView.classList.add('hidden');
+        tabUpgraderBtn.className = 'nav-tab-btn px-3.5 py-2 rounded-lg text-xs font-extrabold uppercase tracking-wide bg-yellow-400 text-slate-950 shadow-[0_0_15px_rgba(250,204,21,0.25)] transition cursor-pointer flex items-center gap-1.5';
+        tabCasesBtn.className = 'nav-tab-btn px-3.5 py-2 rounded-lg text-xs font-extrabold uppercase tracking-wide text-slate-300 hover:text-white hover:bg-white/[0.04] transition cursor-pointer flex items-center gap-1.5';
+        renderUpgraderArena();
+        renderCatalogDeck();
+      } else {
+        upgraderView.classList.add('hidden');
+        casesView.classList.remove('hidden');
+        tabCasesBtn.className = 'nav-tab-btn px-3.5 py-2 rounded-lg text-xs font-extrabold uppercase tracking-wide bg-yellow-400 text-slate-950 shadow-[0_0_15px_rgba(250,204,21,0.25)] transition cursor-pointer flex items-center gap-1.5';
+        tabUpgraderBtn.className = 'nav-tab-btn px-3.5 py-2 rounded-lg text-xs font-extrabold uppercase tracking-wide text-slate-300 hover:text-white hover:bg-white/[0.04] transition cursor-pointer flex items-center gap-1.5';
+        renderCasesSection();
+      }
+      sfx.click(560);
+    }
+
+    function bindEvents() {
+      // Навигация между АПГРЕЙД и КЕЙСЫ
+      document.getElementById('nav-tab-upgrader').addEventListener('click', () => switchMainTab('upgrader'));
+      document.getElementById('nav-tab-cases').addEventListener('click', () => switchMainTab('cases'));
+      document.getElementById('brand-logo-btn').addEventListener('click', (e) => {
+        e.preventDefault();
+        switchMainTab('upgrader');
+      });
+
+      // Фильтр ленты лайв-дропов
+      document.getElementById('filter-live-all').addEventListener('click', (e) => {
+        state.liveFilter = 'all';
+        e.currentTarget.className = 'px-2 py-0.5 rounded-md text-[10px] font-bold bg-yellow-400 text-slate-950 transition cursor-pointer';
+        document.getElementById('filter-live-top').className = 'px-2 py-0.5 rounded-md text-[10px] font-bold text-slate-400 hover:text-white transition cursor-pointer';
+        renderLiveDropRibbon();
+      });
+
+      document.getElementById('filter-live-top').addEventListener('click', (e) => {
+        state.liveFilter = 'top';
+        e.currentTarget.className = 'px-2 py-0.5 rounded-md text-[10px] font-bold bg-yellow-400 text-slate-950 transition cursor-pointer';
+        document.getElementById('filter-live-all').className = 'px-2 py-0.5 rounded-md text-[10px] font-bold text-slate-400 hover:text-white transition cursor-pointer';
+        renderLiveDropRibbon();
+      });
+
+      // Звук
+      document.getElementById('btn-sound-toggle').addEventListener('click', () => {
+        const on = sfx.toggle();
+        document.getElementById('icon-sound-on').classList.toggle('hidden', !on);
+        document.getElementById('icon-sound-off').classList.toggle('hidden', on);
+      });
+
+      // Модальное окно Бонус / Промо / Пополнение
+      const openPromo = () => {
+        const m = document.getElementById('promo-modal');
+        m.classList.remove('hidden');
+        m.classList.add('flex');
+        updateAllBalances();
+      };
+      document.getElementById('nav-btn-promo').addEventListener('click', openPromo);
+      document.getElementById('btn-open-topup').addEventListener('click', openPromo);
+      document.getElementById('btn-close-promo').addEventListener('click', () => {
+        document.getElementById('promo-modal').classList.add('hidden');
+        document.getElementById('promo-modal').classList.remove('flex');
+      });
+      document.getElementById('promo-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'promo-modal') {
+          e.currentTarget.classList.add('hidden');
+          e.currentTarget.classList.remove('flex');
+        }
+      });
+
+      document.querySelectorAll('.demo-add-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const add = Number(btn.dataset.demoAdd);
+          state.balance = Number((state.balance + add).toFixed(2));
+          sfx.goldWin();
+          updateAllBalances();
+          renderCatalogDeck();
+          renderUpgraderArena();
+          showToast(`Демо-баланс пополнен на +${formatRub(add, 0)}`, 'success');
+        });
+      });
+
+      document.querySelectorAll('.fill-promo-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.getElementById('promo-code-input').value = btn.dataset.fillPromo;
+        });
+      });
+
+      document.getElementById('btn-apply-promo').addEventListener('click', () => {
+        const code = document.getElementById('promo-code-input').value.trim().toUpperCase();
+        const PROMO_REWARDS = {
+          MUSOR: 777,
+          SHIRP: 333,
+          GABEN: 1337,
+          DROP: 1000,
+        };
+
+        if (!PROMO_REWARDS[code]) {
+          showToast('Неизвестный промокод! Попробуйте MUSOR, SHIRP, GABEN или DROP.', 'error');
+          return;
+        }
+        if (state.usedPromos.has(code)) {
+          showToast(`Промокод ${code} уже активирован в этой сессии!`, 'info');
+          return;
+        }
+
+        state.usedPromos.add(code);
+        const reward = PROMO_REWARDS[code];
+        state.balance = Number((state.balance + reward).toFixed(2));
+        sfx.goldWin();
+        updateAllBalances();
+        renderCatalogDeck();
+        renderUpgraderArena();
+        showToast(`Промокод ${code} активирован! Начислено +${formatRub(reward, 0)}`, 'success');
+      });
+
+      // Модальное окно Provably Fair SHA-256
+      document.getElementById('btn-open-pf').addEventListener('click', () => openProofInspector(state.lastProof));
+      document.getElementById('btn-close-pf').addEventListener('click', () => {
+        document.getElementById('pf-modal').classList.add('hidden');
+        document.getElementById('pf-modal').classList.remove('flex');
+      });
+      document.getElementById('pf-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'pf-modal') {
+          e.currentTarget.classList.add('hidden');
+          e.currentTarget.classList.remove('flex');
+        }
+      });
+
+      document.getElementById('pf-client-seed-input').addEventListener('input', (e) => {
+        state.clientSeed = e.target.value.trim() || 'anon_cs2';
+      });
+      document.getElementById('btn-randomize-seed').addEventListener('click', () => {
+        const seed = 'cs2_' + generateHexSeed(6);
+        state.clientSeed = seed;
+        document.getElementById('pf-client-seed-input').value = seed;
+        sfx.click(620);
+      });
+
+      // Доплата с баланса (ползунок, инпут, быстрые пресеты)
+      const handleTopupChange = (val) => {
+        if (state.isUpgrading) return;
+        const clamped = Math.max(0, Math.min(Math.floor(state.balance), Number(val) || 0));
+        state.balanceTopup = clamped;
+        syncBalanceTopupUI();
+
+        const target = getSelectedTargetSkin();
+        if (target && target.price <= getTotalStake()) {
+          state.selectedTargetId = null;
+        }
+        renderCatalogDeck();
+        renderUpgraderArena();
+      };
+
+      document.getElementById('balance-topup-slider').addEventListener('input', (e) => handleTopupChange(e.target.value));
+      document.getElementById('balance-topup-input').addEventListener('input', (e) => handleTopupChange(e.target.value));
+
+      document.querySelectorAll('.topup-preset-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          if (state.isUpgrading) return;
+          const preset = btn.dataset.topupPreset;
+          if (preset === '0') handleTopupChange(0);
+          else if (preset === 'MAX') handleTopupChange(Math.floor(state.balance));
+          else handleTopupChange(state.balanceTopup + Number(preset));
+          sfx.click(580);
+        });
+      });
+
+      // Выбор скина из инвентаря / продажа
+      document.getElementById('inventory-grid').addEventListener('click', (e) => {
+        if (state.isUpgrading) return;
+
+        const sellBtn = e.target.closest('[data-sell-uid]');
+        if (sellBtn) {
+          e.stopPropagation();
+          const uid = sellBtn.dataset.sellUid;
+          const idx = state.inventory.findIndex((i) => i.uid === uid);
+          if (idx === -1) return;
+          const sold = state.inventory[idx];
+          state.inventory.splice(idx, 1);
+          if (state.selectedSourceUid === uid) state.selectedSourceUid = null;
+          state.balance = Number((state.balance + sold.price).toFixed(2));
+          sfx.click(680);
+          updateAllBalances();
+          renderInventoryDeck();
+          renderCatalogDeck();
+          renderUpgraderArena();
+          showToast(`Продано: ${sold.weapon} | ${sold.skin} (+${formatRub(sold.price, 0)})`, 'info');
+          return;
+        }
+
+        const card = e.target.closest('[data-inv-uid]');
+        if (!card) return;
+        const uid = card.dataset.invUid;
+        state.selectedSourceUid = state.selectedSourceUid === uid ? null : uid;
+
+        const target = getSelectedTargetSkin();
+        if (target && target.price <= getTotalStake()) {
+          state.selectedTargetId = null;
+        }
+
+        sfx.click(520);
+        renderInventoryDeck();
+        renderCatalogDeck();
+        renderUpgraderArena();
+      });
+
+      // Продать всё из инвентаря
+      document.getElementById('btn-sell-all').addEventListener('click', () => {
+        if (state.isUpgrading || state.inventory.length === 0) return;
+        const sum = state.inventory.reduce((acc, s) => acc + s.price, 0);
+        state.inventory = [];
+        state.selectedSourceUid = null;
+        state.balance = Number((state.balance + sum).toFixed(2));
+        sfx.goldWin();
+        updateAllBalances();
+        renderInventoryDeck();
+        renderCatalogDeck();
+        renderUpgraderArena();
+        showToast(`Весь инвентарь продан за +${formatRub(sum, 0)}`, 'info');
+      });
+
+      // Очистка выбранного исходного или целевого скина
+      document.getElementById('btn-clear-source').addEventListener('click', () => {
+        if (state.isUpgrading) return;
+        state.selectedSourceUid = null;
+        renderInventoryDeck();
+        renderCatalogDeck();
+        renderUpgraderArena();
+      });
+
+      document.getElementById('btn-clear-target').addEventListener('click', () => {
+        if (state.isUpgrading) return;
+        state.selectedTargetId = null;
+        renderCatalogDeck();
+        renderUpgraderArena();
+      });
+
+      // Выбор желаемого скина из каталога CS2
+      document.getElementById('catalog-grid').addEventListener('click', (e) => {
+        if (state.isUpgrading) return;
+        const card = e.target.closest('[data-catalog-id]');
+        if (!card || card.disabled) return;
+        const id = card.dataset.catalogId;
+        state.selectedTargetId = state.selectedTargetId === id ? null : id;
+        sfx.click(590);
+        renderCatalogDeck();
+        renderUpgraderArena();
+      });
+
+      // Поиск, сортировка и фильтры редкости каталога CS2
+      document.getElementById('catalog-search-input').addEventListener('input', (e) => {
+        state.catalogSearch = e.target.value;
+        renderCatalogDeck();
+      });
+
+      document.getElementById('btn-sort-catalog').addEventListener('click', (e) => {
+        state.catalogSortAsc = !state.catalogSortAsc;
+        e.currentTarget.textContent = state.catalogSortAsc ? 'Дешевле ↑' : 'Дороже ↓';
+        sfx.click(480);
+        renderCatalogDeck();
+      });
+
+      document.querySelectorAll('.rarity-pill').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.rarity-pill').forEach((b) => {
+            b.classList.remove('active', 'bg-yellow-400', 'text-slate-950');
+            b.classList.add('bg-[#181d2d]', 'border', 'border-white/[0.07]');
+          });
+          btn.classList.add('active', 'bg-yellow-400', 'text-slate-950');
+          btn.classList.remove('bg-[#181d2d]', 'border', 'border-white/[0.07]');
+          state.catalogRarity = btn.dataset.rarity;
+          sfx.click(520);
+          renderCatalogDeck();
+        });
+      });
+
+      // Переключатель «Шанс: Сверху» / «Шанс: Снизу»
+      document.getElementById('btn-toggle-sector').addEventListener('click', () => {
+        if (state.isUpgrading) return;
+        state.sectorTop = !state.sectorTop;
+        document.getElementById('sector-pos-label').textContent = state.sectorTop ? 'Шанс: Сверху' : 'Шанс: Снизу';
+        sfx.click(640);
+        renderUpgraderArena();
+      });
+
+      // Быстрые множители: 1.5x, 2x, 3x, 5x, 10x, MAX
+      document.querySelectorAll('.mult-preset-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          if (state.isUpgrading) return;
+          let stake = getTotalStake();
+
+          if (stake <= 0) {
+            if (state.inventory.length > 0) {
+              const cheapest = [...state.inventory].sort((a, b) => a.price - b.price)[0];
+              state.selectedSourceUid = cheapest.uid;
+              stake = cheapest.price;
+            } else if (state.balance >= 50) {
+              state.balanceTopup = Math.min(100, Math.floor(state.balance));
+              syncBalanceTopupUI();
+              stake = state.balanceTopup;
+            } else {
+              showToast('Выберите скин или пополните демо-баланс!', 'error');
+              return;
+            }
+          }
+
+          const validTargets = CS_SKINS.filter((s) => s.price > stake);
+          if (validTargets.length === 0) {
+            showToast('Ваша ставка уже выше любого скина в каталоге!', 'info');
+            return;
+          }
+
+          const multStr = btn.dataset.mult;
+          let chosen;
+          if (multStr === 'MAX') {
+            chosen = validTargets.reduce((max, cur) => (cur.price > max.price ? cur : max), validTargets[0]);
+          } else {
+            const desiredPrice = stake * parseFloat(multStr);
+            chosen = validTargets[0];
+            let bestDiff = Math.abs(chosen.price - desiredPrice);
+            for (const cand of validTargets) {
+              const diff = Math.abs(cand.price - desiredPrice);
+              if (diff < bestDiff) {
+                bestDiff = diff;
+                chosen = cand;
+              }
+            }
+          }
+
+          state.selectedTargetId = chosen.id;
+          sfx.click(620);
+          renderInventoryDeck();
+          renderCatalogDeck();
+          renderUpgraderArena();
+        });
+      });
+
+      // Кнопка запуска апгрейда
+      document.getElementById('btn-upgrade-spin').addEventListener('click', executeUpgradeSpin);
+
+      // Клик по кнопке SHA-256 в истории апгрейдов
+      document.getElementById('upgrade-history-list').addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-verify-idx]');
+        if (!btn) return;
+        const entry = state.upgradeHistory[Number(btn.dataset.verifyIdx)];
+        if (entry && entry.proof) openProofInspector(entry.proof);
+      });
+
+      // События вкладки «КЕЙСЫ»
+      document.getElementById('cases-selector-grid').addEventListener('click', (e) => {
+        if (state.isCaseSpinning || state.pendingCaseDrop) return;
+        const card = e.target.closest('[data-case-id]');
+        if (!card) return;
+        state.selectedCaseId = card.dataset.caseId;
+        sfx.click(560);
+        renderCasesSection();
+      });
+
+      document.getElementById('btn-open-case-spin').addEventListener('click', openSelectedCase);
+      document.getElementById('btn-case-keep').addEventListener('click', () => resolveCaseWinner(true));
+      document.getElementById('btn-case-sell').addEventListener('click', () => resolveCaseWinner(false));
+    }
+
+    // Старт приложения
+    window.addEventListener('DOMContentLoaded', async () => {
+      state.inventory = STARTER_SKIN_IDS.map((id) => createOwnedSkin(id));
+      buildWheelDegreeTicks();
+      updateAllBalances();
+      bindEvents();
+      renderInventoryDeck();
+      renderCatalogDeck();
+      renderUpgraderArena();
+      renderCasesSection();
+      startLiveDropFeed();
+      await rotateServerSeed();
+    });
+  </script>
+</body>
+</html>
